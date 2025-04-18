@@ -28,6 +28,8 @@ function App() {
   const [dataToImport, setDataToImport] = useState<WishlistItemType[] | null>(null);
   const [showImportSuccessToast, setShowImportSuccessToast] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   // useEffect(() => {
   //   fetchExchangeRates(EXCHANGE_RATE_API_URL)
@@ -74,6 +76,23 @@ function App() {
     // Очистка таймера при размонтировании или если уведомление закрылось раньше
     return () => clearTimeout(timer);
   }, [showImportSuccessToast]);
+
+  // Эффект для закрытия выпадающего списка сортировки при клике вне его области
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
+      }
+    };
+
+    if (showSortDropdown) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [showSortDropdown]);
 
   const handleAddItem = (newItem: Omit<WishlistItemType, 'id' | 'isBought'>) => {
     const itemToAdd: WishlistItemType = { 
@@ -393,33 +412,98 @@ function App() {
                   {wishlist.length} {getItemsCountText(wishlist.length)}
                 </span>
                 
-                <div className="flex items-center gap-1.5 text-xs text-sm flex-wrap">
-                  <span className="text-gray-500 mr-1">Сортировать:</span>
-                  <button 
-                    onClick={() => setSortBy('default')}
-                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'default' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-                  >
-                    Стандарт
-                  </button>
-                  <button 
-                    onClick={() => setSortBy('type-asc')}
-                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'type-asc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-                  >
-                    Тип А-Я
-                  </button>
-                  <button 
-                    onClick={() => setSortBy('price-asc')}
-                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'price-asc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-                  >
-                    Цена ↑
-                  </button>
-                  <button 
-                    onClick={() => setSortBy('price-desc')}
-                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'price-desc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-                  >
-                    Цена ↓
-                  </button>
-                </div>
+                {isMobile ? (
+                  // Мобильная версия - выпадающий список
+                  <div className="relative" ref={sortDropdownRef}>
+                    <button 
+                      onClick={() => setShowSortDropdown(!showSortDropdown)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 shadow-sm"
+                      aria-label="Открыть параметры сортировки"
+                    >
+                      <span className="font-medium">
+                        {sortBy === 'default' && 'Стандарт'}
+                        {sortBy === 'type-asc' && 'Тип А-Я'}
+                        {sortBy === 'price-asc' && 'Цена ↑'}
+                        {sortBy === 'price-desc' && 'Цена ↓'}
+                      </span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showSortDropdown && (
+                      <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-36">
+                        <button 
+                          onClick={() => {
+                            setSortBy('default');
+                            setShowSortDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm ${sortBy === 'default' ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'}`}
+                        >
+                          Стандарт
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setSortBy('type-asc');
+                            setShowSortDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm ${sortBy === 'type-asc' ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'}`}
+                        >
+                          Тип А-Я
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setSortBy('price-asc');
+                            setShowSortDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm ${sortBy === 'price-asc' ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'}`}
+                        >
+                          Цена ↑
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setSortBy('price-desc');
+                            setShowSortDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm ${sortBy === 'price-desc' ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'}`}
+                        >
+                          Цена ↓
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Десктопная версия - кнопки в ряд
+                  <div className="flex items-center gap-1.5 text-xs text-sm flex-wrap">
+                    <span className="text-gray-500 mr-1">Сортировать:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button 
+                        onClick={() => setSortBy('default')}
+                        className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'default' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                      >
+                        Стандарт
+                      </button>
+                      <button 
+                        onClick={() => setSortBy('type-asc')}
+                        className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'type-asc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                      >
+                        Тип А-Я
+                      </button>
+                      <button 
+                        onClick={() => setSortBy('price-asc')}
+                        className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-asc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                      >
+                        Цена ↑
+                      </button>
+                      <button 
+                        onClick={() => setSortBy('price-desc')}
+                        className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-desc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                      >
+                        Цена ↓
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
