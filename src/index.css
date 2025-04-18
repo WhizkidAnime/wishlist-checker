@@ -5,6 +5,22 @@
 
 body {
   background-color: #f9fafb;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Отключение автомасштабирования для iOS */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="password"],
+textarea {
+  font-size: 16px; /* Предотвращает масштабирование на iOS */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 /* Скрываем стрелки в полях ввода чисел */
