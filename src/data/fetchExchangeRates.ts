@@ -1,5 +1,3 @@
-import type { Record } from 'typescript';
-
 /**
  * Получить актуальные курсы валют относительно baseCurrency (по умолчанию RUB)
  * @param baseCurrency - базовая валюта (например, 'RUB')

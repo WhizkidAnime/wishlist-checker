@@ -106,7 +106,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     setComment('');
   };
 
-  const handleInputChange = <K extends keyof FormErrors | 'comment'>(field: K, value: string) => {
+  const handleInputChange = <K extends keyof FormErrors | 'link' | 'comment'>(field: K, value: string) => {
     // Обновляем состояние поля
     if (field === 'itemType') setItemType(value);
     else if (field === 'name') setName(value);
@@ -115,8 +115,8 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     else if (field === 'comment') setComment(value);
 
     // Очищаем ошибку для этого поля при вводе
-    if (errors[field as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [field as keyof FormErrors]: undefined }));
+    if (field in errors) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
   
