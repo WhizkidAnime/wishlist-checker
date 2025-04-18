@@ -16,6 +16,8 @@ export interface WishlistItem {
   currency: string;
   /** Флаг, указывающий, куплен ли товар */
   isBought: boolean;
+  /** Необязательный комментарий к товару */
+  comment?: string;
 }
 
 /**
@@ -28,5 +30,6 @@ export const exampleWishlistItem: WishlistItem = {
   link: 'https://example.com/samsung-galaxy-s21',
   price: 69990,
   currency: 'RUB',
-  isBought: false
+  isBought: false,
+  comment: 'Пример комментария'
 };

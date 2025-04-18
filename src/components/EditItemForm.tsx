@@ -24,6 +24,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
     name: item.name || '',
     link: item.link || '',
     price: item.price.toString() || '',
+    comment: item.comment || '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   
@@ -34,12 +35,13 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
         name: item.name || '',
         link: item.link || '',
         price: item.price.toString() || '',
+        comment: item.comment || '',
     });
     setErrors({}); 
   }, [item]);
 
   // Обработчик изменения поля ввода
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name: fieldName, value } = e.target;
     setFormData(prev => ({ ...prev, [fieldName]: value }));
 
@@ -92,6 +94,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
       name: formData.name.trim(),
       link: formData.link.trim(),
       price: Number(formData.price),
+      comment: formData.comment.trim() || undefined,
     };
     
     onUpdateItem(updatedItem);
@@ -175,6 +178,22 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
               </div>
             </div>
             {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
+          </div>
+
+          {/* Комментарий (опционально) */}
+          <div className="md:col-span-2">
+            <label htmlFor={`edit-comment-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              Комментарий (опционально)
+            </label>
+            <textarea
+              id={`edit-comment-${item.id}`}
+              name="comment"
+              value={formData.comment}
+              onChange={handleChange}
+              rows={2}
+              className="w-full px-3 py-1.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm resize-y"
+              autoComplete="off"
+            />
           </div>
         </div>
         

@@ -20,6 +20,7 @@ interface WishlistItemProps {
   onMoveItem: (id: string | number, direction: 'up' | 'down') => void;
   index: number;
   totalItems: number;
+  comment?: string;
 }
 
 /**
@@ -40,7 +41,8 @@ export const WishlistItem = ({
   isMobile,
   onMoveItem,
   index,
-  totalItems
+  totalItems,
+  comment
 }: WishlistItemProps) => {
 
   const { 
@@ -106,6 +108,11 @@ export const WishlistItem = ({
               {item.itemType && (
                 <div className="text-xs text-gray-500 truncate mt-0.5">
                   {item.itemType}
+                </div>
+              )}
+              {comment && (
+                <div className="text-xs text-gray-600 mt-1 break-words">
+                  {comment}
                 </div>
               )}
             </div>
@@ -237,6 +244,11 @@ export const WishlistItem = ({
           <div className="text-xs sm:text-sm text-gray-500 sm:text-gray-600 mt-1 sm:mt-0 truncate">
             {item.itemType}
           </div>
+          {comment && (
+            <div className="text-xs text-gray-600 mt-1 break-words">
+              {comment}
+            </div>
+          )}
         </div>
         
         <div className="text-right text-gray-700 font-medium ml-auto mr-4 flex-shrink-0">

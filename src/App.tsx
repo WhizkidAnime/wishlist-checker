@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import './App.css'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -27,6 +27,7 @@ function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [dataToImport, setDataToImport] = useState<WishlistItemType[] | null>(null);
   const [showImportSuccessToast, setShowImportSuccessToast] = useState(false);
+  const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
 
   // useEffect(() => {
   //   fetchExchangeRates(EXCHANGE_RATE_API_URL)
@@ -64,7 +65,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (showImportSuccessToast) {
       timer = setTimeout(() => {
         setShowImportSuccessToast(false);
@@ -80,7 +81,7 @@ function App() {
       id: Date.now().toString(),
       isBought: false 
     };
-    setWishlist([...wishlist, itemToAdd]);
+    setWishlist([itemToAdd, ...wishlist]);
   };
 
   const handleDeleteItem = (id: string | number) => {
@@ -151,13 +152,38 @@ function App() {
   const filteredAndSortedWishlist = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     
-    const filtered = query 
+    let filtered = query 
       ? wishlist.filter(item => 
           item.name.toLowerCase().includes(query) || 
           (item.itemType && item.itemType.toLowerCase().includes(query))
         )
-      : wishlist;
+      : [...wishlist]; // Создаем копию, чтобы не мутировать исходный массив
 
+    // Применяем сортировку в зависимости от sortBy
+    switch (sortBy) {
+      case 'price-asc':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'type-asc':
+        filtered.sort((a, b) => {
+          const typeA = a.itemType?.toLowerCase() || ''; // Обработка возможного отсутствия типа
+          const typeB = b.itemType?.toLowerCase() || '';
+          const typeCompare = typeA.localeCompare(typeB);
+          if (typeCompare !== 0) {
+            return typeCompare;
+          }
+          // Если типы одинаковые, сортируем по имени
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
+        break;
+      // case 'default': // Сортировка по умолчанию (некупленные/купленные) применяется ниже
+      //   break;
+    }
+
+    // Разделяем на купленные и некупленные ПОСЛЕ основной сортировки
     const unbought: WishlistItemType[] = [];
     const bought: WishlistItemType[] = [];
     filtered.forEach(item => {
@@ -168,7 +194,7 @@ function App() {
       }
     });
     return [...unbought, ...bought];
-  }, [wishlist, searchQuery]);
+  }, [wishlist, searchQuery, sortBy]);
 
   const totalUnbought = useMemo(() => {
     return wishlist
@@ -302,7 +328,7 @@ function App() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={filteredAndSortedWishlist.map(item => item.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={sortBy === 'default' ? filteredAndSortedWishlist.map(item => item.id) : []} strategy={verticalListSortingStrategy} disabled={sortBy !== 'default'}>
         <div className="min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 bg-gray-50">
           <h1 className="text-2xl sm:text-3xl font-semibold text-center text-gray-800 mb-6 sm:mb-8">Wishlist checker</h1>
           
@@ -310,7 +336,10 @@ function App() {
             <AddItemForm onAddItem={handleAddItem} />
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 mb-4 gap-4 border-b pb-4 border-gray-200">
-              <h2 className="text-xl sm:text-2xl font-semibold text-black">Список желаний</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-black whitespace-nowrap">Список желаний</h2>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 mb-4 gap-4 border-b pb-4 border-gray-200">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <div className="relative flex-grow sm:flex-grow-0 w-full sm:w-48">
                   <input 
@@ -354,9 +383,40 @@ function App() {
                       Импорт
                     </button>
                 </div>
-                <span className="text-sm text-gray-500 whitespace-nowrap text-right sm:text-left">
+              </div>
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <span className="text-sm text-gray-500 whitespace-nowrap text-right sm:text-left mt-2 sm:mt-0">
                   {wishlist.length} {getItemsCountText(wishlist.length)}
                 </span>
+                
+                <div className="flex items-center gap-1.5 text-xs sm:text-sm flex-wrap">
+                  <span className="text-gray-500 mr-1 hidden sm:inline">Сортировать:</span>
+                  <button 
+                    onClick={() => setSortBy('default')}
+                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'default' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                  >
+                    Стандарт
+                  </button>
+                  <button 
+                    onClick={() => setSortBy('type-asc')}
+                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'type-asc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                  >
+                    Тип А-Я
+                  </button>
+                  <button 
+                    onClick={() => setSortBy('price-asc')}
+                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'price-asc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                  >
+                    Цена ↑
+                  </button>
+                  <button 
+                    onClick={() => setSortBy('price-desc')}
+                    className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'price-desc' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                  >
+                    Цена ↓
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -380,6 +440,7 @@ function App() {
                     onMoveItem={handleMoveItem}
                     index={index}
                     totalItems={filteredAndSortedWishlist.length}
+                    comment={item.comment}
                   />
                 ))}
               </div>
@@ -406,15 +467,22 @@ function App() {
                   </div>
 
                   {selectedCount > 0 && (
-                    <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-sm sm:text-base">
-                      <div className="font-semibold text-indigo-800 mb-2">
-                        Выбрано для расчета: {selectedCount}
-                      </div>
-                      <div className="max-h-24 overflow-y-auto text-xs space-y-0.5 mb-2 pr-1">
+                    <div className="mt-6 bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm sm:text-base relative shadow"> 
+                      <button 
+                        onClick={() => setSelectedItemIds([])} 
+                        className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors"
+                        aria-label="Очистить выбранные"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <h3 className="font-semibold text-indigo-800 mb-2">Выбрано для расчета: {selectedCount}</h3>
+                      <ul className="max-h-40 overflow-y-auto mb-2 pr-2 space-y-1"> 
                         {selectedItems.map(item => (
-                          <div key={item.id} className="text-indigo-700 truncate" title={item.name}>{item.name}</div>
-                        ))} 
-                      </div>
+                          <li key={item.id} className="text-indigo-700 truncate" title={item.name}>{item.name}</li>
+                        ))}
+                      </ul>
                       <div className="text-base text-indigo-800 mt-1">
                         Сумма выбранных: <span className="font-medium text-indigo-900">{selectedTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
                       </div>
