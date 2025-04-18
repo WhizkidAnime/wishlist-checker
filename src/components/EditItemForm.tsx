@@ -101,11 +101,11 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 border-b border-gray-200 shadow-inner">
+    <div className="p-4 bg-gray-50 border-b border-gray-200 shadow-inner">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {/* Тип товара */}
-          <div className="flex-1 min-w-[200px]">
+          <div>
             <label htmlFor={`edit-itemType-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Тип (опционально)
             </label>
@@ -115,14 +115,14 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
               name="itemType"
               value={formData.itemType}
               onChange={handleChange}
-              className={`w-full px-3 py-1.5 border ${errors.itemType ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
+              className={`w-full px-3 py-2 border ${errors.itemType ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
               autoComplete="off"
             />
             {errors.itemType && <p className="mt-1 text-xs text-red-600">{errors.itemType}</p>}
           </div>
           
           {/* Название */}
-          <div className="flex-1 min-w-[200px]">
+          <div>
             <label htmlFor={`edit-name-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Название *
             </label>
@@ -133,14 +133,31 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
               value={formData.name}
               onChange={handleChange}
               required
-              className={`w-full px-3 py-1.5 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
+              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
               autoComplete="off"
             />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
           </div>
           
+          {/* Ссылка (опционально) */}
+          <div>
+            <label htmlFor={`edit-link-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              Ссылка (опционально)
+            </label>
+            <input
+              type="url"
+              id={`edit-link-${item.id}`}
+              name="link"
+              value={formData.link}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border ${errors.link ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
+              autoComplete="off"
+            />
+            {errors.link && <p className="mt-1 text-xs text-red-600">{errors.link}</p>}
+          </div>
+          
           {/* Цена */}
-          <div className="min-w-[120px] w-[15%]">
+          <div>
             <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Цена *
             </label>
@@ -153,7 +170,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
                 value={formData.price}
                 onChange={handleChange}
                 required
-                className={`w-full px-3 py-1.5 border ${errors.price ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.price ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm pr-10`}
+                className={`w-full px-3 py-2 border ${errors.price ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.price ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm pr-10`}
                 autoComplete="off"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -162,26 +179,9 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
             </div>
             {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
           </div>
-          
-          {/* Ссылка (опционально) */}
-          <div className="flex-1 min-w-[200px]">
-            <label htmlFor={`edit-link-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
-              Ссылка (опционально)
-            </label>
-            <input
-              type="url"
-              id={`edit-link-${item.id}`}
-              name="link"
-              value={formData.link}
-              onChange={handleChange}
-              className={`w-full px-3 py-1.5 border ${errors.link ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
-              autoComplete="off"
-            />
-            {errors.link && <p className="mt-1 text-xs text-red-600">{errors.link}</p>}
-          </div>
 
           {/* Комментарий (опционально) */}
-          <div className="w-full">
+          <div className="col-span-2">
             <label htmlFor={`edit-comment-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Комментарий (опционально)
             </label>
@@ -191,7 +191,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
               value={formData.comment}
               onChange={handleChange}
               rows={2}
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm resize-y"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm resize-y"
               autoComplete="off"
             />
           </div>

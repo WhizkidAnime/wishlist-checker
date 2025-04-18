@@ -336,12 +336,13 @@ function App() {
             <AddItemForm onAddItem={handleAddItem} />
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 mb-4 gap-4 border-b pb-4 border-gray-200">
-              <h2 className="text-xl sm:text-2xl font-semibold text-black whitespace-nowrap">Список желаний</h2>
+              <h2 className="text-xl font-semibold text-black whitespace-nowrap">Список желаний</h2>
             </div>
             
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 mb-4 gap-4 border-b pb-4 border-gray-200">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                <div className="relative flex-grow sm:flex-grow-0 w-full sm:w-48">
+            <div className="flex flex-col justify-between gap-4 border-b pb-4 border-gray-200">
+              {/* Верхняя строка: поиск и кнопки */}
+              <div className="flex flex-row items-center gap-4">
+                <div className="relative flex-grow w-48">
                   <input 
                     type="text"
                     placeholder="Поиск по названию/типу..."
@@ -361,37 +362,39 @@ function App() {
                     </button>
                   )}
                 </div>
+
                 <div className="flex gap-2">
-                   <button 
-                      onClick={handleExport}
-                      className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors duration-150"
-                    >
-                      Экспорт
-                    </button>
-                    {/* Скрытый input для импорта */}
-                    <input 
-                      type="file" 
-                      accept=".json"
-                      onChange={handleImport}
-                      style={{ display: 'none' }} // Скрываем инпут
-                      id="import-file-input"
-                    />
-                    <button 
-                      onClick={() => document.getElementById('import-file-input')?.click()} // Клик по скрытому инпуту
-                      className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors duration-150"
-                    >
-                      Импорт
-                    </button>
+                  <button 
+                    onClick={handleExport}
+                    className="flex-none px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors duration-150"
+                  >
+                    Экспорт
+                  </button>
+                  {/* Скрытый input для импорта */}
+                  <input 
+                    type="file" 
+                    accept=".json"
+                    onChange={handleImport}
+                    style={{ display: 'none' }} // Скрываем инпут
+                    id="import-file-input"
+                  />
+                  <button 
+                    onClick={() => document.getElementById('import-file-input')?.click()} // Клик по скрытому инпуту
+                    className="flex-none px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors duration-150"
+                  >
+                    Импорт
+                  </button>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                <span className="text-sm text-gray-500 whitespace-nowrap text-right sm:text-left mt-2 sm:mt-0">
+
+              {/* Нижняя строка: счетчик и сортировка */}
+              <div className="flex flex-row items-center justify-between">
+                <span className="text-sm text-gray-500 whitespace-nowrap">
                   {wishlist.length} {getItemsCountText(wishlist.length)}
                 </span>
                 
-                <div className="flex items-center gap-1.5 text-xs sm:text-sm flex-wrap">
-                  <span className="text-gray-500 mr-1 hidden sm:inline">Сортировать:</span>
+                <div className="flex items-center gap-1.5 text-xs text-sm flex-wrap">
+                  <span className="text-gray-500 mr-1">Сортировать:</span>
                   <button 
                     onClick={() => setSortBy('default')}
                     className={`px-2 py-0.5 rounded transition-colors ${sortBy === 'default' ? 'bg-gray-200 text-gray-800 font-medium' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}

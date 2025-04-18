@@ -121,13 +121,13 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   };
   
   return (
-    <div className="mb-6 sm:mb-8 p-4 bg-white rounded-lg border border-gray-200">
-      <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Добавить новое желание</h2>
+    <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+      <h2 className="text-xl font-semibold mb-4">Добавить новое желание</h2>
       
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Тип товара */}
-          <div className="md:col-span-1">
+          <div>
             <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 mb-1">
               Тип товара *
             </label>
@@ -136,15 +136,15 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
               id="itemType"
               value={itemType}
               onChange={(e) => handleInputChange('itemType', e.target.value)}
-              className={`w-full px-3 py-3 sm:py-2 text-base border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
             />
-            {errors.itemType && <p className="mt-1 text-sm text-red-600">{errors.itemType}</p>}
+            {errors.itemType && <p className="mt-1 text-xs text-red-600">{errors.itemType}</p>}
           </div>
           
           {/* Название */}
-          <div className="md:col-span-1">
+          <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Название *
             </label>
@@ -153,15 +153,15 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
               id="name"
               value={name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className={`w-full px-3 py-3 sm:py-2 text-base border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
           </div>
           
           {/* Ссылка (опционально) */}
-          <div className="md:col-span-1">
+          <div>
             <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-1">
               Ссылка (опционально)
             </label>
@@ -170,13 +170,13 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
               id="link"
               value={link}
               onChange={(e) => handleInputChange('link', e.target.value)}
-              className="w-full px-3 py-3 sm:py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               autoComplete="off"
             />
           </div>
           
           {/* Цена */}
-          <div className="md:col-span-1">
+          <div>
             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
               Цена *
             </label>
@@ -187,7 +187,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
                 id="price"
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                className={`w-full pl-3 pr-10 py-3 sm:py-2 text-base border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.price ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
+                className={`w-full pl-3 pr-10 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.price ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
                 placeholder="Напр., 5000 или 4500+500"
                 required
                 autoComplete="off"
@@ -196,11 +196,11 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
                 <span className="text-gray-500">RUB</span>
               </div>
             </div>
-            {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
+            {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
           </div>
 
           {/* Комментарий (опционально) */}
-          <div className="col-span-full">
+          <div className="col-span-2">
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
               Комментарий (опционально)
             </label>
@@ -209,16 +209,16 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
               value={comment}
               onChange={(e) => handleInputChange('comment', e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y"
               autoComplete="off"
             />
           </div>
         </div>
         
-        <div className="flex justify-center mt-5">
+        <div className="flex justify-center mt-4">
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2 bg-black text-white rounded-full font-semibold hover:bg-black focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-auto px-6 py-2 bg-black text-white rounded-full font-semibold hover:bg-black focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!!errors.itemType || !!errors.name || !!errors.price || !price.trim()}
           >
             Добавить
