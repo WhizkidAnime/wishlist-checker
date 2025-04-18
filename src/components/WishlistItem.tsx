@@ -4,6 +4,15 @@ import { CSS } from '@dnd-kit/utilities';
 import { WishlistItem as WishlistItemType } from '../types/wishlistItem';
 import { EditItemForm } from './EditItemForm';
 
+// Функция для форматирования URL (добавляет протокол, если отсутствует)
+const formatUrl = (url: string): string => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `https://${url}`;
+};
+
 interface WishlistItemProps {
   item: WishlistItemType;
   onToggleBought: (id: string | number) => void;
@@ -100,7 +109,7 @@ export const WishlistItem = ({
             <div className="flex-grow min-w-0">
               <div className="font-medium text-gray-800 break-words">
                 {item.link ? (
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-gray-600 underline hover:text-blue-600 hover:underline transition-colors duration-150">{item.name}</a>
+                  <a href={formatUrl(item.link)} target="_blank" rel="noopener noreferrer" className="text-gray-600 underline hover:text-blue-600 hover:underline transition-colors duration-150">{item.name}</a>
                 ) : (
                   <span>{item.name}</span>
                 )}
@@ -230,7 +239,7 @@ export const WishlistItem = ({
           <div className="font-medium text-gray-800">
             {item.link ? (
               <a 
-                href={item.link} 
+                href={formatUrl(item.link)} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-600 underline hover:text-blue-600 break-words transition-colors duration-150"

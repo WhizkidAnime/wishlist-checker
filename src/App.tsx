@@ -540,21 +540,9 @@ function App() {
             {wishlist.length > 0 && (
               <div className="mt-6 sm:mt-8 border-t border-gray-200 pt-4 sm:pt-6">
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex sm:justify-start justify-end">
-                      <div className="text-lg sm:text-xl font-semibold">
-                        Итого некупленных: <span className="text-gray-800">{totalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                      </div>
-                    </div>
-                    <div className="flex sm:justify-start justify-end">
-                      <div className="text-base sm:text-lg font-medium text-gray-600">
-                        Итого купленных: <span className="text-gray-700">{totalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                      </div>
-                    </div>
-                  </div>
 
                   {selectedCount > 0 && (
-                    <div className="mt-6 bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm sm:text-base relative shadow"> 
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm sm:text-base relative shadow sm:flex-1"> 
                       <button 
                         onClick={() => setSelectedItemIds([])} 
                         className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors"
@@ -575,6 +563,20 @@ function App() {
                       </div>
                     </div>
                   )}
+
+                  <div className="flex flex-col gap-1 sm:text-right sm:ml-auto">
+                    <div className="flex justify-end">
+                      <div className="text-lg sm:text-xl font-semibold">
+                        Итого некупленных: <span className="text-gray-800">{totalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="text-base sm:text-lg font-medium text-gray-600">
+                        Итого купленных: <span className="text-gray-700">{totalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             )}
