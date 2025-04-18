@@ -5,9 +5,32 @@
     <link rel="icon" type="image/svg+xml" href="/wishlist-checker/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wishlist checker</title>
-    <script src="https://cdn.tailwindcss.com?v=4.1.4"></script>
-    <script type="module" crossorigin src="/wishlist-checker/assets/index-CR6U8ieA.js"></script>
-    <link rel="stylesheet" crossorigin href="/wishlist-checker/assets/index-BYsk8Irb.css">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [
+                'ui-sans-serif',
+                '-apple-system',
+                'system-ui',
+                '"Segoe UI"',
+                'Helvetica',
+                '"Apple Color Emoji"',
+                'Arial',
+                'sans-serif',
+                '"Segoe UI Emoji"',
+                '"Segoe UI Symbol"',
+                '"Noto Color Emoji"',
+              ],
+            },
+          },
+        }
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com?v=3.4.0"></script>
+    <script type="module" crossorigin src="/wishlist-checker/assets/index-xvhUNqJF.js"></script>
+    <link rel="stylesheet" crossorigin href="/wishlist-checker/assets/index-7Ab60AaX.css">
   </head>
   <body>
     <div id="root"></div>
