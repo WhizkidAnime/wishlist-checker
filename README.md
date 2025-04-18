@@ -1,54 +1,74 @@
-# React + TypeScript + Vite
+# Wishlist Site
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Одностраничное React + TypeScript приложение с Vite и Tailwind CSS для ведения списка желаемых вещей.
 
-Currently, two official plugins are available:
+## 📦 Стек технологий
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- ESLint + Prettier
 
-## Expanding the ESLint configuration
+## 🚀 Быстрый старт
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Клонирование репозитория
+git clone <repo-url>
+cd wishlist-site
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+# Установка зависимостей
+npm install
+
+# Запуск в режиме разработки
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Приложение будет доступно по адресу:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+> http://localhost:5173
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+## 📑 Скрипты
+
+- `npm run dev` — запуск с HMR для разработки
+- `npm run build` — сборка в папку `dist`
+- `npm run preview` — локальный сервер для проверки сборки
+- `npm run lint` — проверка кода через ESLint
+- `npm run format` — автоформатирование через Prettier
+
+## 🗂 Структура проекта
+
 ```
+.
+├── public
+│   └── index.html
+├── src
+│   ├── components
+│   │   ├── Todo.tsx
+│   │   └── ScrollToTopButton.tsx
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── styles.css
+├── .gitignore
+├── tailwind.config.js
+├── tsconfig.json
+├── package.json
+└── README.md
+```
+
+## ⚙️ Как это работает
+
+- Компонент `ScrollToTopButton` отслеживает позицию скролла и показывает кнопку при достижении порога в 100px.
+- В `App.tsx` хранится состояние списка, добавление и удаление элементов передаётся через пропсы в `Todo`.
+
+## ☁️ Деплой
+
+1. Создать пустой репозиторий на GitHub
+2. ```bash
+   git remote add origin <repo-url>
+   git push -u origin main
+   ```
+3. Подключить к платформе (Vercel / Netlify / GitHub Pages)
+
+## 📄 Лицензия
+
+MIT
