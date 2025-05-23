@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
+import { safeCalculate } from '../utils/priceCalculator';
 
 interface AddItemFormProps {
   onAddItem: (item: Omit<WishlistItem, 'id' | 'isBought'>) => void;
@@ -9,40 +10,6 @@ interface FormErrors {
   itemType?: string;
   name?: string;
   price?: string;
-}
-
-// Функция для безопасного вычисления математического выражения
-// Разрешает только числа, точки, +, -, *, /
-function safeCalculate(expression: string): number | null {
-  // Удаляем все пробелы
-  const sanitizedExpression = expression.replace(/\s+/g, '');
-  
-  // Проверяем на допустимые символы (цифры, точка, +, -, *, /)
-  if (!/^[-+\*\/\.\d]+$/.test(sanitizedExpression)) {
-    return null; // Недопустимые символы
-  }
-  
-  // Простая проверка на опасные конструкции (хотя regex выше должен отсечь)
-  if (sanitizedExpression.includes('--') || sanitizedExpression.includes('++') || sanitizedExpression.includes('**') || sanitizedExpression.includes('//')) {
-      return null;
-  }
-  
-  try {
-    // Используем new Function для безопасного вычисления
-    // 'use strict' добавляет дополнительный слой безопасности
-    const calculate = new Function(`'use strict'; return (${sanitizedExpression});`);
-    const result = calculate();
-    
-    // Проверяем, что результат - конечное число
-    if (typeof result === 'number' && isFinite(result)) {
-      return result;
-    } else {
-      return null; // Результат не число или бесконечность
-    }
-  } catch (error) {
-    console.error("Ошибка вычисления выражения:", error);
-    return null; // Ошибка во время вычисления
-  }
 }
 
 /**
@@ -189,7 +156,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
                 className={`w-full p-2 text-sm border-0 focus:outline-none flex-1`}
-                placeholder="Укажите цену"
+                placeholder="45500 или 45 500 или 45000+500"
                 required
                 autoComplete="off"
               />

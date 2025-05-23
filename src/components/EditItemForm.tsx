@@ -1,5 +1,6 @@
 import { useState, FormEvent, useEffect, ChangeEvent } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
+import { safeCalculate } from '../utils/priceCalculator';
 
 interface EditItemFormProps {
   item: WishlistItem;
@@ -48,8 +49,21 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
     // Валидация при изменении (можно добавить более сложную)
     if ((fieldName === 'name' || fieldName === 'price') && value.trim() === '') {
       setErrors(prev => ({ ...prev, [fieldName]: 'Это поле обязательно' }));
-    } else if (fieldName === 'price' && isNaN(parseFloat(value))) {
-      setErrors(prev => ({ ...prev, [fieldName]: 'Введите число' }));
+    } else if (fieldName === 'price') {
+      // Используем safeCalculate для проверки валидности выражения
+      const calculatedPrice = safeCalculate(value);
+      if (calculatedPrice === null) {
+        setErrors(prev => ({ ...prev, [fieldName]: 'Некорректное выражение или недопустимые символы' }));
+      } else if (calculatedPrice < 0) {
+        setErrors(prev => ({ ...prev, [fieldName]: 'Цена не может быть отрицательной' }));
+      } else {
+        // Убираем ошибку для цены, если она валидна
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName as keyof FormErrors];
+          return newErrors;
+        });
+      }
     } else if (fieldName === 'link' && value && !isValidUrl(value)) {
       setErrors(prev => ({ ...prev, [fieldName]: 'Некорректный URL' }));
     } else {
@@ -69,22 +83,33 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
   };
 
   // Финальная валидация перед отправкой
-  const validateSubmit = (): boolean => {
+  const validateSubmit = (): { isValid: boolean; calculatedPrice: number | null } => {
     const finalErrors: FormErrors = {};
+    let calculatedPrice: number | null = null;
+    
     if (!formData.name.trim()) finalErrors.name = 'Название обязательно';
-    if (!formData.price.trim()) finalErrors.price = 'Цена обязательна';
-    else if (isNaN(parseFloat(formData.price))) finalErrors.price = 'Цена должна быть числом';
-    else if (Number(formData.price) < 0) finalErrors.price = 'Цена не может быть отрицательной';
+    if (!formData.price.trim()) {
+      finalErrors.price = 'Цена обязательна';
+    } else {
+      calculatedPrice = safeCalculate(formData.price);
+      if (calculatedPrice === null) {
+        finalErrors.price = 'Некорректное выражение или недопустимые символы';
+      } else if (calculatedPrice < 0) {
+        finalErrors.price = 'Цена не может быть отрицательной';
+      }
+    }
     if (formData.link && !isValidUrl(formData.link)) finalErrors.link = 'Некорректный URL';
 
     setErrors(finalErrors);
-    return Object.keys(finalErrors).length === 0;
+    return { isValid: Object.keys(finalErrors).length === 0, calculatedPrice };
   };
   
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
-    if (!validateSubmit()) { // Используем новую функцию валидации
+    const { isValid, calculatedPrice } = validateSubmit();
+    
+    if (!isValid || calculatedPrice === null) {
       return; 
     }
     
@@ -93,7 +118,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
       itemType: formData.itemType.trim(),
       name: formData.name.trim(),
       link: formData.link.trim(),
-      price: Number(formData.price),
+      price: calculatedPrice, // Используем вычисленную цену
       comment: formData.comment.trim() || undefined,
     };
     
@@ -171,7 +196,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
                 value={formData.price}
                 onChange={handleChange}
                 required
-                placeholder="Укажите цену"
+                placeholder="45500 или 45 500 или 45000+500"
                 className={`w-full p-2 text-sm border-0 focus:outline-none flex-1`}
                 autoComplete="off"
               />
