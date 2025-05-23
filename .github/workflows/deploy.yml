@@ -32,6 +32,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Modify HTML to remove crossorigin from CSS link
+        run: sed -i 's/ crossorigin / /g' ./dist/index.html
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
