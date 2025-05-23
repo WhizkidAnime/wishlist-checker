@@ -103,7 +103,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
   return (
     <div className="p-4 bg-gray-50 border-b border-gray-200 shadow-inner">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid xs:grid-cols-2 gap-4">
           {/* Тип товара */}
           <div>
             <label htmlFor={`edit-itemType-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -157,11 +157,12 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
           </div>
           
           {/* Цена */}
-          <div>
+          <div className="min-w-0">
             <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Цена *
             </label>
-            <div className="relative">
+            <div className="flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200" 
+                 style={{ borderColor: errors.price ? '#ef4444' : '#d1d5db' }}>
               <input
                 type="text"
                 inputMode="decimal"
@@ -171,10 +172,10 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
                 onChange={handleChange}
                 required
                 placeholder="Укажите цену"
-                className={`w-full px-3 py-2 border ${errors.price ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.price ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm pr-10`}
+                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1`}
                 autoComplete="off"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <div className="flex items-center justify-center bg-gray-50 border-l border-gray-200" style={{ width: '35px', flexShrink: 0 }}>
                 <span className="text-gray-500 text-sm">{item.currency}</span>
               </div>
             </div>

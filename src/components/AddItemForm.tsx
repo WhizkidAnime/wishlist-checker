@@ -125,7 +125,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       <h2 className="text-xl font-semibold mb-4">Добавить новое желание</h2>
       
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid xs:grid-cols-2 gap-4 mb-4">
           {/* Тип товара */}
           <div>
             <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 mb-1">
@@ -176,25 +176,25 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
           </div>
           
           {/* Цена */}
-          <div>
+          <div className="min-w-0">
             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
               Цена *
             </label>
-            <div className="relative">
+            <div className="flex rounded-md overflow-hidden border focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200" 
+                 style={{ borderColor: errors.price ? '#ef4444' : '#d1d5db' }}>
               <input
                 type="text"
                 inputMode="decimal"
                 id="price"
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                className={`w-full pl-3 pr-10 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.price ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
+                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1`}
                 placeholder="Укажите цену"
                 required
                 autoComplete="off"
-                style={{ minWidth: '160px' }}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500">RUB</span>
+              <div className="flex items-center justify-center bg-gray-50 border-l border-gray-200" style={{ width: '35px', flexShrink: 0 }}>
+                <span className="text-gray-500 text-sm">RUB</span>
               </div>
             </div>
             {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
