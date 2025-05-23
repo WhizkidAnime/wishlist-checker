@@ -30,6 +30,8 @@ function App() {
   const [showImportSuccessToast, setShowImportSuccessToast] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<WishlistItemType | null>(null);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   // useEffect(() => {
@@ -105,8 +107,11 @@ function App() {
   };
 
   const handleDeleteItem = (id: string | number) => {
-    setWishlist(wishlist.filter(item => item.id !== id));
-    setSelectedItemIds(prev => prev.filter(selectedId => selectedId !== id));
+    const item = wishlist.find(item => item.id === id);
+    if (item) {
+      setItemToDelete(item);
+      setIsDeleteModalOpen(true);
+    }
   };
 
   const handleEditClick = (id: string | number) => {
@@ -344,6 +349,20 @@ function App() {
   const handleModalClose = () => {
     setIsConfirmModalOpen(false);
     setDataToImport(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (itemToDelete) {
+      setWishlist(wishlist.filter(item => item.id !== itemToDelete.id));
+      setSelectedItemIds(prev => prev.filter(selectedId => selectedId !== itemToDelete.id));
+    }
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -617,6 +636,34 @@ function App() {
                   className="px-4 py-1.5 border border-transparent rounded-full text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none transition-colors duration-150 ease-in-out"
                 >
                   Подтвердить
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* <<< Модальное окно подтверждения удаления >>> */}
+        {isDeleteModalOpen && itemToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Подтвердите удаление</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Вы уверены, что хотите удалить "<span className="font-medium text-gray-900">{itemToDelete.name}</span>"? Это действие необратимо.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-1.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors duration-150 ease-in-out"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-1.5 border border-transparent rounded-full text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none transition-colors duration-150 ease-in-out"
+                >
+                  Удалить
                 </button>
               </div>
             </div>
