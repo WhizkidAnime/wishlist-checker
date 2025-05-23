@@ -15,6 +15,7 @@ const EXCHANGE_RATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/RUB';
 const MOBILE_BREAKPOINT = 640;
 const SCROLL_THRESHOLD = 100;
 
+// Cache-busting comment
 function App() {
   const [wishlist, setWishlist] = useState<WishlistItemType[]>(() => loadFromLocalStorage(LOCAL_STORAGE_KEY) || []);
   const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
