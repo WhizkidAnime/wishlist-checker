@@ -16,6 +16,17 @@ export const useCategories = (wishlist: WishlistItem[]) => {
     }
   });
 
+  // Функция для обновления категорий из localStorage
+  const refreshCategoriesFromStorage = () => {
+    try {
+      const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+      const parsedCategories = saved ? JSON.parse(saved) : [];
+      setSavedCategories(parsedCategories);
+    } catch {
+      setSavedCategories([]);
+    }
+  };
+
   // Сохраняем категории в localStorage при изменении
   useEffect(() => {
     try {
@@ -24,6 +35,28 @@ export const useCategories = (wishlist: WishlistItem[]) => {
       // Игнорируем ошибки сохранения
     }
   }, [savedCategories]);
+
+  // Слушаем изменения localStorage для синхронизации после импорта
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === CATEGORIES_STORAGE_KEY) {
+        refreshCategoriesFromStorage();
+      }
+    };
+
+    // Также слушаем кастомное событие для принудительного обновления
+    const handleCustomUpdate = () => {
+      refreshCategoriesFromStorage();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('categoriesUpdated', handleCustomUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('categoriesUpdated', handleCustomUpdate);
+    };
+  }, []);
 
   // Получаем список уникальных категорий из товаров + сохранённых
   const categories = useMemo(() => {
@@ -78,6 +111,7 @@ export const useCategories = (wishlist: WishlistItem[]) => {
     categories,
     filterByCategory,
     handleAddCategory,
-    resetCategoryIfNeeded
+    resetCategoryIfNeeded,
+    refreshCategoriesFromStorage
   };
 }; 
