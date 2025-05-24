@@ -32,7 +32,55 @@ function App() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<WishlistItemType | null>(null);
+  const [calculatorPosition, setCalculatorPosition] = useState<{ top: number, left: number } | null>(null);
+  const [firstButtonRef, setFirstButtonRef] = useState<HTMLElement | null>(null);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Функция для обновления позиции калькулятора
+  const updateCalculatorPosition = () => {
+    if (!firstButtonRef) return;
+    
+    // Находим основной контейнер вишлиста
+    const mainContainer = document.querySelector('.w-full.max-w-4xl.bg-white.rounded-3xl') as HTMLElement;
+    if (!mainContainer) return;
+    
+    const containerRect = mainContainer.getBoundingClientRect();
+    const buttonRect = firstButtonRef.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    console.log('Container rect:', containerRect);
+    console.log('Button rect:', buttonRect);
+    console.log('Window size:', { windowWidth, windowHeight });
+    
+    // Вычисляем позицию слева от основного контейнера
+    const calculatorWidth = 320; // ширина блока (w-80 = 320px)
+    let left = containerRect.left - calculatorWidth - 20; // 20px отступ слева от контейнера
+    let top = buttonRect.top; // Выравниваем по высоте первой кнопки
+    
+    // Если не помещается слева, размещаем справа от контейнера
+    if (left < 20) {
+      left = containerRect.right + 20;
+      // Если и справа не помещается, размещаем поверх с небольшим отступом
+      if (left + calculatorWidth > windowWidth - 20) {
+        left = 20;
+        top = containerRect.top + 60; // Небольшой отступ от верха контейнера
+      }
+    }
+    
+    // Проверяем, не выходит ли блок за нижний край экрана
+    if (top + 200 > windowHeight) { // 200px примерная высота блока
+      top = windowHeight - 220; // Оставляем 20px от края
+    }
+    
+    // Проверяем, не выходит ли блок за верхний край экрана
+    if (top < 20) {
+      top = 20;
+    }
+    
+    console.log('Final position:', { top, left });
+    setCalculatorPosition({ top, left });
+  };
 
   // useEffect(() => {
   //   fetchExchangeRates(EXCHANGE_RATE_API_URL)
@@ -62,12 +110,37 @@ function App() {
     const handleScroll = () => {
       const shouldShow = window.scrollY > SCROLL_THRESHOLD;
       setShowScrollButton(shouldShow);
+      
+      // Обновляем позицию калькулятора при скролле
+      if (firstButtonRef && selectedItemIds.length > 0) {
+        updateCalculatorPosition();
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [firstButtonRef, selectedItemIds.length]);
+
+  // Эффект для обновления позиции калькулятора при изменении размера окна
+  useEffect(() => {
+    const handleResize = () => {
+      if (firstButtonRef && selectedItemIds.length > 0) {
+        updateCalculatorPosition();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [firstButtonRef, selectedItemIds.length]);
+
+  // Эффект для обновления позиции при установке firstButtonRef
+  useEffect(() => {
+    if (firstButtonRef && selectedItemIds.length > 0) {
+      updateCalculatorPosition();
+    }
+  }, [firstButtonRef]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -135,12 +208,26 @@ function App() {
     );
   };
 
-  const handleToggleSelected = (id: string | number) => {
-    setSelectedItemIds(prevSelectedIds =>
-      prevSelectedIds.includes(id)
+  const handleToggleSelected = (id: string | number, buttonElement?: HTMLElement) => {
+    setSelectedItemIds(prevSelectedIds => {
+      const isCurrentlySelected = prevSelectedIds.includes(id);
+      const newSelectedIds = isCurrentlySelected
         ? prevSelectedIds.filter(selectedId => selectedId !== id)
-        : [...prevSelectedIds, id]
-    );
+        : [...prevSelectedIds, id];
+      
+      // Если добавляем первый элемент и передан элемент кнопки
+      if (!isCurrentlySelected && prevSelectedIds.length === 0 && buttonElement) {
+        setFirstButtonRef(buttonElement);
+      }
+      
+      // Если убираем последний элемент, сбрасываем позицию калькулятора
+      if (isCurrentlySelected && newSelectedIds.length === 0) {
+        setCalculatorPosition(null);
+        setFirstButtonRef(null);
+      }
+      
+      return newSelectedIds;
+    });
   };
 
   const handleMoveItem = (id: string | number, direction: 'up' | 'down') => {
@@ -559,44 +646,17 @@ function App() {
 
             {wishlist.length > 0 && (
               <div className="mt-6 sm:mt-8 border-t border-gray-200 pt-4 sm:pt-6">
-                <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-4">
-
-                  {selectedCount > 0 && (
-                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm sm:text-base relative shadow sm:flex-1"> 
-                      <button 
-                        onClick={() => setSelectedItemIds([])} 
-                        className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors"
-                        aria-label="Очистить выбранные"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                      <h3 className="font-semibold text-indigo-800 mb-2">Выбрано для расчета: {selectedCount}</h3>
-                      <ul className="max-h-40 overflow-y-auto mb-2 pr-2 space-y-1"> 
-                        {selectedItems.map(item => (
-                          <li key={item.id} className="text-indigo-700 truncate" title={item.name}>{item.name}</li>
-                        ))}
-                      </ul>
-                      <div className="text-base text-indigo-800 mt-1">
-                        Сумма выбранных: <span className="font-medium text-indigo-900">{selectedTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col gap-1 sm:text-right sm:ml-auto">
-                    <div className="flex justify-end">
-                      <div className="text-lg sm:text-xl font-semibold">
-                        Итого некупленных: <span className="text-gray-800">{totalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <div className="text-base sm:text-lg font-medium text-gray-600">
-                        Итого купленных: <span className="text-gray-700">{totalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                      </div>
+                <div className="flex flex-col gap-1 sm:text-right sm:ml-auto">
+                  <div className="flex justify-end">
+                    <div className="text-lg sm:text-xl font-semibold">
+                      Итого некупленных: <span className="text-gray-800">{totalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
                     </div>
                   </div>
-
+                  <div className="flex justify-end">
+                    <div className="text-base sm:text-lg font-medium text-gray-600">
+                      Итого купленных: <span className="text-gray-700">{totalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -677,6 +737,42 @@ function App() {
             role="alert"
           >
             Список успешно импортирован!
+          </div>
+        )}
+
+        {/* <<< Всплывающий блок расчета >>> */}
+        {selectedCount > 0 && calculatorPosition && (
+          <div 
+            className="fixed bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm shadow-xl z-30 w-80 max-w-[calc(100vw-40px)]"
+            style={{
+              top: calculatorPosition.top,
+              left: calculatorPosition.left,
+              maxHeight: 'calc(100vh - 40px)',
+              overflow: 'auto'
+            }}
+          >
+            <button 
+              onClick={() => {
+                setSelectedItemIds([]);
+                setCalculatorPosition(null);
+                setFirstButtonRef(null);
+              }} 
+              className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors"
+              aria-label="Очистить выбранные"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="font-semibold text-indigo-800 mb-2 pr-8">Выбрано для расчета: {selectedCount}</h3>
+            <ul className="max-h-40 overflow-y-auto mb-2 pr-2 space-y-1"> 
+              {selectedItems.map(item => (
+                <li key={item.id} className="text-indigo-700 text-xs truncate" title={item.name}>{item.name}</li>
+              ))}
+            </ul>
+            <div className="text-sm text-indigo-800 mt-1 font-medium">
+              Сумма: <span className="font-semibold text-indigo-900">{selectedTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
+            </div>
           </div>
         )}
 

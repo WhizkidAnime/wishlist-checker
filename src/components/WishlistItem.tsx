@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useRef } from 'react';
 
 import { WishlistItem as WishlistItemType } from '../types/wishlistItem';
 import { EditItemForm } from './EditItemForm';
@@ -24,7 +25,7 @@ interface WishlistItemProps {
   displayCurrency: string;
   exchangeRates: Record<string, number>;
   isSelected: boolean;
-  onToggleSelected: (id: string | number) => void;
+  onToggleSelected: (id: string | number, buttonElement?: HTMLElement) => void;
   isMobile: boolean;
   onMoveItem: (id: string | number, direction: 'up' | 'down') => void;
   index: number;
@@ -63,6 +64,9 @@ export const WishlistItem = ({
     isDragging
   } = useSortable({ id: item.id, disabled: isMobile });
 
+  const mobileButtonRef = useRef<HTMLButtonElement>(null);
+  const desktopButtonRef = useRef<HTMLButtonElement>(null);
+
   // Определяем прозрачность: 0.5 если перетаскивается, 
   // иначе 0.6 если куплено, иначе 1
   const itemOpacity = isDragging ? 0.5 : (item.isBought ? 0.6 : 1);
@@ -93,7 +97,8 @@ export const WishlistItem = ({
           <div className="flex items-center gap-2">
             <div className="flex-shrink-0">
               <button
-                onClick={() => onToggleSelected(item.id)}
+                ref={mobileButtonRef}
+                onClick={() => onToggleSelected(item.id, mobileButtonRef.current || undefined)}
                 className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors ${
                   isSelected ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-400 hover:bg-gray-100'
                 }`}
@@ -205,7 +210,8 @@ export const WishlistItem = ({
         
         <div className="mr-4 flex-shrink-0">
           <button
-            onClick={() => onToggleSelected(item.id)}
+            ref={desktopButtonRef}
+            onClick={() => onToggleSelected(item.id, desktopButtonRef.current || undefined)}
             className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors ${
               isSelected ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-400 hover:bg-gray-100'
             }`}
