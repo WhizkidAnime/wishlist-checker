@@ -4,6 +4,7 @@ import { safeCalculate } from '../utils/priceCalculator';
 
 interface AddItemFormProps {
   onAddItem: (item: Omit<WishlistItem, 'id' | 'isBought'>) => void;
+  existingCategories?: string[];
 }
 
 interface FormErrors {
@@ -15,12 +16,14 @@ interface FormErrors {
 /**
  * Компонент формы для добавления нового элемента в вишлист
  */
-export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
+export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormProps) => {
   const [itemType, setItemType] = useState('');
   const [name, setName] = useState('');
   const [link, setLink] = useState('');
   const [price, setPrice] = useState('');
   const [comment, setComment] = useState('');
+  const [category, setCategory] = useState('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validateForm = (): { isValid: boolean; calculatedPrice: number | null } => {
@@ -60,6 +63,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       price: calculatedPrice, // Используем вычисленную цену
       currency: 'RUB', // По умолчанию рубли
       comment: comment.trim() || undefined,
+      category: category.trim() || undefined,
     };
     
     onAddItem(newItem);
@@ -69,17 +73,19 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     setName('');
     setLink('');
     setPrice('');
-    setErrors({});
     setComment('');
+    setCategory('');
+    setErrors({});
   };
 
-  const handleInputChange = <K extends keyof FormErrors | 'link' | 'comment'>(field: K, value: string) => {
+  const handleInputChange = <K extends keyof FormErrors | 'link' | 'comment' | 'category'>(field: K, value: string) => {
     // Обновляем состояние поля
     if (field === 'itemType') setItemType(value);
     else if (field === 'name') setName(value);
     else if (field === 'link') setLink(value);
     else if (field === 'price') setPrice(value);
     else if (field === 'comment') setComment(value);
+    else if (field === 'category') setCategory(value);
 
     // Очищаем ошибку для этого поля при вводе
     if (field in errors) {
@@ -92,7 +98,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       <h2 className="text-xl font-semibold mb-4">Добавить новое желание</h2>
       
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-        <div className="grid xs:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           {/* Тип товара */}
           <div>
             <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 mb-1">
@@ -126,22 +132,7 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
             />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
           </div>
-          
-          {/* Ссылка (опционально) */}
-          <div>
-            <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-1">
-              Ссылка (опционально)
-            </label>
-            <input
-              type="url"
-              id="link"
-              value={link}
-              onChange={(e) => handleInputChange('link', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              autoComplete="off"
-            />
-          </div>
-          
+
           {/* Цена */}
           <div className="min-w-0">
             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
@@ -155,8 +146,8 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
                 id="price"
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1`}
-                placeholder="45500 или 45 500 или 45000+500"
+                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs`}
+                placeholder="45500 или 45000+500"
                 required
                 autoComplete="off"
               />
@@ -167,8 +158,113 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
             {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
           </div>
 
+          {/* Категория */}
+          <div className="relative sm:col-span-2 lg:col-span-1">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              Категория (опционально)
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="category"
+                value={category}
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                onFocus={() => setShowCategoryDropdown(true)}
+                onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
+                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs"
+                placeholder="Выберите или создайте"
+                autoComplete="off"
+              />
+              
+              {/* Кнопка очистки */}
+              {category && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCategory('');
+                    setShowCategoryDropdown(false);
+                  }}
+                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  title="Очистить"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              
+              {/* Кнопка выпадающего списка */}
+              <button
+                type="button"
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showCategoryDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                  {existingCategories.length > 0 ? (
+                    <>
+                      {existingCategories.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setCategory(cat);
+                            setShowCategoryDropdown(false);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                      {category.trim() && !existingCategories.includes(category.trim()) && (
+                        <div className="border-t border-gray-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowCategoryDropdown(false)}
+                            className="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                          >
+                            <span className="flex items-center">
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Создать "{category.trim()}"
+                            </span>
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {category.trim() ? `Создать "${category.trim()}"` : 'Введите название категории'}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Ссылка (опционально) */}
+          <div className="sm:col-span-2 lg:col-span-2">
+            <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-1">
+              Ссылка (опционально)
+            </label>
+            <input
+              type="url"
+              id="link"
+              value={link}
+              onChange={(e) => handleInputChange('link', e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              autoComplete="off"
+            />
+          </div>
+
           {/* Комментарий (опционально) */}
-          <div className="col-span-2">
+          <div className="sm:col-span-2 lg:col-span-3">
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
               Комментарий (опционально)
             </label>

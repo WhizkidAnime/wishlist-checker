@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Development and documentation files (not needed for production)
+memory-bank/
+full stack plan.txt
+*.md.backup
+.cursorrules
+dev-notes.txt
+TODO.md
+CHANGELOG.md

@@ -31,6 +31,7 @@ interface WishlistItemProps {
   index: number;
   totalItems: number;
   comment?: string;
+  existingCategories?: string[];
 }
 
 /**
@@ -52,7 +53,8 @@ export const WishlistItem = ({
   onMoveItem,
   index,
   totalItems,
-  comment
+  comment,
+  existingCategories
 }: WishlistItemProps) => {
 
   const { 
@@ -82,7 +84,7 @@ export const WishlistItem = ({
   };
 
   if (isEditing) {
-    return <EditItemForm item={item} onUpdateItem={onUpdateItem} onCancel={onCancelEdit} />;
+    return <EditItemForm item={item} onUpdateItem={onUpdateItem} onCancel={onCancelEdit} existingCategories={existingCategories} />;
   }
   
   if (isMobile) {

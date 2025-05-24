@@ -18,10 +18,25 @@ export default {
           'sans-serif',
           '"Segoe UI Emoji"' /* Кавычки */,
           '"Segoe UI Symbol"' /* Кавычки */,
-          '"Noto Color Emoji"' /* Кавычки */,
+          '"Segoe UI Noto Color Emoji"' /* Кавычки */,
         ],
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-hide': {
+          /* IE and Edge */
+          '-ms-overflow-style': 'none',
+          /* Firefox */
+          'scrollbar-width': 'none',
+          /* Safari and Chrome */
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        }
+      })
+    }
+  ],
 }

@@ -18,6 +18,8 @@ export interface WishlistItem {
   isBought: boolean;
   /** Необязательный комментарий к товару */
   comment?: string;
+  /** Категория товара */
+  category?: string;
 }
 
 /**

@@ -6,6 +6,7 @@ interface EditItemFormProps {
   item: WishlistItem;
   onUpdateItem: (updatedItem: WishlistItem) => void;
   onCancel: () => void;
+  existingCategories?: string[];
 }
 
 interface FormErrors {
@@ -18,7 +19,7 @@ interface FormErrors {
 /**
  * Компонент формы для редактирования существующего элемента в вишлисте
  */
-export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps) => {
+export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories = [] }: EditItemFormProps) => {
   // Используем один стейт для всех данных формы
   const [formData, setFormData] = useState({
     itemType: item.itemType || '',
@@ -26,6 +27,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
     link: item.link || '',
     price: item.price.toString() || '',
     comment: item.comment || '',
+    category: item.category || '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   
@@ -37,6 +39,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
         link: item.link || '',
         price: item.price.toString() || '',
         comment: item.comment || '',
+        category: item.category || '',
     });
     setErrors({}); 
   }, [item]);
@@ -120,6 +123,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
       link: formData.link.trim(),
       price: calculatedPrice, // Используем вычисленную цену
       comment: formData.comment.trim() || undefined,
+      category: formData.category.trim() || undefined,
     };
     
     onUpdateItem(updatedItem);
@@ -163,6 +167,29 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
             />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
           </div>
+
+          {/* Категория */}
+          <div>
+            <label htmlFor={`edit-category-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+              Категория (опционально)
+            </label>
+            <input
+              type="text"
+              id={`edit-category-${item.id}`}
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              list={`edit-categories-${item.id}`}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              placeholder="Выберите или введите новую"
+              autoComplete="off"
+            />
+            <datalist id={`edit-categories-${item.id}`}>
+              {existingCategories.map(cat => (
+                <option key={cat} value={cat} />
+              ))}
+            </datalist>
+          </div>
           
           {/* Ссылка (опционально) */}
           <div>
@@ -201,7 +228,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
                 autoComplete="off"
               />
               <div className="flex items-center justify-center bg-gray-50 border-l border-gray-200" style={{ width: '35px', flexShrink: 0 }}>
-                <span className="text-gray-500 text-sm">{item.currency}</span>
+                <span className="text-gray-500 text-sm">RUB</span>
               </div>
             </div>
             {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
@@ -224,18 +251,18 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel }: EditItemFormProps
           </div>
         </div>
         
-        <div className="flex justify-end space-x-3 mt-4">
+        <div className="flex justify-between gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-1.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors duration-150 ease-in-out"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-150"
           >
             Отмена
           </button>
           <button
             type="submit"
-            className="px-4 py-1.5 border border-transparent rounded-full text-sm font-medium text-white bg-black hover:bg-black focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50"
-            disabled={Object.keys(errors).length > 0 || !formData.name || !formData.price}
+            disabled={!!errors.name || !!errors.price || !!errors.link}
+            className="px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
           >
             Сохранить
           </button>
