@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './App.css'
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -40,8 +40,6 @@ function App() {
     sortBy,
     setSortBy,
     getFilteredAndSortedItems,
-    totalUnbought,
-    totalBought,
     handleAddItem,
     handleUpdateItem,
     handleToggleBought,
@@ -90,8 +88,6 @@ function App() {
 
   const {
     calculatorPosition,
-    setCalculatorPosition,
-    setFirstButtonRef,
     showCalculator,
     hideCalculator
   } = useCalculatorPosition();
@@ -118,7 +114,7 @@ function App() {
   const sensors = useDndSensors();
 
   // Расширенная функция toggleSelected с поддержкой позиционирования калькулятора
-  const handleToggleSelected = (id: string | number, buttonElement?: HTMLElement) => {
+  const handleToggleSelected = (id: string | number, _buttonElement?: HTMLElement) => {
     const wasSelected = selectedItemIds.includes(id);
     baseHandleToggleSelected(id);
     

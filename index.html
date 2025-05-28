@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     
     <!-- Основная иконка и фавикон -->
-    <link rel="icon" type="image/svg+xml" href="/cart-icon.svg" />
-    <link rel="shortcut icon" href="/cart-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/wishlist-site/cart-icon.svg" />
+    <link rel="shortcut icon" href="/wishlist-site/cart-icon.svg" />
     
     <!-- Viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,7 +16,7 @@
     <!-- PWA настройки с theme-color -->
     <meta name="description" content="Управление списком желаний - отслеживайте цены на ваши товары" />
     <meta name="theme-color" content="#F9FAFB" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/wishlist-site/manifest.json" />
     
     <!-- Safari PWA настройки -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -24,30 +24,29 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     
     <!-- Apple Touch Icons - PNG формат для корректного отображения -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="114x114" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="60x60" href="/icons/icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="57x57" href="/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/wishlist-site/icons/icon-180x180.png" />
 
     <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // MIT License
-      // https://github.com/rafgraph/spa-github-pages
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
+      // GitHub Pages SPA обработка для PWA
+      // Обрабатываем перенаправления от 404.html
+      (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        
+        if (redirect) {
+          // Убираем redirect параметр и переходим на правильный путь
+          const newUrl = decodeURIComponent(redirect);
+          window.history.replaceState(null, null, newUrl);
         }
-      }(window.location))
+      })();
     </script>
   </head>
   <body>

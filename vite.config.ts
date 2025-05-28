@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/wishlist-site/',
+  // @ts-ignore - vitest configuration
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

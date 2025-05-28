@@ -2,26 +2,27 @@
   "name": "Wishlist checker",
   "short_name": "Wishlist",
   "description": "Управление списком желаний",
-  "start_url": "/",
+  "start_url": "/wishlist-site/",
+  "scope": "/wishlist-site/",
   "display": "standalone",
   "theme_color": "#F9FAFB",
   "background_color": "#F9FAFB",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/wishlist-icon.svg",
+      "src": "/wishlist-site/icons/wishlist-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192x192.png", 
+      "src": "/wishlist-site/icons/icon-192x192.png", 
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png", 
+      "src": "/wishlist-site/icons/icon-512x512.png", 
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
