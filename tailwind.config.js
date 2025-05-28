@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -20,6 +21,11 @@ export default {
           '"Segoe UI Symbol"' /* Кавычки */,
           '"Segoe UI Noto Color Emoji"' /* Кавычки */,
         ],
+      },
+      colors: {
+        // Кастомные цвета для темной темы
+        'dark-bg': '#222222',
+        'light-bg': '#F9FAFB',
       },
     },
   },

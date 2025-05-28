@@ -4,8 +4,8 @@
   "description": "Управление списком желаний",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
+  "theme_color": "#F9FAFB",
+  "background_color": "#F9FAFB",
   "orientation": "portrait-primary",
   "icons": [
     {
