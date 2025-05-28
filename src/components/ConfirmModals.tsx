@@ -33,7 +33,7 @@ export const ConfirmModals: React.FC<ConfirmModalsProps> = ({
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Подтвердите действие</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите действие</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
               Вы уверены, что хотите заменить текущий список импортированным? Это действие необратимо.
             </p>
@@ -61,9 +61,9 @@ export const ConfirmModals: React.FC<ConfirmModalsProps> = ({
       {isDeleteModalOpen && itemToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Подтвердите удаление</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-              Вы уверены, что хотите удалить "<span className="font-medium text-gray-900 dark:text-white">{itemToDelete.name}</span>"? Это действие необратимо.
+            <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите удаление</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Вы уверены, что хотите удалить "<span className="font-medium text-black dark:text-theme-secondary">{itemToDelete.name}</span>"? Это действие необратимо.
             </p>
             <div className="flex justify-end space-x-3">
               <button

@@ -131,8 +131,8 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
   };
 
   return (
-    <div className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-600 shadow-inner">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="p-4 bg-theme-edit border-b border-gray-200 dark:border-gray-600 shadow-inner">
+      <form onSubmit={handleSubmit} autoComplete="off" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Тип товара */}
           <div>

@@ -1,3 +1,66 @@
+/* CSS переменные для цветовой схемы */
+:root {
+  /* Цвета для светлой темы */
+  --color-background-light: #f9fafb;
+  --color-card-background-light: #ffffff;
+  --color-edit-background-light: #f3f4f6;
+  --color-text-light: #1f2937;
+  --color-text-secondary-light: #374151;
+  --color-theme-light: #f9fafb;
+  
+  /* Цвета для темной темы */
+  --color-background-dark: #141414;
+  --color-card-background-dark: #222222;
+  --color-edit-background-dark: #1a1a1a;
+  --color-text-dark: #d1d5db;
+  --color-text-secondary-dark: #d1d5db;
+  --color-theme-dark: #141414;
+  
+  /* Дополнительные цвета для элементов UI */
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #60a5fa;
+  --color-secondary-light: #6b7280;
+  --color-secondary-dark: #9ca3af;
+  --color-border-light: #e5e7eb;
+  --color-border-dark: #374151;
+  
+  /* Цвета для тумблера */
+  --color-toggle-bg-light: #f3f4f6;
+  --color-toggle-bg-dark: #222222;
+  --color-toggle-active-light: #ffffff;
+  --color-toggle-active-dark: #374151;
+}
+
+/* Применение переменных для светлой темы */
+html:not(.dark) {
+  --color-background: var(--color-background-light);
+  --color-card-background: var(--color-card-background-light);
+  --color-edit-background: var(--color-edit-background-light);
+  --color-text: var(--color-text-light);
+  --color-text-secondary: var(--color-text-secondary-light);
+  --color-theme: var(--color-theme-light);
+  --color-primary: var(--color-primary-light);
+  --color-secondary: var(--color-secondary-light);
+  --color-border: var(--color-border-light);
+  --color-toggle-bg: var(--color-toggle-bg-light);
+  --color-toggle-active: var(--color-toggle-active-light);
+}
+
+/* Применение переменных для темной темы */
+html.dark {
+  --color-background: var(--color-background-dark);
+  --color-card-background: var(--color-card-background-dark);
+  --color-edit-background: var(--color-edit-background-dark);
+  --color-text: var(--color-text-dark);
+  --color-text-secondary: var(--color-text-secondary-dark);
+  --color-theme: var(--color-theme-dark);
+  --color-primary: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary-dark);
+  --color-border: var(--color-border-dark);
+  --color-toggle-bg: var(--color-toggle-bg-dark);
+  --color-toggle-active: var(--color-toggle-active-dark);
+}
+
 /* Tailwind директивы для CDN версии */
 @tailwind base;
 @tailwind components;
@@ -23,7 +86,7 @@ html {
 }
 
 body {
-  background-color: #f9fafb;
+  background-color: var(--color-background);
   /* Оптимизация для мобильных касаний */
   touch-action: manipulation;
   /* Отключение выделения текста в элементах UI */
@@ -104,4 +167,58 @@ button:focus-visible {
 
 .will-change-opacity {
   will-change: opacity;
+}
+
+/* Утилитарные классы для использования CSS переменных */
+@layer utilities {
+  .bg-theme-background {
+    background-color: var(--color-background);
+  }
+  
+  .bg-theme-card {
+    background-color: var(--color-card-background);
+  }
+  
+  .bg-theme-edit {
+    background-color: var(--color-edit-background);
+  }
+  
+  .text-theme-primary {
+    color: var(--color-text);
+  }
+  
+  .text-theme-secondary {
+    color: var(--color-text-secondary);
+  }
+  
+  .text-theme-white {
+    color: #ffffff;
+  }
+  
+  .border-theme {
+    border-color: var(--color-border);
+  }
+  
+  .bg-theme-toggle {
+    background-color: var(--color-toggle-bg);
+  }
+  
+  .bg-theme-toggle-active {
+    background-color: var(--color-toggle-active);
+  }
+  
+  /* Классы для input элементов */
+  .input-theme {
+    background-color: var(--color-card-background);
+    color: var(--color-text-secondary);
+  }
+  
+  .input-theme::placeholder {
+    color: #9ca3af;
+  }
+  
+  /* Темная тема для input */
+  html.dark .input-theme::placeholder {
+    color: #6b7280;
+  }
 }

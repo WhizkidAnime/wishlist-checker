@@ -256,13 +256,13 @@ function App() {
               <div className="mt-6 sm:mt-8 border-t border-gray-200 dark:border-gray-600 pt-4 sm:pt-6">
                 <div className="flex flex-col gap-1 sm:text-right sm:ml-auto">
                   <div className="flex justify-end">
-                    <div className="text-lg sm:text-xl font-semibold">
-                      Итого некупленных: <span className="text-gray-800 dark:text-gray-200">{displayedTotalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
+                    <div className="text-lg sm:text-xl font-semibold text-black dark:text-theme-secondary">
+                      Итого некупленных: <span className="text-black dark:text-theme-secondary">{displayedTotalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <div className="text-base sm:text-lg font-medium text-gray-600 dark:text-gray-400">
-                      Итого купленных: <span className="text-gray-700 dark:text-gray-300">{displayedTotalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
+                    <div className="text-base sm:text-lg font-medium text-black dark:text-theme-secondary">
+                      Итого купленных: <span className="text-black dark:text-theme-secondary">{displayedTotalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
                     </div>
                   </div>
                 </div>

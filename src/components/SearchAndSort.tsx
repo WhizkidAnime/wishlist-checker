@@ -70,7 +70,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             placeholder="Поиск по названию/типу..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 transition-colors duration-200"
+            className="w-full px-3 py-1.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder:text-xs input-theme transition-colors duration-200"
           />
           {searchQuery && (
             <button
@@ -140,7 +140,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
                     setSortBy('default');
                     setShowSortDropdown(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white ${sortBy === 'default' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
+                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'default' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
                 >
                   Стандарт
                 </button>
@@ -149,7 +149,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
                     setSortBy('type-asc');
                     setShowSortDropdown(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white ${sortBy === 'type-asc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
+                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'type-asc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
                 >
                   Тип А-Я
                 </button>
@@ -158,7 +158,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
                     setSortBy('price-asc');
                     setShowSortDropdown(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white ${sortBy === 'price-asc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
+                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'price-asc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
                 >
                   Цена ↑
                 </button>
@@ -167,7 +167,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
                     setSortBy('price-desc');
                     setShowSortDropdown(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white ${sortBy === 'price-desc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
+                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'price-desc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
                 >
                   Цена ↓
                 </button>

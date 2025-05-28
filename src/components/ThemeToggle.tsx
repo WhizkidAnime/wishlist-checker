@@ -13,13 +13,13 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   isMobile = false 
 }) => {
   return (
-    <div className={`flex ${isMobile ? 'justify-end' : 'justify-center'} items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-full transition-colors duration-200`}>
+    <div className={`flex ${isMobile ? 'justify-end' : 'justify-center'} items-center gap-1 p-1 bg-theme-toggle rounded-full transition-colors duration-200`}>
       {/* Кнопка светлой темы (солнце) */}
       <button
         onClick={() => theme === 'dark' && onToggleTheme()}
         className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center ${
           theme === 'light'
-            ? 'bg-white dark:bg-gray-600 text-yellow-500 shadow-sm'
+            ? 'bg-theme-toggle-active text-yellow-500 shadow-sm'
             : 'text-gray-400 dark:text-gray-500 hover:text-yellow-400 dark:hover:text-yellow-400'
         }`}
         aria-label="Светлая тема"
@@ -46,7 +46,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         onClick={() => theme === 'light' && onToggleTheme()}
         className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center ${
           theme === 'dark'
-            ? 'bg-gray-600 dark:bg-gray-600 text-blue-400 shadow-sm'
+            ? 'bg-theme-toggle-active text-blue-400 shadow-sm'
             : 'text-gray-400 hover:text-blue-500'
         }`}
         aria-label="Темная тема"

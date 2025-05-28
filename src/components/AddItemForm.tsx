@@ -94,8 +94,8 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
   };
   
   return (
-    <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200">
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Добавить новое желание</h2>
+    <div className="mb-6 p-4 bg-theme-card rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+      <h2 className="text-xl font-semibold mb-4 text-black dark:text-theme-secondary">Добавить новое желание</h2>
       
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -109,7 +109,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               id="itemType"
               value={itemType}
               onChange={(e) => handleInputChange('itemType', e.target.value)}
-              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 input-theme ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
             />
@@ -126,7 +126,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               id="name"
               value={name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 input-theme ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
             />
@@ -145,7 +145,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                 id="price"
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
+                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs input-theme"
                 placeholder="45500 или 45000+500"
                 required
                 autoComplete="off"
@@ -170,7 +170,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                 onChange={(e) => handleInputChange('category', e.target.value)}
                 onFocus={() => setShowCategoryDropdown(true)}
                 onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
-                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
+                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs input-theme"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
               />
@@ -215,7 +215,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                             setCategory(cat);
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none text-gray-900 dark:text-white"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none text-black dark:text-theme-secondary"
                         >
                           {cat}
                         </button>
@@ -257,7 +257,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               id="link"
               value={link}
               onChange={(e) => handleInputChange('link', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 input-theme"
               autoComplete="off"
             />
           </div>
@@ -272,7 +272,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               value={comment}
               onChange={(e) => handleInputChange('comment', e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y input-theme"
               autoComplete="off"
             />
           </div>

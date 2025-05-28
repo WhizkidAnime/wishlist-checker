@@ -11,16 +11,16 @@ interface ThemeConfig {
 
 const themes: Record<Theme, ThemeConfig> = {
   light: {
-    background: 'bg-gray-50',
-    cardBackground: 'bg-white',
-    text: 'text-gray-800',
-    themeColor: '#F9FAFB'
+    background: 'bg-theme-background',
+    cardBackground: 'bg-theme-card',
+    text: 'text-theme-primary',
+    themeColor: '#f9fafb'
   },
   dark: {
-    background: 'bg-[#222222]',
-    cardBackground: 'bg-gray-800',
-    text: 'text-gray-100',
-    themeColor: '#222222'
+    background: 'bg-theme-background',
+    cardBackground: 'bg-theme-card',
+    text: 'text-theme-primary',
+    themeColor: '#141414'
   }
 };
 
