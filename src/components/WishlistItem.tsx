@@ -93,7 +93,7 @@ export const WishlistItem = ({
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-white dark:bg-gray-800'}`}
+        className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
       >
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
