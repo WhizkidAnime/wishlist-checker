@@ -133,7 +133,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
   return (
     <div className="p-4 bg-theme-edit border-b border-gray-200 dark:border-gray-600 shadow-inner">
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Тип товара */}
           <div>
             <label htmlFor={`edit-itemType-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -169,8 +169,33 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
             {errors.name && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>}
           </div>
 
+          {/* Цена */}
+          <div className="min-w-0">
+            <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Цена *
+            </label>
+            <div className={`flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-colors duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
+              <input
+                type="text"
+                inputMode="decimal"
+                id={`edit-price-${item.id}`}
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                required
+                placeholder="45500 или 45000+500"
+                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs input-theme"
+                autoComplete="off"
+              />
+              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
+                <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
+              </div>
+            </div>
+            {errors.price && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.price}</p>}
+          </div>
+
           {/* Категория */}
-          <div className="relative">
+          <div className="relative sm:col-span-2 lg:col-span-1">
             <label htmlFor={`edit-category-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Категория (опционально)
             </label>
@@ -261,7 +286,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           </div>
           
           {/* Ссылка (опционально) */}
-          <div>
+          <div className="sm:col-span-2 lg:col-span-2">
             <label htmlFor={`edit-link-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Ссылка (опционально)
             </label>
@@ -276,34 +301,9 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
             />
             {errors.link && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.link}</p>}
           </div>
-          
-          {/* Цена */}
-          <div className="min-w-0">
-            <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Цена *
-            </label>
-            <div className={`flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-colors duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
-              <input
-                type="text"
-                inputMode="decimal"
-                id={`edit-price-${item.id}`}
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                placeholder="45500 или 45000+500"
-                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs input-theme"
-                autoComplete="off"
-              />
-              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
-                <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
-              </div>
-            </div>
-            {errors.price && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.price}</p>}
-          </div>
 
           {/* Комментарий (опционально) */}
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-2 lg:col-span-3">
             <label htmlFor={`edit-comment-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Комментарий (опционально)
             </label>
@@ -319,7 +319,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           </div>
         </div>
         
-        <div className="flex justify-between gap-2">
+        <div className="flex justify-between gap-2 mt-4">
           <button
             type="button"
             onClick={onCancel}
