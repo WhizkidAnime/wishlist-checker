@@ -66,44 +66,64 @@ describe('useTheme', () => {
     vi.clearAllMocks()
   })
 
-  it('должен инициализироваться светлой темой по умолчанию', () => {
+  it('должен инициализироваться автоматическим режимом по умолчанию', () => {
     const { result } = renderHook(() => useTheme())
     
-    expect(result.current.theme).toBe('light')
+    expect(result.current.themeMode).toBe('auto')
+    expect(result.current.isSystemTheme).toBe(true)
   })
 
-  it('должен корректно переключать тему', () => {
+  it('должен корректно устанавливать конкретные режимы темы', () => {
     const { result } = renderHook(() => useTheme())
     
+    // Устанавливаем светлую тему
     act(() => {
-      result.current.toggleTheme()
+      result.current.setTheme('light')
     })
+    expect(result.current.themeMode).toBe('light')
+    expect(result.current.actualTheme).toBe('light')
     
-    expect(result.current.theme).toBe('dark')
-    
+    // Устанавливаем тёмную тему
     act(() => {
-      result.current.toggleTheme()
+      result.current.setTheme('dark')
     })
+    expect(result.current.themeMode).toBe('dark')
+    expect(result.current.actualTheme).toBe('dark')
     
-    expect(result.current.theme).toBe('light')
+    // Устанавливаем автоматический режим
+    act(() => {
+      result.current.setTheme('auto')
+    })
+    expect(result.current.themeMode).toBe('auto')
+    expect(result.current.isSystemTheme).toBe(true)
   })
 
-  it('должен сохранять тему в localStorage', () => {
+  it('должен сохранять режим темы в localStorage', () => {
     const { result } = renderHook(() => useTheme())
     
     act(() => {
       result.current.setTheme('dark')
     })
     
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('wishlist-theme', 'dark')
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('wishlist-theme-mode', 'dark')
   })
 
-  it('должен загружать сохраненную тему из localStorage', () => {
+  it('должен загружать сохраненный режим темы из localStorage', () => {
+    localStorageMock.setItem('wishlist-theme-mode', 'dark')
+    
+    const { result } = renderHook(() => useTheme())
+    
+    expect(result.current.themeMode).toBe('dark')
+    expect(result.current.actualTheme).toBe('dark')
+  })
+
+  it('должен мигрировать со старой системы тем', () => {
     localStorageMock.setItem('wishlist-theme', 'dark')
     
     const { result } = renderHook(() => useTheme())
     
-    expect(result.current.theme).toBe('dark')
+    expect(result.current.themeMode).toBe('dark')
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith('wishlist-theme')
   })
 
   it('должен обновлять meta тег theme-color', () => {
@@ -141,5 +161,30 @@ describe('useTheme', () => {
     expect(config).toHaveProperty('cardBackground')
     expect(config).toHaveProperty('text')
     expect(config).toHaveProperty('themeColor')
+  })
+
+  it('должен определять системную тему', () => {
+    const { result } = renderHook(() => useTheme())
+    
+    expect(result.current.systemTheme).toBeDefined()
+    expect(['light', 'dark']).toContain(result.current.systemTheme)
+  })
+
+  it('должен поддерживать проверку автоматической темы', () => {
+    const { result } = renderHook(() => useTheme())
+    
+    expect(typeof result.current.supportsAutoTheme).toBe('boolean')
+  })
+
+  it('должен корректно работать в auto режиме', () => {
+    const { result } = renderHook(() => useTheme())
+    
+    act(() => {
+      result.current.setTheme('auto')
+    })
+    
+    expect(result.current.themeMode).toBe('auto')
+    expect(result.current.isSystemTheme).toBe(true)
+    expect(['light', 'dark']).toContain(result.current.actualTheme)
   })
 }) 

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-export type Theme = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark' | 'auto';
+export type ActualTheme = 'light' | 'dark';
 
 interface ThemeConfig {
   background: string;
@@ -9,7 +10,7 @@ interface ThemeConfig {
   themeColor: string;
 }
 
-const themes: Record<Theme, ThemeConfig> = {
+const themes: Record<ActualTheme, ThemeConfig> = {
   light: {
     background: 'bg-theme-background',
     cardBackground: 'bg-theme-card',
@@ -24,68 +25,178 @@ const themes: Record<Theme, ThemeConfig> = {
   }
 };
 
+// Функция для надёжного определения системной темы
+const getSystemTheme = (): ActualTheme => {
+  // Проверяем поддержку prefers-color-scheme
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    try {
+      // Проверяем тёмную тему
+      const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      if (darkQuery.matches) return 'dark';
+      
+      // Проверяем светлую тему
+      const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+      if (lightQuery.matches) return 'light';
+      
+      // Если ни одна не совпадает, но поддержка есть, проверяем no-preference
+      const noPreferenceQuery = window.matchMedia('(prefers-color-scheme: no-preference)');
+      if (noPreferenceQuery.matches) {
+        // Fallback на время суток
+        const hour = new Date().getHours();
+        return (hour >= 18 || hour <= 6) ? 'dark' : 'light';
+      }
+    } catch (error) {
+      console.warn('Error detecting system theme:', error);
+    }
+  }
+  
+  // Fallback для старых браузеров или ошибок - используем время суток
+  const hour = new Date().getHours();
+  return (hour >= 18 || hour <= 6) ? 'dark' : 'light';
+};
+
+// Функция для проверки поддержки prefers-color-scheme
+const supportsColorSchemeQuery = (): boolean => {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  
+  try {
+    // Проверяем, поддерживается ли prefers-color-scheme
+    const testQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    return typeof testQuery.matches === 'boolean';
+  } catch {
+    return false;
+  }
+};
+
 export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Проверяем сохраненную тему в localStorage
-    const savedTheme = localStorage.getItem('wishlist-theme') as Theme;
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-      return savedTheme;
+  // Инициализация режима темы
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window === 'undefined') return 'auto';
+    
+    // Проверяем сохранённый режим темы
+    const savedMode = localStorage.getItem('wishlist-theme-mode') as ThemeMode;
+    if (savedMode && ['light', 'dark', 'auto'].includes(savedMode)) {
+      return savedMode;
     }
     
-    // Если нет сохраненной темы, используем системную
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
+    // Миграция со старой системы
+    const oldTheme = localStorage.getItem('wishlist-theme') as ActualTheme;
+    if (oldTheme && ['light', 'dark'].includes(oldTheme)) {
+      // Удаляем старый ключ
+      localStorage.removeItem('wishlist-theme');
+      return oldTheme;
     }
     
-    return 'light';
+    // По умолчанию - автоматический режим
+    return 'auto';
   });
 
-  // Обновляем meta тег theme-color при изменении темы
+  // Текущая применяемая тема
+  const [actualTheme, setActualTheme] = useState<ActualTheme>(() => {
+    if (themeMode === 'auto') {
+      return getSystemTheme();
+    }
+    return themeMode as ActualTheme;
+  });
+
+  // Функция для обновления применяемой темы
+  const updateActualTheme = useCallback(() => {
+    if (themeMode === 'auto') {
+      const systemTheme = getSystemTheme();
+      setActualTheme(systemTheme);
+      return systemTheme;
+    } else {
+      setActualTheme(themeMode as ActualTheme);
+      return themeMode as ActualTheme;
+    }
+  }, [themeMode]);
+
+  // Обновляем meta тег theme-color и класс dark при изменении темы
   useEffect(() => {
+    const currentTheme = updateActualTheme();
+    
+    // Обновляем meta тег theme-color
     const metaTag = document.querySelector('meta[name="theme-color"]');
     if (metaTag) {
-      metaTag.setAttribute('content', themes[theme].themeColor);
+      metaTag.setAttribute('content', themes[currentTheme].themeColor);
     }
     
-    // Сохраняем выбор темы в localStorage
-    localStorage.setItem('wishlist-theme', theme);
+    // Сохраняем режим темы в localStorage
+    localStorage.setItem('wishlist-theme-mode', themeMode);
     
     // Добавляем/убираем класс dark на html элемент для Tailwind
     const html = document.documentElement;
-    if (theme === 'dark') {
+    if (currentTheme === 'dark') {
       html.classList.add('dark');
     } else {
       html.classList.remove('dark');
     }
-  }, [theme]);
+  }, [themeMode, updateActualTheme]);
 
-  // Слушаем изменения системной темы
+  // Слушаем изменения системной темы только в auto режиме
   useEffect(() => {
+    if (themeMode !== 'auto' || !supportsColorSchemeQuery()) {
+      return;
+    }
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Обновляем тему только если пользователь не выбирал тему вручную
-      const savedTheme = localStorage.getItem('wishlist-theme');
-      if (!savedTheme) {
-        setTheme(e.matches ? 'dark' : 'light');
+    const handleChange = () => {
+      if (themeMode === 'auto') {
+        updateActualTheme();
       }
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+    // Современный способ (поддерживается в новых браузерах)
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } 
+    // Fallback для старых браузеров
+    else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
+  }, [themeMode, updateActualTheme]);
 
+  // Циклическое переключение: auto → light → dark → auto
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setThemeMode(prevMode => {
+      switch (prevMode) {
+        case 'auto':
+          return 'light';
+        case 'light':
+          return 'dark';
+        case 'dark':
+          return 'auto';
+        default:
+          return 'auto';
+      }
+    });
   };
 
-  const getThemeConfig = () => themes[theme];
+  // Установка конкретного режима темы
+  const setTheme = (mode: ThemeMode) => {
+    setThemeMode(mode);
+  };
+
+  const getThemeConfig = () => themes[actualTheme];
+
+  // Проверяем, применяется ли системная тема
+  const isSystemTheme = themeMode === 'auto';
+  
+  // Получаем текущую системную тему (для отображения в UI)
+  const systemTheme = getSystemTheme();
 
   return {
-    theme,
+    themeMode,
+    actualTheme,
+    systemTheme,
+    isSystemTheme,
     setTheme,
     toggleTheme,
     getThemeConfig,
-    themes
+    themes,
+    supportsAutoTheme: supportsColorSchemeQuery()
   };
 }; 

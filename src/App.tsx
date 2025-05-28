@@ -10,6 +10,7 @@ import { CalculatorPopup } from './components/CalculatorPopup';
 import { ConfirmModals } from './components/ConfirmModals';
 import { CategoryTabs } from './components/CategoryTabs';
 import { ThemeToggle } from './components/ThemeToggle';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 import { useWishlist } from './hooks/useWishlist';
 import { useSelection } from './hooks/useSelection';
@@ -27,7 +28,13 @@ function App() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Хук для управления темой
-  const { theme, toggleTheme, getThemeConfig } = useTheme();
+  const { 
+    themeMode, 
+    systemTheme, 
+    getThemeConfig,
+    supportsAutoTheme,
+    setTheme
+  } = useTheme();
   const themeConfig = getThemeConfig();
 
   // Хуки для управления состоянием
@@ -164,16 +171,18 @@ function App() {
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
           {/* Переключатель темы для десктопа - всегда в правом верхнем углу */}
-          <div className="hidden sm:block fixed top-6 right-6 z-30">
+          <div className="hidden sm:block fixed top-12 right-6 z-30">
             <ThemeToggle 
-              theme={theme} 
-              onToggleTheme={toggleTheme}
+              themeMode={themeMode}
+              systemTheme={systemTheme}
+              onSetTheme={setTheme}
               isMobile={false}
+              supportsAutoTheme={supportsAutoTheme}
             />
           </div>
 
           {/* Заголовок с тумблером для мобильных */}
-          <div className="relative w-full max-w-4xl flex justify-center items-center mb-6 sm:mb-8">
+          <div className="relative w-full max-w-4xl flex justify-center items-center mb-6 sm:mb-8 z-10">
             <h1 className={`text-2xl sm:text-3xl font-semibold text-center ${themeConfig.text} transition-colors duration-200`}>
               Wishlist checker
             </h1>
@@ -181,14 +190,16 @@ function App() {
             {/* Переключатель темы для мобильных - всегда рядом с заголовком */}
             <div className="sm:hidden absolute right-0 top-1/2 transform -translate-y-1/2">
               <ThemeToggle 
-                theme={theme} 
-                onToggleTheme={toggleTheme}
+                themeMode={themeMode}
+                systemTheme={systemTheme}
+                onSetTheme={setTheme}
                 isMobile={true}
+                supportsAutoTheme={supportsAutoTheme}
               />
             </div>
           </div>
           
-          <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-8 relative overflow-hidden transition-colors duration-200`}>
+          <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-8 relative transition-colors duration-200`}>
             
             <AddItemForm 
               onAddItem={handleAddItem} 
@@ -304,6 +315,9 @@ function App() {
           onDeleteCancel={handleDeleteCancel}
           showImportSuccessToast={showImportSuccessToast}
         />
+
+        {/* Offline индикатор и уведомления об обновлениях */}
+        <OfflineIndicator />
       </SortableContext>
     </DndContext>
   )
