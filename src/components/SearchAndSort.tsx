@@ -181,25 +181,25 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             <div className="flex flex-wrap gap-1.5">
               <button 
                 onClick={() => setSortBy('default')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Стандарт
               </button>
               <button 
                 onClick={() => setSortBy('type-asc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Тип А-Я
               </button>
               <button 
                 onClick={() => setSortBy('price-asc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Цена ↑
               </button>
               <button 
                 onClick={() => setSortBy('price-desc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Цена ↓
               </button>

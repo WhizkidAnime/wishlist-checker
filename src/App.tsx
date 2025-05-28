@@ -200,7 +200,7 @@ function App() {
             />
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 mb-4 gap-4 border-b pb-4 border-gray-200 dark:border-gray-600">
-              <h2 className="text-xl font-semibold text-black dark:text-white whitespace-nowrap">Список желаний</h2>
+              <h2 className="text-xl font-semibold text-black dark:text-theme-secondary whitespace-nowrap">Список желаний</h2>
             </div>
 
             <CategoryTabs

@@ -145,7 +145,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               name="itemType"
               value={formData.itemType}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border ${errors.itemType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400`}
+              className={`w-full px-3 py-2 border ${errors.itemType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm input-theme`}
               autoComplete="off"
             />
             {errors.itemType && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.itemType}</p>}
@@ -163,7 +163,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               value={formData.name}
               onChange={handleChange}
               required
-              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400`}
+              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm input-theme`}
               autoComplete="off"
             />
             {errors.name && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>}
@@ -183,7 +183,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 onChange={handleChange}
                 onFocus={() => setShowCategoryDropdown(true)}
                 onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
-                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
+                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs input-theme"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
               />
@@ -228,7 +228,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                             setFormData(prev => ({ ...prev, category: cat }));
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none"
+                          className="w-full px-3 py-2 text-left text-sm text-black dark:text-theme-secondary hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none"
                         >
                           {cat}
                         </button>
@@ -271,7 +271,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               name="link"
               value={formData.link}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border ${errors.link ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400`}
+              className={`w-full px-3 py-2 border ${errors.link ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm input-theme`}
               autoComplete="off"
             />
             {errors.link && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.link}</p>}
@@ -292,7 +292,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 onChange={handleChange}
                 required
                 placeholder="45500 или 45000+500"
-                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 transition-colors duration-200"
+                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs input-theme"
                 autoComplete="off"
               />
               <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
@@ -313,7 +313,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               value={formData.comment}
               onChange={handleChange}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm input-theme resize-y"
               autoComplete="off"
             />
           </div>
