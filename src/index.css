@@ -3,9 +3,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Оптимизации для производительности */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Улучшает производительность скролла */
+  scroll-behavior: smooth;
+  /* Оптимизация рендеринга шрифтов */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Предотвращение нежелательного масштабирования */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background-color: #f9fafb;
-  -webkit-text-size-adjust: 100%;
+  /* Оптимизация для мобильных касаний */
+  touch-action: manipulation;
+  /* Отключение выделения текста в элементах UI */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Включаем выделение текста для текстового контента */
+p, span, h1, h2, h3, h4, h5, h6, a, label, textarea, input {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 /* Отключение автомасштабирования для iOS */
@@ -21,6 +56,21 @@ textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  /* Оптимизация касаний */
+  touch-action: manipulation;
+}
+
+/* Оптимизация кнопок для касаний */
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Убираем outline для touch устройств, оставляем для keyboard */
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
 }
 
 /* Скрываем стрелки в полях ввода чисел */
@@ -45,4 +95,13 @@ textarea {
 .animate-fade-in-out {
   /* Позиционирование уже задано через Tailwind */
   animation: fadeInOut 3s ease-in-out forwards;
+}
+
+/* Улучшение производительности анимаций */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
 }

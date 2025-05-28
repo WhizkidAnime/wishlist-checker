@@ -30,6 +30,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
     category: item.category || '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   
   // Обновляем состояние формы при изменении редактируемого элемента
   useEffect(() => {
@@ -132,7 +133,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
   return (
     <div className="p-4 bg-gray-50 border-b border-gray-200 shadow-inner">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid xs:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Тип товара */}
           <div>
             <label htmlFor={`edit-itemType-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -169,26 +170,94 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           </div>
 
           {/* Категория */}
-          <div>
+          <div className="relative">
             <label htmlFor={`edit-category-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Категория (опционально)
             </label>
-            <input
-              type="text"
-              id={`edit-category-${item.id}`}
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              list={`edit-categories-${item.id}`}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              placeholder="Выберите или введите новую"
-              autoComplete="off"
-            />
-            <datalist id={`edit-categories-${item.id}`}>
-              {existingCategories.map(cat => (
-                <option key={cat} value={cat} />
-              ))}
-            </datalist>
+            <div className="relative">
+              <input
+                type="text"
+                id={`edit-category-${item.id}`}
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                onFocus={() => setShowCategoryDropdown(true)}
+                onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
+                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs"
+                placeholder="Выберите или создайте"
+                autoComplete="off"
+              />
+              
+              {/* Кнопка очистки */}
+              {formData.category && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, category: '' }));
+                    setShowCategoryDropdown(false);
+                  }}
+                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  title="Очистить"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+              
+              {/* Кнопка выпадающего списка */}
+              <button
+                type="button"
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showCategoryDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                  {existingCategories.length > 0 ? (
+                    <>
+                      {existingCategories.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, category: cat }));
+                            setShowCategoryDropdown(false);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                      {formData.category.trim() && !existingCategories.includes(formData.category.trim()) && (
+                        <div className="border-t border-gray-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowCategoryDropdown(false)}
+                            className="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                          >
+                            <span className="flex items-center">
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Создать "{formData.category.trim()}"
+                            </span>
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {formData.category.trim() ? `Создать "${formData.category.trim()}"` : 'Введите название категории'}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Ссылка (опционально) */}
@@ -223,8 +292,8 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 value={formData.price}
                 onChange={handleChange}
                 required
-                placeholder="45500 или 45 500 или 45000+500"
-                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1`}
+                placeholder="45500 или 45000+500"
+                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs`}
                 autoComplete="off"
               />
               <div className="flex items-center justify-center bg-gray-50 border-l border-gray-200" style={{ width: '35px', flexShrink: 0 }}>
@@ -235,7 +304,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           </div>
 
           {/* Комментарий (опционально) */}
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label htmlFor={`edit-comment-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
               Комментарий (опционально)
             </label>

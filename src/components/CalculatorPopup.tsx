@@ -6,7 +6,7 @@ interface CalculatorPopupProps {
   selectedItems: WishlistItem[];
   selectedTotal: number;
   displayCurrency: string;
-  position: { top: number, left: number };
+  position: { top: number, left: number, width: number };
   onClear: () => void;
 }
 
@@ -20,10 +20,11 @@ export const CalculatorPopup: React.FC<CalculatorPopupProps> = ({
 }) => {
   return (
     <div 
-      className="fixed bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm shadow-xl z-30 w-80 max-w-[calc(100vw-40px)]"
+      className="fixed bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm shadow-xl z-30 max-w-[calc(100vw-40px)]"
       style={{
         top: position.top,
         left: position.left,
+        width: position.width,
         maxHeight: 'calc(100vh - 40px)',
         overflow: 'auto'
       }}

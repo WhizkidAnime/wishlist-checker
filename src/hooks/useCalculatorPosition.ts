@@ -1,76 +1,73 @@
 import { useState, useEffect } from 'react';
 
 export const useCalculatorPosition = () => {
-  const [calculatorPosition, setCalculatorPosition] = useState<{ top: number, left: number } | null>(null);
+  const [calculatorPosition, setCalculatorPosition] = useState<{ top: number, left: number, width: number } | null>(null);
   const [firstButtonRef, setFirstButtonRef] = useState<HTMLElement | null>(null);
 
   const updateCalculatorPosition = () => {
-    if (!firstButtonRef) return;
-    
-    const mainContainer = document.querySelector('.w-full.max-w-4xl.bg-white.rounded-3xl') as HTMLElement;
-    if (!mainContainer) return;
-    
-    const containerRect = mainContainer.getBoundingClientRect();
-    const buttonRect = firstButtonRef.getBoundingClientRect();
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
+    const isMobile = windowWidth < 768; // md breakpoint
     
-    const calculatorWidth = 320;
-    let left = containerRect.left - calculatorWidth - 20;
-    let top = buttonRect.top;
+    let calculatorWidth: number;
+    let left: number;
+    let top: number;
     
-    if (left < 20) {
-      left = containerRect.right + 20;
-      if (left + calculatorWidth > windowWidth - 20) {
-        left = 20;
-        top = containerRect.top + 60;
+    if (isMobile) {
+      // На мобиле: полная ширина экрана с отступами, всегда наверху
+      calculatorWidth = windowWidth - 40; // отступы по 20px с каждой стороны
+      left = 20;
+      top = 20; // всегда наверху экрана
+    } else {
+      // На десктопе: фиксированная позиция посередине слева экрана
+      calculatorWidth = 320;
+      left = 20; // отступ от левого края
+      top = windowHeight / 2 - 100; // посередине по вертикали (примерно, с учетом высоты калькулятора)
+      
+      // Проверяем границы
+      if (top < 20) {
+        top = 20;
+      }
+      if (top + 200 > windowHeight - 20) {
+        top = windowHeight - 220;
       }
     }
     
-    if (top + 200 > windowHeight) {
-      top = windowHeight - 220;
-    }
-    
-    if (top < 20) {
-      top = 20;
-    }
-    
-    setCalculatorPosition({ top, left });
+    setCalculatorPosition({ top, left, width: calculatorWidth });
   };
 
   useEffect(() => {
-    if (firstButtonRef) {
-      updateCalculatorPosition();
-    }
-  }, [firstButtonRef]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (firstButtonRef) {
-        updateCalculatorPosition();
-      }
-    };
-
     const handleResize = () => {
-      if (firstButtonRef) {
+      if (calculatorPosition) {
         updateCalculatorPosition();
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize);
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, [firstButtonRef]);
+  }, [calculatorPosition]);
+
+  // Функция для показа калькулятора (вызывается при первом выборе товара)
+  const showCalculator = () => {
+    updateCalculatorPosition();
+  };
+
+  // Функция для скрытия калькулятора (вызывается при нажатии на крестик)
+  const hideCalculator = () => {
+    setCalculatorPosition(null);
+    setFirstButtonRef(null);
+  };
 
   return {
     calculatorPosition,
     setCalculatorPosition,
     firstButtonRef,
     setFirstButtonRef,
-    updateCalculatorPosition
+    updateCalculatorPosition,
+    showCalculator,
+    hideCalculator
   };
 }; 

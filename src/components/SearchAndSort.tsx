@@ -70,7 +70,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             placeholder="Поиск по названию/типу..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 pr-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full px-3 py-1.5 pr-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder:text-xs"
           />
           {searchQuery && (
             <button

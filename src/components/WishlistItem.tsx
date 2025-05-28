@@ -101,9 +101,10 @@ export const WishlistItem = ({
               <button
                 ref={mobileButtonRef}
                 onClick={() => onToggleSelected(item.id, mobileButtonRef.current || undefined)}
-                className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors ${
+                className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors touch-manipulation ${
                   isSelected ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-400 hover:bg-gray-100'
                 }`}
+                style={{ touchAction: 'manipulation' }}
                 title={isSelected ? "Убрать из расчета" : "Добавить в расчет"} aria-label={isSelected ? "Убрать из расчета" : "Добавить в расчет"}
               >
                 {isSelected ? (
@@ -144,39 +145,48 @@ export const WishlistItem = ({
           <div className="flex justify-end items-center gap-2 mt-1">
             <div className="flex-shrink-0">
               <div 
-                className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none ${item.isBought ? 'bg-gray-900 border-gray-900' : 'border-gray-300'}`}
+                className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 border-gray-900' : 'border-gray-300 hover:bg-gray-50 active:bg-gray-100'}`}
                 onClick={() => onToggleBought(item.id)}
-                tabIndex={0} role="checkbox" aria-checked={item.isBought} aria-label="Отметить как купленное"
+                style={{ touchAction: 'manipulation' }}
+                tabIndex={0}
+                role="checkbox"
+                aria-checked={item.isBought}
+                aria-label="Отметить как купленное"
               >
                 {item.isBought && <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
               </div>
             </div>
-            <div className="flex flex-col">
-              {index > 0 && (
-                <button onClick={() => onMoveItem(item.id, 'up')} className="text-gray-400 hover:text-gray-600 p-0.5" aria-label="Переместить вверх">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
-                </button>
-              )}
-              {index < totalItems - 1 && (
-                <button onClick={() => onMoveItem(item.id, 'down')} className="text-gray-400 hover:text-gray-600 p-0.5" aria-label="Переместить вниз">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </button>
-              )}
-            </div>
-            <button 
-              {...listeners}
-              className="text-gray-400 hover:text-gray-600 p-1 cursor-grab active:cursor-grabbing" 
-              title="Перетащить"
-              aria-label="Перетащить элемент"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <button onClick={() => onEditClick(item.id)} className="text-gray-400 hover:text-blue-600 p-1" title="Редактировать">
+            
+            {/* Кнопки перемещения - отдельные кнопки для лучшей отзывчивости */}
+            {index > 0 && (
+              <button 
+                onClick={() => onMoveItem(item.id, 'up')} 
+                className="text-gray-400 hover:text-gray-600 active:text-gray-800 p-2 touch-manipulation select-none"
+                style={{ touchAction: 'manipulation' }}
+                aria-label="Переместить вверх"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+            )}
+            {index < totalItems - 1 && (
+              <button 
+                onClick={() => onMoveItem(item.id, 'down')} 
+                className="text-gray-400 hover:text-gray-600 active:text-gray-800 p-2 touch-manipulation select-none"
+                style={{ touchAction: 'manipulation' }}
+                aria-label="Переместить вниз"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+            
+            <button onClick={() => onEditClick(item.id)} className="text-gray-400 hover:text-blue-600 active:text-blue-800 p-2 touch-manipulation" style={{ touchAction: 'manipulation' }} title="Редактировать">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
             </button>
-            <button onClick={() => onDeleteItem(item.id)} className="text-gray-400 hover:text-red-600 p-1" title="Удалить">
+            <button onClick={() => onDeleteItem(item.id)} className="text-gray-400 hover:text-red-600 active:text-red-800 p-2 touch-manipulation" style={{ touchAction: 'manipulation' }} title="Удалить">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
             </button>
           </div>
@@ -195,8 +205,9 @@ export const WishlistItem = ({
       <div className="flex items-center py-3 sm:py-4">
         <div className="mr-4 flex-shrink-0">
           <div 
-            className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none ${item.isBought ? 'bg-gray-900 border-gray-900' : 'border-gray-300'}`}
+            className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 border-gray-900' : 'border-gray-300 hover:bg-gray-50 active:bg-gray-100'}`}
             onClick={() => onToggleBought(item.id)}
+            style={{ touchAction: 'manipulation' }}
             tabIndex={0}
             role="checkbox"
             aria-checked={item.isBought}
@@ -214,9 +225,10 @@ export const WishlistItem = ({
           <button
             ref={desktopButtonRef}
             onClick={() => onToggleSelected(item.id, desktopButtonRef.current || undefined)}
-            className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors ${
-              isSelected ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-400 hover:bg-gray-100'
+            className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors touch-manipulation ${
+              isSelected ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-400 hover:bg-gray-100 active:bg-gray-200'
             }`}
+            style={{ touchAction: 'manipulation' }}
             title={isSelected ? "Убрать из расчета" : "Добавить в расчет"}
             aria-label={isSelected ? "Убрать из расчета" : "Добавить в расчет"}
           >
@@ -284,7 +296,8 @@ export const WishlistItem = ({
         <div className="flex space-x-1 flex-shrink-0 ml-1">
           <button 
             onClick={() => onEditClick(item.id)}
-            className="text-gray-500 hover:text-blue-600 hover:bg-gray-100 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out"
+            className="text-gray-500 hover:text-blue-600 hover:bg-gray-100 active:text-blue-800 active:bg-blue-50 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+            style={{ touchAction: 'manipulation' }}
             title="Редактировать"
             tabIndex={0}
           >
@@ -294,7 +307,8 @@ export const WishlistItem = ({
           </button>
           <button 
             onClick={() => onDeleteItem(item.id)}
-            className="text-gray-500 hover:text-red-600 hover:bg-gray-100 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out"
+            className="text-gray-500 hover:text-red-600 hover:bg-gray-100 active:text-red-800 active:bg-red-50 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+            style={{ touchAction: 'manipulation' }}
             title="Удалить"
             tabIndex={0}
           >

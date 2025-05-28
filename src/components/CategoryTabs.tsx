@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 
 interface CategoryTabsProps {
@@ -18,6 +18,22 @@ export const CategoryTabs = ({
 }: CategoryTabsProps) => {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Автоматическая прокрутка до конца при открытии формы добавления
+  useEffect(() => {
+    if (isAddingCategory && scrollContainerRef.current) {
+      // Небольшая задержка для завершения рендера
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            left: scrollContainerRef.current.scrollWidth,
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+    }
+  }, [isAddingCategory]);
 
   // Подсчитываем количество товаров в каждой категории
   const getCategoryCount = (category: string) => {
@@ -47,7 +63,7 @@ export const CategoryTabs = ({
 
   return (
     <div className="border-b border-gray-200 mb-4">
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+      <div ref={scrollContainerRef} className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
         {/* Вкладка "Все" */}
         <button
           onClick={() => onCategoryChange('all')}
@@ -89,7 +105,7 @@ export const CategoryTabs = ({
                 }
               }}
               placeholder="Название категории"
-              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 min-w-[120px]"
+              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 min-w-[120px] placeholder:text-xs"
               autoFocus
             />
             <button

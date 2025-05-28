@@ -85,7 +85,9 @@ function App() {
   const {
     calculatorPosition,
     setCalculatorPosition,
-    setFirstButtonRef
+    setFirstButtonRef,
+    showCalculator,
+    hideCalculator
   } = useCalculatorPosition();
 
   const { isMobile, showScrollButton, scrollToTop } = useResponsive();
@@ -114,19 +116,20 @@ function App() {
     const wasSelected = selectedItemIds.includes(id);
     baseHandleToggleSelected(id);
     
-    if (!wasSelected && selectedItemIds.length === 0 && buttonElement) {
-      setFirstButtonRef(buttonElement);
+    // Если выбираем первый товар - показываем калькулятор
+    if (!wasSelected && selectedItemIds.length === 0) {
+      showCalculator();
     }
     
+    // Если убираем последний товар - скрываем калькулятор
     if (wasSelected && selectedItemIds.length === 1) {
-      clearCalculator();
+      hideCalculator();
     }
   };
 
   const clearCalculator = () => {
     clearSelection();
-    setCalculatorPosition(null);
-    setFirstButtonRef(null);
+    hideCalculator();
   };
 
   const handleDeleteItemClick = (id: string | number) => {
