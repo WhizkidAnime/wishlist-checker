@@ -1,7 +1,7 @@
 {
   "name": "Wishlist checker",
   "short_name": "Wishlist",
-  "description": "Управление списком желаний",
+  "description": "Персональный планировщик покупок - сохраняйте желаемые товары с ценами и категориями",
   "start_url": "/wishlist-checker/",
   "scope": "/wishlist-checker/",
   "display": "standalone",
