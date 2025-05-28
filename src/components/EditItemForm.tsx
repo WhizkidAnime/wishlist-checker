@@ -282,7 +282,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
             <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Цена *
             </label>
-            <div className={`flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
+            <div className={`flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-colors duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
               <input
                 type="text"
                 inputMode="decimal"
@@ -292,11 +292,11 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 onChange={handleChange}
                 required
                 placeholder="45500 или 45000+500"
-                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
+                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 transition-colors duration-200"
                 autoComplete="off"
               />
-              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600" style={{ width: '35px', flexShrink: 0 }}>
-                <span className="text-gray-500 dark:text-gray-400 text-sm">RUB</span>
+              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
+                <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
               </div>
             </div>
             {errors.price && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.price}</p>}

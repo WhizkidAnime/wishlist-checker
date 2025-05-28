@@ -167,7 +167,7 @@ function App() {
       >
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
-          {/* Переключатель темы для десктопа */}
+          {/* Переключатель темы для десктопа - всегда в правом верхнем углу */}
           <div className="hidden sm:block fixed top-6 right-6 z-30">
             <ThemeToggle 
               theme={theme} 
@@ -176,21 +176,24 @@ function App() {
             />
           </div>
 
-          <h1 className={`text-2xl sm:text-3xl font-semibold text-center ${themeConfig.text} mb-6 sm:mb-8 transition-colors duration-200`}>
-            Wishlist checker
-          </h1>
-          
-          <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-8 relative overflow-hidden transition-colors duration-200`}>
+          {/* Заголовок с тумблером для мобильных */}
+          <div className="relative w-full max-w-4xl flex justify-center items-center mb-6 sm:mb-8">
+            <h1 className={`text-2xl sm:text-3xl font-semibold text-center ${themeConfig.text} transition-colors duration-200`}>
+              Wishlist checker
+            </h1>
             
-            {/* Переключатель темы для мобильных */}
-            <div className="sm:hidden absolute top-4 right-4 z-20">
+            {/* Переключатель темы для мобильных - всегда рядом с заголовком */}
+            <div className="sm:hidden absolute right-0 top-1/2 transform -translate-y-1/2">
               <ThemeToggle 
                 theme={theme} 
                 onToggleTheme={toggleTheme}
                 isMobile={true}
               />
             </div>
-
+          </div>
+          
+          <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-8 relative overflow-hidden transition-colors duration-200`}>
+            
             <AddItemForm 
               onAddItem={handleAddItem} 
               existingCategories={categories}

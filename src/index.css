@@ -211,6 +211,7 @@ button:focus-visible {
   .input-theme {
     background-color: var(--color-card-background);
     color: var(--color-text-secondary);
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
   }
   
   .input-theme::placeholder {
