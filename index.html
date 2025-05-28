@@ -1,37 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/wishlist-checker/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- Основная иконка и фавикон -->
+    <link rel="icon" type="image/svg+xml" href="/wishlist-site/cart-icon.svg" />
+    <link rel="shortcut icon" href="/wishlist-site/cart-icon.svg" />
+    
+    <!-- Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Основной заголовок -->
     <title>Wishlist checker</title>
-    <script>
-      tailwind.config = {
-        mode: 'jit',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: [
-                'ui-sans-serif',
-                '-apple-system',
-                'system-ui',
-                '"Segoe UI"',
-                'Helvetica',
-                '"Apple Color Emoji"',
-                'Arial',
-                'sans-serif',
-                '"Segoe UI Emoji"',
-                '"Segoe UI Symbol"',
-                '"Noto Color Emoji"',
-              ],
-            },
-          },
+    
+    <!-- PWA настройки с theme-color -->
+    <meta name="description" content="Управление списком желаний - отслеживайте цены на ваши товары" />
+    <meta name="theme-color" content="#F9FAFB" />
+    <link rel="manifest" href="/wishlist-site/manifest.json" />
+    
+    <!-- Safari PWA настройки -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Wishlist checker" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- Apple Touch Icons - PNG формат для корректного отображения -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/wishlist-site/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/wishlist-site/icons/icon-180x180.png" />
+
+    <script type="text/javascript">
+      // GitHub Pages SPA обработка для PWA
+      // Обрабатываем перенаправления от 404.html
+      (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        
+        if (redirect) {
+          // Убираем redirect параметр и переходим на правильный путь
+          const newUrl = decodeURIComponent(redirect);
+          window.history.replaceState(null, null, newUrl);
         }
-      }
+      })();
     </script>
-    <script src="https://cdn.tailwindcss.com?v=3.4.0"></script>
-    <script type="module" crossorigin src="/wishlist-checker/assets/index-Dbs34bnu.js"></script>
-    <link rel="stylesheet" crossorigin href="/wishlist-checker/assets/index-Dp1uDfRg.css">
+    <script type="module" crossorigin src="/wishlist-site/assets/index-CU6YQ1_g.js"></script>
+    <link rel="stylesheet" crossorigin href="/wishlist-site/assets/index-CaKAMb5s.css">
   </head>
   <body>
     <div id="root"></div>

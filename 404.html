@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages SPA hack для PWA
+      // Перенаправляем все 404 запросы на index.html с сохранением пути
+      const path = window.location.pathname.replace('/wishlist-site', '');
+      const query = window.location.search;
+      const hash = window.location.hash;
+      
+      window.location.replace('/wishlist-site/' + (path ? '?redirect=' + encodeURIComponent(path + query + hash) : ''));
+    </script>
+  </head>
+  <body>
+    <p>Перенаправление...</p>
+  </body>
+</html> 
