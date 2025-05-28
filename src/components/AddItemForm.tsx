@@ -94,14 +94,14 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
   };
   
   return (
-    <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-      <h2 className="text-xl font-semibold mb-4">Добавить новое желание</h2>
+    <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Добавить новое желание</h2>
       
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           {/* Тип товара */}
           <div>
-            <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Тип товара *
             </label>
             <input
@@ -109,7 +109,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               id="itemType"
               value={itemType}
               onChange={(e) => handleInputChange('itemType', e.target.value)}
-              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
             />
@@ -118,7 +118,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
           
           {/* Название */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Название *
             </label>
             <input
@@ -126,7 +126,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               id="name"
               value={name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
             />
@@ -135,24 +135,23 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
 
           {/* Цена */}
           <div className="min-w-0">
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Цена *
             </label>
-            <div className="flex rounded-md overflow-hidden border focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200" 
-                 style={{ borderColor: errors.price ? '#ef4444' : '#d1d5db' }}>
+            <div className={`flex rounded-md overflow-hidden border focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
               <input
                 type="text"
                 inputMode="decimal"
                 id="price"
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs`}
+                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
                 placeholder="45500 или 45000+500"
                 required
                 autoComplete="off"
               />
-              <div className="flex items-center justify-center bg-gray-50 border-l border-gray-200" style={{ width: '35px', flexShrink: 0 }}>
-                <span className="text-gray-500 text-sm">RUB</span>
+              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600" style={{ width: '35px', flexShrink: 0 }}>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">RUB</span>
               </div>
             </div>
             {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
@@ -160,7 +159,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
 
           {/* Категория */}
           <div className="relative sm:col-span-2 lg:col-span-1">
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Категория (опционально)
             </label>
             <div className="relative">
@@ -171,7 +170,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                 onChange={(e) => handleInputChange('category', e.target.value)}
                 onFocus={() => setShowCategoryDropdown(true)}
                 onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
-                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs"
+                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
               />
@@ -184,7 +183,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                     setCategory('');
                     setShowCategoryDropdown(false);
                   }}
-                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
                   title="Очистить"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,7 +196,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               <button
                 type="button"
                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -205,7 +204,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               </button>
               
               {showCategoryDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto">
                   {existingCategories.length > 0 ? (
                     <>
                       {existingCategories.map(cat => (
@@ -216,17 +215,17 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                             setCategory(cat);
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none text-gray-900 dark:text-white"
                         >
                           {cat}
                         </button>
                       ))}
                       {category.trim() && !existingCategories.includes(category.trim()) && (
-                        <div className="border-t border-gray-100">
+                        <div className="border-t border-gray-100 dark:border-gray-600">
                           <button
                             type="button"
                             onClick={() => setShowCategoryDropdown(false)}
-                            className="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                            className="w-full px-3 py-2 text-left text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 focus:bg-blue-50 dark:focus:bg-blue-900 focus:outline-none"
                           >
                             <span className="flex items-center">
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,7 +238,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
                       )}
                     </>
                   ) : (
-                    <div className="px-3 py-2 text-sm text-gray-500">
+                    <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
                       {category.trim() ? `Создать "${category.trim()}"` : 'Введите название категории'}
                     </div>
                   )}
@@ -250,7 +249,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
           
           {/* Ссылка (опционально) */}
           <div className="sm:col-span-2 lg:col-span-2">
-            <label htmlFor="link" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="link" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Ссылка (опционально)
             </label>
             <input
@@ -258,14 +257,14 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               id="link"
               value={link}
               onChange={(e) => handleInputChange('link', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
               autoComplete="off"
             />
           </div>
 
           {/* Комментарий (опционально) */}
           <div className="sm:col-span-2 lg:col-span-3">
-            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Комментарий (опционально)
             </label>
             <textarea
@@ -273,7 +272,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
               value={comment}
               onChange={(e) => handleInputChange('comment', e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
               autoComplete="off"
             />
           </div>
@@ -282,7 +281,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
         <div className="flex justify-center mt-4">
           <button
             type="submit"
-            className="w-auto px-6 py-2 bg-black text-white rounded-full font-semibold hover:bg-black focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-auto px-6 py-2 bg-black dark:bg-gray-600 text-white rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-500 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!!errors.itemType || !!errors.name || !!errors.price || !price.trim()}
           >
             Добавить

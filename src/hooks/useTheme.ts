@@ -17,7 +17,7 @@ const themes: Record<Theme, ThemeConfig> = {
     themeColor: '#F9FAFB'
   },
   dark: {
-    background: 'bg-gray-900',
+    background: 'bg-[#222222]',
     cardBackground: 'bg-gray-800',
     text: 'text-gray-100',
     themeColor: '#222222'

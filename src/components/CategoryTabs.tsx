@@ -62,15 +62,15 @@ export const CategoryTabs = ({
   };
 
   return (
-    <div className="border-b border-gray-200 mb-4">
+    <div className="border-b border-gray-200 dark:border-gray-600 mb-4">
       <div ref={scrollContainerRef} className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
         {/* Вкладка "Все" */}
         <button
           onClick={() => onCategoryChange('all')}
           className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150 ${
             activeCategory === 'all'
-              ? 'border-gray-800 text-gray-800'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              ? 'border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200'
+              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
           }`}
         >
           Все ({getCategoryCount('all')})
@@ -83,8 +83,8 @@ export const CategoryTabs = ({
             onClick={() => onCategoryChange(category)}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150 ${
               activeCategory === category
-                ? 'border-gray-800 text-gray-800'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
             }`}
           >
             {category} ({getCategoryCount(category)})
@@ -105,12 +105,12 @@ export const CategoryTabs = ({
                 }
               }}
               placeholder="Название категории"
-              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 min-w-[120px] placeholder:text-xs"
+              className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 min-w-[120px] placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
               autoFocus
             />
             <button
               onClick={handleAddCategory}
-              className="text-gray-500 hover:text-green-600 transition-colors duration-150"
+              className="text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150"
               title="Сохранить"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,7 +121,7 @@ export const CategoryTabs = ({
         ) : (
           <button
             onClick={() => setIsAddingCategory(true)}
-            className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 transition-colors duration-150"
+            className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-500 transition-colors duration-150"
             title="Добавить категорию"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

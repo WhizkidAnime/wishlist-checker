@@ -131,12 +131,12 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
   };
 
   return (
-    <div className="p-4 bg-gray-50 border-b border-gray-200 shadow-inner">
+    <div className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-600 shadow-inner">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Тип товара */}
           <div>
-            <label htmlFor={`edit-itemType-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`edit-itemType-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Тип (опционально)
             </label>
             <input
@@ -145,15 +145,15 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               name="itemType"
               value={formData.itemType}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border ${errors.itemType ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
+              className={`w-full px-3 py-2 border ${errors.itemType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400`}
               autoComplete="off"
             />
-            {errors.itemType && <p className="mt-1 text-xs text-red-600">{errors.itemType}</p>}
+            {errors.itemType && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.itemType}</p>}
           </div>
           
           {/* Название */}
           <div>
-            <label htmlFor={`edit-name-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`edit-name-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Название *
             </label>
             <input
@@ -163,15 +163,15 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               value={formData.name}
               onChange={handleChange}
               required
-              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
+              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400`}
               autoComplete="off"
             />
-            {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>}
           </div>
 
           {/* Категория */}
           <div className="relative">
-            <label htmlFor={`edit-category-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`edit-category-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Категория (опционально)
             </label>
             <div className="relative">
@@ -183,7 +183,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 onChange={handleChange}
                 onFocus={() => setShowCategoryDropdown(true)}
                 onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
-                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs"
+                className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
               />
@@ -196,7 +196,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                     setFormData(prev => ({ ...prev, category: '' }));
                     setShowCategoryDropdown(false);
                   }}
-                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
                   title="Очистить"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +209,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               <button
                 type="button"
                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -217,7 +217,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               </button>
               
               {showCategoryDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto">
                   {existingCategories.length > 0 ? (
                     <>
                       {existingCategories.map(cat => (
@@ -228,17 +228,17 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                             setFormData(prev => ({ ...prev, category: cat }));
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                          className="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none"
                         >
                           {cat}
                         </button>
                       ))}
                       {formData.category.trim() && !existingCategories.includes(formData.category.trim()) && (
-                        <div className="border-t border-gray-100">
+                        <div className="border-t border-gray-100 dark:border-gray-600">
                           <button
                             type="button"
                             onClick={() => setShowCategoryDropdown(false)}
-                            className="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                            className="w-full px-3 py-2 text-left text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 focus:bg-blue-50 dark:focus:bg-blue-900/30 focus:outline-none"
                           >
                             <span className="flex items-center">
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +251,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                       )}
                     </>
                   ) : (
-                    <div className="px-3 py-2 text-sm text-gray-500">
+                    <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
                       {formData.category.trim() ? `Создать "${formData.category.trim()}"` : 'Введите название категории'}
                     </div>
                   )}
@@ -262,7 +262,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           
           {/* Ссылка (опционально) */}
           <div>
-            <label htmlFor={`edit-link-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`edit-link-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Ссылка (опционально)
             </label>
             <input
@@ -271,19 +271,18 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               name="link"
               value={formData.link}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border ${errors.link ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm`}
+              className={`w-full px-3 py-2 border ${errors.link ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400`}
               autoComplete="off"
             />
-            {errors.link && <p className="mt-1 text-xs text-red-600">{errors.link}</p>}
+            {errors.link && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.link}</p>}
           </div>
           
           {/* Цена */}
           <div className="min-w-0">
-            <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`edit-price-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Цена *
             </label>
-            <div className="flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200" 
-                 style={{ borderColor: errors.price ? '#ef4444' : '#d1d5db' }}>
+            <div className={`flex rounded-md overflow-hidden border focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
               <input
                 type="text"
                 inputMode="decimal"
@@ -293,19 +292,19 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 onChange={handleChange}
                 required
                 placeholder="45500 или 45000+500"
-                className={`w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs`}
+                className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400"
                 autoComplete="off"
               />
-              <div className="flex items-center justify-center bg-gray-50 border-l border-gray-200" style={{ width: '35px', flexShrink: 0 }}>
-                <span className="text-gray-500 text-sm">RUB</span>
+              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600" style={{ width: '35px', flexShrink: 0 }}>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">RUB</span>
               </div>
             </div>
-            {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
+            {errors.price && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.price}</p>}
           </div>
 
           {/* Комментарий (опционально) */}
           <div className="sm:col-span-2">
-            <label htmlFor={`edit-comment-${item.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor={`edit-comment-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Комментарий (опционально)
             </label>
             <textarea
@@ -314,7 +313,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               value={formData.comment}
               onChange={handleChange}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm resize-y"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y"
               autoComplete="off"
             />
           </div>
@@ -324,14 +323,14 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-150"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-gray-500 transition-colors duration-150"
           >
             Отмена
           </button>
           <button
             type="submit"
             disabled={!!errors.name || !!errors.price || !!errors.link}
-            className="px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+            className="px-4 py-2 text-sm font-medium text-white bg-black dark:bg-gray-800 border border-transparent rounded-md shadow-sm hover:bg-gray-800 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 dark:focus:ring-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
           >
             Сохранить
           </button>
