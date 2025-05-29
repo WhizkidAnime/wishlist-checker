@@ -17,6 +17,8 @@ interface WishlistContainerProps {
   onCurrencyChange: (currency: string) => void;
   selectedItemIds: (string | number)[];
   onToggleSelected: (id: string | number) => void;
+  bulkSelectedItemIds: (string | number)[];
+  onToggleBulkSelected: (id: string | number) => void;
   isMobile: boolean;
   onMoveItem: (id: string | number, direction: 'up' | 'down') => void;
 }
@@ -34,6 +36,8 @@ export const WishlistContainer = ({
   onCurrencyChange,
   selectedItemIds,
   onToggleSelected,
+  bulkSelectedItemIds,
+  onToggleBulkSelected,
   isMobile,
   onMoveItem
 }: WishlistContainerProps) => {
@@ -79,6 +83,8 @@ export const WishlistContainer = ({
               exchangeRates={exchangeRates}
               isSelected={selectedItemIds.includes(item.id)}
               onToggleSelected={onToggleSelected}
+              isBulkSelected={bulkSelectedItemIds.includes(item.id)}
+              onToggleBulkSelected={onToggleBulkSelected}
               isMobile={isMobile}
               onMoveItem={onMoveItem}
               index={index}

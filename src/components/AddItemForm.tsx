@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
 import { Tooltip } from './ui/Tooltip';
