@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { getRedirectUrl } from '../utils/authRedirect';
 
 interface EmailDebugInfoProps {
   email: string;
@@ -70,7 +71,7 @@ export const EmailDebugInfo: React.FC<EmailDebugInfoProps> = ({ email }) => {
         <div className="mt-4 space-y-4">
           <div className="text-xs text-theme-text-secondary space-y-2">
             <p><strong>Email для регистрации:</strong> {email}</p>
-            <p><strong>Redirect URL:</strong> {window.location.origin}/wishlist-checker/auth/callback</p>
+            <p><strong>Redirect URL:</strong> {getRedirectUrl()}</p>
             <p><strong>Supabase URL:</strong> {import.meta.env.VITE_SUPABASE_URL || 'не настроен'}</p>
           </div>
 

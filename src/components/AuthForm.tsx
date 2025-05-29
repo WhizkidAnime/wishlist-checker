@@ -85,10 +85,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
       if (mode === 'signin') {
         await signInWithPassword(email, password);
         setMessage('Вход выполнен успешно!');
-        setTimeout(() => {
-          onClose();
-          onSuccess?.();
-        }, 1000);
         
       } else if (mode === 'signup') {
         const result = await signUpWithPassword(email, password);
@@ -97,10 +93,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
           setMessage('Регистрация завершена! Проверьте почту и подтвердите email адрес. Если письма нет, проверьте папку "Спам".');
         } else {
           setMessage('Регистрация и вход выполнены успешно!');
-          setTimeout(() => {
-            onClose();
-            onSuccess?.();
-          }, 1000);
         }
         
       } else if (mode === 'reset') {

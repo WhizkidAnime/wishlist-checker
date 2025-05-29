@@ -15,11 +15,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   }
 
   const handleSignOut = async () => {
+    console.log('🔘 UserProfile: Нажата кнопка выхода');
+    console.log('🔐 UserProfile: Текущий пользователь:', user?.email);
+    console.log('🔧 UserProfile: isSupabaseAvailable:', isSupabaseAvailable);
+    
     try {
+      console.log('🔄 UserProfile: Начинаем выход...');
       await signOut();
+      console.log('✅ UserProfile: Выход выполнен успешно');
       setShowDropdown(false);
     } catch (error) {
-      console.error('Ошибка выхода:', error);
+      console.error('❌ UserProfile: Ошибка выхода:', error);
     }
   };
 

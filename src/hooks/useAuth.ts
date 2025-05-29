@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
+import { getRedirectUrl, debugAuthUrls } from '../utils/authRedirect';
 
 export interface AuthState {
   user: User | null;
@@ -84,11 +85,16 @@ export const useAuth = () => {
       throw new Error('Supabase недоступен');
     }
 
+    // Отладочная информация
+    if (process.env.NODE_ENV === 'development') {
+      debugAuthUrls();
+    }
+
     const { data, error } = await supabase!.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/wishlist-checker/auth/callback`
+        emailRedirectTo: getRedirectUrl()
       }
     });
 
@@ -124,7 +130,7 @@ export const useAuth = () => {
     }
 
     const { error } = await supabase!.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/wishlist-checker/auth/callback`
+      redirectTo: getRedirectUrl()
     });
 
     if (error) {
@@ -142,7 +148,7 @@ export const useAuth = () => {
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/wishlist-checker/auth/callback`
+        emailRedirectTo: getRedirectUrl()
       }
     });
 
@@ -160,7 +166,7 @@ export const useAuth = () => {
     const { error } = await supabase!.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/wishlist-checker/auth/callback`
+        emailRedirectTo: getRedirectUrl()
       }
     });
 
@@ -175,10 +181,15 @@ export const useAuth = () => {
       throw new Error('Supabase недоступен');
     }
 
+    // Отладочная информация
+    if (process.env.NODE_ENV === 'development') {
+      debugAuthUrls();
+    }
+
     const { error } = await supabase!.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/wishlist-checker/auth/callback`
+        redirectTo: getRedirectUrl()
       }
     });
 
@@ -189,13 +200,75 @@ export const useAuth = () => {
 
   // Выход
   const signOut = async () => {
+    console.log('🚪 useAuth: signOut вызван');
+    console.log('🔧 useAuth: isSupabaseAvailable:', isSupabaseAvailable());
+    
     if (!isSupabaseAvailable()) {
+      console.log('⚠️ useAuth: Supabase недоступен, выходим без запроса');
       return;
     }
 
-    const { error } = await supabase!.auth.signOut();
-    if (error) {
-      throw error;
+    console.log('🔄 useAuth: Отправляем запрос на выход в Supabase...');
+    
+    try {
+      const { error } = await supabase!.auth.signOut();
+      if (error) {
+        console.error('❌ useAuth: Ошибка выхода от Supabase:', error);
+        
+        // Если это ошибка "сессия отсутствует", то это нормально - просто очищаем локально
+        if (error.message?.includes('Auth session missing') || error.message?.includes('session not found')) {
+          console.log('ℹ️ useAuth: Сессия уже недействительна, очищаем локально');
+        } else {
+          // Для других ошибок все равно выбрасываем исключение
+          throw error;
+        }
+      }
+      
+      console.log('✅ useAuth: Supabase вернул успешный результат выхода');
+      
+      // Дополнительная очистка localStorage для полного выхода
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        console.log('🧹 useAuth: Очищены Supabase ключи из localStorage:', keysToRemove);
+      } catch (storageError) {
+        console.warn('⚠️ useAuth: Не удалось очистить localStorage:', storageError);
+      }
+    } catch (error) {
+      console.error('❌ useAuth: Критическая ошибка выхода:', error);
+      
+      // Независимо от ошибки, принудительно очищаем локальное состояние
+      console.log('🧹 useAuth: Принудительная очистка локального состояния...');
+      setAuthState({
+        user: null,
+        session: null,
+        loading: false,
+        isAuthenticated: false
+      });
+      
+      // Очищаем все данные Supabase из localStorage
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        console.log('🧹 useAuth: Очищены Supabase ключи из localStorage:', keysToRemove);
+      } catch (storageError) {
+        console.warn('⚠️ useAuth: Не удалось очистить localStorage:', storageError);
+      }
+      
+      // Не выбрасываем ошибку - считаем выход успешным
+      return;
     }
   };
 
