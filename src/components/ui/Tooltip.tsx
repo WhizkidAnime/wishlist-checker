@@ -10,7 +10,6 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
   usePortal?: boolean; // Опция для использования Portal при проблемах с z-index
-  title?: string; // Заголовок для мобильного модального окна
 }
 
 export const Tooltip = ({ 
@@ -19,8 +18,7 @@ export const Tooltip = ({
   delay = 800, // По умолчанию 800ms задержка
   position = 'top',
   className = '',
-  usePortal = false,
-  title
+  usePortal = false
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
