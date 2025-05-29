@@ -36,8 +36,6 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
     }
 
     try {
-      console.log('[SW] Регистрация Service Worker...');
-      
       // Определяем правильный путь в зависимости от режима
       const isDev = import.meta.env.DEV;
       const swPath = isDev ? '/sw.js' : '/wishlist-checker/sw.js';
@@ -46,8 +44,6 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
       const registration = await navigator.serviceWorker.register(swPath, {
         scope: swScope
       });
-
-      console.log('[SW] Service Worker зарегистрирован успешно:', registration);
 
       setStatus(prev => ({
         ...prev,
@@ -60,13 +56,10 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
 
       // Слушаем события обновления
       registration.addEventListener('updatefound', () => {
-        console.log('[SW] Найдено обновление Service Worker');
-        
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW] Новая версия готова к установке');
               setStatus(prev => ({
                 ...prev,
                 updateAvailable: true
@@ -96,15 +89,12 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
       const waitingWorker = status.registration.waiting;
       
       if (waitingWorker) {
-        console.log('[SW] Применение обновления...');
-        
         // Отправляем сообщение для принудительной активации
         waitingWorker.postMessage('SKIP_WAITING');
         
         // Ждем активации нового Service Worker
         waitingWorker.addEventListener('statechange', () => {
           if (waitingWorker.state === 'activated') {
-            console.log('[SW] Обновление применено, перезагружаем страницу...');
             window.location.reload();
           }
         });
@@ -126,7 +116,6 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
     }
 
     try {
-      console.log('[SW] Проверка обновлений...');
       await status.registration.update();
     } catch (error) {
       console.error('[SW] Ошибка проверки обновлений:', error);
@@ -136,12 +125,10 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
   // Обработка изменения состояния сети
   useEffect(() => {
     const handleOnline = () => {
-      console.log('[SW] Соединение восстановлено');
       setStatus(prev => ({ ...prev, isOnline: true }));
     };
 
     const handleOffline = () => {
-      console.log('[SW] Соединение потеряно - переход в offline режим');
       setStatus(prev => ({ ...prev, isOnline: false }));
     };
 
@@ -156,6 +143,12 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
 
   // Автоматическая регистрация при монтировании
   useEffect(() => {
+    // Временно отключаем Service Worker для разработки
+    if (import.meta.env.DEV) {
+      console.log('[SW] Service Worker отключен в режиме разработки');
+      return;
+    }
+    
     if (isServiceWorkerSupported() && !status.isRegistered) {
       registerSW();
     }
@@ -175,8 +168,6 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
   // Слушаем сообщения от Service Worker
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log('[SW] Получено сообщение:', event.data);
-      
       if (event.data.type === 'SW_UPDATE_AVAILABLE') {
         setStatus(prev => ({
           ...prev,

@@ -12,16 +12,46 @@ dist
 dist-ssr
 *.local
 
+# Environment files and secrets
+.env*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+config/local.*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+.vscode/settings.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*~
+.#*
+
+# Testing and coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Cache files
+.eslintcache
+.stylelintcache
+*.tmp
+*.temp
+
+# Build artifacts
+build/
+*.tgz
+*.tar.gz
 
 # Development and documentation files (not needed for production)
 memory-bank/
@@ -31,3 +61,4 @@ full stack plan.txt
 dev-notes.txt
 TODO.md
 CHANGELOG.md
+*.debug

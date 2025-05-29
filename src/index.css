@@ -202,8 +202,16 @@ button:focus-visible {
     color: var(--color-text);
   }
   
+  .text-theme-text {
+    color: var(--color-text);
+  }
+  
   .text-theme-secondary {
     color: var(--color-text-secondary);
+  }
+  
+  .text-theme-text-secondary {
+    color: var(--color-text-muted);
   }
   
   .text-theme-white {
@@ -218,6 +226,10 @@ button:focus-visible {
     border-color: var(--color-border);
   }
   
+  .border-theme-border {
+    border-color: var(--color-border);
+  }
+  
   .bg-theme-toggle {
     background-color: var(--color-toggle-bg);
   }
@@ -228,6 +240,14 @@ button:focus-visible {
   
   .bg-theme-toggle-hover {
     background-color: var(--color-toggle-hover);
+  }
+  
+  .bg-theme-primary {
+    background-color: var(--color-primary);
+  }
+  
+  .hover\\:bg-theme-background-secondary:hover {
+    background-color: var(--color-edit-background);
   }
   
   /* Классы для input элементов */

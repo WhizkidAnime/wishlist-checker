@@ -5,6 +5,7 @@ import { safeCalculate } from '../utils/priceCalculator';
 interface AddItemFormProps {
   onAddItem: (item: Omit<WishlistItem, 'id' | 'isBought'>) => void;
   existingCategories?: string[];
+  disabled?: boolean;
 }
 
 interface FormErrors {
@@ -16,7 +17,7 @@ interface FormErrors {
 /**
  * Компонент формы для добавления нового элемента в вишлист
  */
-export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormProps) => {
+export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = false }: AddItemFormProps) => {
   const [itemType, setItemType] = useState('');
   const [name, setName] = useState('');
   const [link, setLink] = useState('');
@@ -50,6 +51,8 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
+    if (disabled) return;
+    
     const { isValid, calculatedPrice } = validateForm();
     
     if (!isValid || calculatedPrice === null) {
@@ -79,6 +82,8 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
   };
 
   const handleInputChange = <K extends keyof FormErrors | 'link' | 'comment' | 'category'>(field: K, value: string) => {
+    if (disabled) return;
+    
     // Обновляем состояние поля
     if (field === 'itemType') setItemType(value);
     else if (field === 'name') setName(value);
@@ -94,8 +99,10 @@ export const AddItemForm = ({ onAddItem, existingCategories = [] }: AddItemFormP
   };
   
   return (
-    <div className="mb-6 p-4 bg-theme-card rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200">
-      <h2 className="text-xl font-semibold mb-4 text-black dark:text-theme-secondary">Добавить новое желание</h2>
+    <div className={`mb-6 p-4 bg-theme-card rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+      <h2 className="text-xl font-semibold mb-4 text-black dark:text-theme-secondary">
+        {disabled ? 'Войдите в аккаунт для добавления желаний' : 'Добавить новое желание'}
+      </h2>
       
       <form onSubmit={handleSubmit} autoComplete="off" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">

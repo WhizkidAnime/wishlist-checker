@@ -1,0 +1,219 @@
+import React, { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeToggle } from './ThemeToggle';
+
+interface LandingPageProps {
+  onAuthModalOpen: () => void;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => {
+  const { signInWithGoogle, isSupabaseAvailable } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { 
+    themeMode, 
+    systemTheme, 
+    getThemeConfig,
+    supportsAutoTheme,
+    setTheme
+  } = useTheme();
+  const themeConfig = getThemeConfig();
+
+  const handleGoogleSignIn = async () => {
+    if (!isSupabaseAvailable) {
+      onAuthModalOpen();
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Произошла ошибка');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const features = [
+    {
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+      title: "Управление желаниями",
+      description: "Добавляйте товары с названием, ссылкой и ценой. Отмечайте купленные и следите за прогрессом."
+    },
+    {
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+      ),
+      title: "Система категорий",
+      description: "Организуйте желания по категориям: электроника, одежда, хобби и другие."
+    },
+    {
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      ),
+      title: "Калькулятор расходов",
+      description: "Выбирайте несколько товаров и мгновенно видите общую стоимость покупок."
+    },
+    {
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      ),
+      title: "Синхронизация",
+      description: "Ваши данные автоматически синхронизируются между всеми устройствами."
+    }
+  ];
+
+  return (
+    <div className={`min-h-screen flex flex-col items-center justify-center py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
+      
+      {/* Переключатель темы для десктопа */}
+      <div className="hidden sm:flex fixed top-12 right-6 z-50">
+        <ThemeToggle 
+          themeMode={themeMode}
+          systemTheme={systemTheme}
+          onSetTheme={setTheme}
+          isMobile={false}
+          supportsAutoTheme={supportsAutoTheme}
+        />
+      </div>
+
+      {/* Переключатель темы для мобильных */}
+      <div className="sm:hidden fixed top-6 right-4 z-50">
+        <ThemeToggle 
+          themeMode={themeMode}
+          systemTheme={systemTheme}
+          onSetTheme={setTheme}
+          isMobile={true}
+          supportsAutoTheme={supportsAutoTheme}
+        />
+      </div>
+
+      {/* Основной контент */}
+      <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-6 sm:p-12 relative z-10 transition-colors duration-200`}>
+        
+        {/* Заголовок и описание */}
+        <div className="text-center mb-8 sm:mb-12">
+          {/* Иконка приложения */}
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-lg">
+              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+          </div>
+
+          <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold ${themeConfig.text} mb-4 transition-colors duration-200`}>
+            Wishlist Checker
+          </h1>
+          
+          <p className={`text-lg sm:text-xl ${themeConfig.text} opacity-80 mb-2 transition-colors duration-200`}>
+            Умный планировщик покупок
+          </p>
+          
+          <p className={`text-base sm:text-lg ${themeConfig.text} opacity-60 max-w-2xl mx-auto transition-colors duration-200`}>
+            Создавайте список желаний, организуйте покупки по категориям, 
+            отслеживайте расходы и синхронизируйте данные между устройствами
+          </p>
+        </div>
+
+        {/* Функциональные возможности */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 sm:mb-12">
+          {features.map((feature, index) => (
+            <div 
+              key={index}
+              className={`p-6 rounded-2xl ${themeConfig.background} border border-gray-200 dark:border-gray-700 transition-colors duration-200 hover:shadow-lg`}
+            >
+              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white mb-4`}>
+                {feature.icon}
+              </div>
+              <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2 transition-colors duration-200`}>
+                {feature.title}
+              </h3>
+              <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200`}>
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Кнопки авторизации */}
+        <div className="flex flex-col items-center space-y-4 max-w-md mx-auto">
+          <h3 className={`text-xl font-semibold ${themeConfig.text} mb-2 transition-colors duration-200`}>
+            Начните сейчас
+          </h3>
+          
+          {error && (
+            <div className="w-full text-red-500 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-center">
+              {error}
+            </div>
+          )}
+
+          {/* Основная кнопка авторизации */}
+          <button
+            onClick={onAuthModalOpen}
+            disabled={loading}
+            className={`w-full py-3 px-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl 
+                     hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-lg hover:shadow-xl`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Войти или создать аккаунт
+          </button>
+
+          {/* Разделитель */}
+          <div className="flex items-center w-full">
+            <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+            <span className={`px-4 text-sm ${themeConfig.text} opacity-50`}>или</span>
+            <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+          </div>
+
+          {/* Кнопка Google */}
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className={`w-full py-3 px-6 border-2 border-gray-300 dark:border-gray-600 ${themeConfig.text} rounded-xl 
+                     hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-sm hover:shadow-md`}
+          >
+            <svg width="20" height="20" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+              <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-2.7.75 4.8 4.8 0 0 1-4.52-3.29H1.83v2.07A8 8 0 0 0 8.98 17z"/>
+              <path fill="#FBBC05" d="M4.46 10.48A4.8 4.8 0 0 1 4.21 9a4.8 4.8 0 0 1 .25-1.48V5.45H1.83A8 8 0 0 0 .98 9a8 8 0 0 0 .85 3.55l2.63-2.07z"/>
+              <path fill="#EA4335" d="M8.98 4.75c1.23 0 2.33.42 3.2 1.25l2.4-2.4A8 8 0 0 0 8.98 1a8 8 0 0 0-7.15 4.45l2.63 2.07A4.8 4.8 0 0 1 8.98 4.75z"/>
+            </svg>
+            {loading ? 'Выполняется вход...' : 'Продолжить с Google'}
+          </button>
+
+          <p className={`text-xs ${themeConfig.text} opacity-50 text-center mt-4`}>
+            Создайте аккаунт с паролем или войдите через Google.<br/>
+            Ваши данные защищены и синхронизируются между устройствами.
+          </p>
+        </div>
+      </div>
+
+      {/* Дополнительная информация внизу */}
+      <div className="mt-8 text-center">
+        <p className={`text-sm ${themeConfig.text} opacity-40 transition-colors duration-200`}>
+          PWA приложение • Работает оффлайн • Установка на любое устройство
+        </p>
+      </div>
+    </div>
+  );
+}; 

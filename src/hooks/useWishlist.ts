@@ -6,17 +6,65 @@ import { loadFromLocalStorage, saveToLocalStorage } from '../utils/localStorageU
 
 const LOCAL_STORAGE_KEY = 'wishlistApp';
 
-export const useWishlist = () => {
-  const [wishlist, setWishlist] = useState<WishlistItem[]>(() => 
-    loadFromLocalStorage(LOCAL_STORAGE_KEY) || []
-  );
+export const useWishlist = (triggerSync?: () => void, isAuthenticated?: boolean) => {
+  // Инициализация зависит от статуса аутентификации
+  const [wishlist, setWishlist] = useState<WishlistItem[]>(() => {
+    if (isAuthenticated) {
+      return loadFromLocalStorage(LOCAL_STORAGE_KEY) || [];
+    }
+    return [];
+  });
+  
   const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
 
+  // Эффект для очистки данных при выходе из аккаунта
   useEffect(() => {
+    if (isAuthenticated === false) {
+      // Очищаем состояние при выходе
+      setWishlist([]);
+      setEditingItemId(null);
+      setSearchQuery('');
+      setSortBy('default');
+      
+      // Очищаем localStorage от персональных данных
+      try {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        localStorage.removeItem('wishlistCategories');
+      } catch (error) {
+        console.warn('Не удалось очистить localStorage:', error);
+      }
+    } else if (isAuthenticated === true) {
+      // Загружаем данные при входе
+      const savedData = loadFromLocalStorage(LOCAL_STORAGE_KEY) || [];
+      setWishlist(savedData);
+    }
+  }, [isAuthenticated]);
+
+  // Слушатель обновлений данных из Supabase (только для аутентифицированных)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleDataUpdate = () => {
+      const updatedData = loadFromLocalStorage(LOCAL_STORAGE_KEY) || [];
+      setWishlist(updatedData);
+    };
+
+    window.addEventListener('wishlistDataUpdated', handleDataUpdate);
+    return () => window.removeEventListener('wishlistDataUpdated', handleDataUpdate);
+  }, [isAuthenticated]);
+
+  // Сохранение только для аутентифицированных пользователей
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
     saveToLocalStorage(LOCAL_STORAGE_KEY, wishlist);
-  }, [wishlist]);
+    // Автоматически запускаем синхронизацию при изменениях
+    if (triggerSync) {
+      triggerSync();
+    }
+  }, [wishlist, triggerSync, isAuthenticated]);
 
   // Базовая функция фильтрации и сортировки (без категорий)
   const getFilteredAndSortedItems = (items: WishlistItem[]) => {

@@ -1,8 +1,13 @@
 export { useWishlist } from './useWishlist';
+export { useCategories } from './useCategories';
+export { useTheme } from './useTheme';
 export { useSelection } from './useSelection';
-export { useCalculatorPosition } from './useCalculatorPosition';
-export { useResponsive } from './useResponsive';
 export { useImportExport } from './useImportExport';
+export { useCalculatorPosition } from './useCalculatorPosition';
 export { useDeleteModal } from './useDeleteModal';
+export { useResponsive } from './useResponsive';
 export { useDndSensors } from './useDndSensors';
-export { useServiceWorker } from './useServiceWorker'; 
+export { useServiceWorker } from './useServiceWorker';
+
+export { useAuth } from './useAuth';
+export { useSupabaseSync } from './useSupabaseSync'; 

@@ -10,7 +10,9 @@ interface WishlistExportData {
 
 export const useImportExport = (
   wishlist: WishlistItem[],
-  setWishlist: (items: WishlistItem[]) => void
+  setWishlist: (items: WishlistItem[]) => void,
+  triggerSync?: () => void, // Функция для запуска синхронизации
+  isAuthenticated?: boolean // Статус аутентификации
 ) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [dataToImport, setDataToImport] = useState<WishlistExportData | WishlistItem[] | null>(null);
@@ -27,6 +29,12 @@ export const useImportExport = (
   }, [showImportSuccessToast]);
 
   const handleExport = () => {
+    // Проверяем аутентификацию
+    if (!isAuthenticated) {
+      alert("Для экспорта данных необходимо войти в аккаунт");
+      return;
+    }
+
     try {
       // Загружаем категории из localStorage
       const categoriesFromStorage = (() => {
@@ -70,6 +78,13 @@ export const useImportExport = (
   };
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Проверяем аутентификацию
+    if (!isAuthenticated) {
+      alert("Для импорта данных необходимо войти в аккаунт");
+      event.target.value = ''; 
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -194,9 +209,14 @@ export const useImportExport = (
         }
       }
       setShowImportSuccessToast(true);
+      
+      // Запускаем синхронизацию после импорта
+      if (triggerSync) {
+        triggerSync();
+      }
     }
-    setIsConfirmModalOpen(false);
     setDataToImport(null);
+    setIsConfirmModalOpen(false);
   };
 
   const handleModalClose = () => {

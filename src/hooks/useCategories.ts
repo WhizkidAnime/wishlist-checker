@@ -3,11 +3,13 @@ import { WishlistItem } from '../types/wishlistItem';
 
 const CATEGORIES_STORAGE_KEY = 'wishlistCategories';
 
-export const useCategories = (wishlist: WishlistItem[]) => {
+export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void, isAuthenticated?: boolean) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   
-  // Загружаем сохранённые категории из localStorage
+  // Загружаем сохранённые категории из localStorage только для аутентифицированных
   const [savedCategories, setSavedCategories] = useState<string[]>(() => {
+    if (!isAuthenticated) return [];
+    
     try {
       const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
       return saved ? JSON.parse(saved) : [];
@@ -16,8 +18,31 @@ export const useCategories = (wishlist: WishlistItem[]) => {
     }
   });
 
+  // Эффект для очистки категорий при выходе из аккаунта
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      // Очищаем состояние при выходе
+      setSavedCategories([]);
+      setActiveCategory('all');
+    } else if (isAuthenticated === true) {
+      // Загружаем категории при входе
+      try {
+        const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+        const parsedCategories = saved ? JSON.parse(saved) : [];
+        setSavedCategories(parsedCategories);
+      } catch {
+        setSavedCategories([]);
+      }
+    }
+  }, [isAuthenticated]);
+
   // Функция для обновления категорий из localStorage
   const refreshCategoriesFromStorage = () => {
+    if (!isAuthenticated) {
+      setSavedCategories([]);
+      return;
+    }
+
     try {
       const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
       const parsedCategories = saved ? JSON.parse(saved) : [];
@@ -27,17 +52,25 @@ export const useCategories = (wishlist: WishlistItem[]) => {
     }
   };
 
-  // Сохраняем категории в localStorage при изменении
+  // Сохраняем категории в localStorage при изменении (только для аутентифицированных)
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     try {
       localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(savedCategories));
+      // Автоматически запускаем синхронизацию при изменениях
+      if (triggerSync) {
+        triggerSync();
+      }
     } catch {
       // Игнорируем ошибки сохранения
     }
-  }, [savedCategories]);
+  }, [savedCategories, triggerSync, isAuthenticated]);
 
-  // Слушаем изменения localStorage для синхронизации после импорта
+  // Слушаем изменения localStorage для синхронизации после импорта (только для аутентифицированных)
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === CATEGORIES_STORAGE_KEY) {
         refreshCategoriesFromStorage();
@@ -56,7 +89,7 @@ export const useCategories = (wishlist: WishlistItem[]) => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('categoriesUpdated', handleCustomUpdate);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // Получаем список уникальных категорий из товаров + сохранённых
   const categories = useMemo(() => {
