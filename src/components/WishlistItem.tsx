@@ -253,7 +253,7 @@ export const WishlistItem = ({
       className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-4 sm:px-6 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isDragging ? 'shadow-lg' : ''}`}
     >
       <div className="flex items-center py-3 sm:py-4">
-        <div className="mr-4 flex-shrink-0">
+        <div className="mr-4 flex-shrink-0 flex items-center">
           <Tooltip content={item.isBought ? "Отметить как не купленное" : "Отметить как купленное"} position="top">
             <div 
               className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
@@ -273,7 +273,7 @@ export const WishlistItem = ({
           </Tooltip>
         </div>
         
-        <div className="mr-4 flex-shrink-0">
+        <div className="mr-4 flex-shrink-0 flex items-center">
           <Tooltip content={isSelected ? "Убрать из калькулятора" : "Добавить в калькулятор"} position="top">
             <button
               ref={desktopButtonRef}
@@ -297,17 +297,19 @@ export const WishlistItem = ({
           </Tooltip>
         </div>
         
-        <Tooltip content="Перетащить для изменения порядка" position="top">
-          <button 
-            {...listeners}
-            className="mr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 cursor-grab active:cursor-grabbing focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 rounded"
-            aria-label="Перетащить элемент"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </Tooltip>
+        <div className="mr-4 flex-shrink-0 flex items-center">
+          <Tooltip content="Перетащить для изменения порядка" position="top">
+            <button 
+              {...listeners}
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 cursor-grab active:cursor-grabbing focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 rounded"
+              aria-label="Перетащить элемент"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </Tooltip>
+        </div>
         
         <div className="flex-grow min-w-0 mr-4">
           <div className="font-medium text-gray-800 dark:text-gray-200">

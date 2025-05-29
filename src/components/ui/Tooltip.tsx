@@ -1,4 +1,5 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
+import { Portal } from '../Portal';
 
 interface TooltipProps {
   content: string;
@@ -6,6 +7,7 @@ interface TooltipProps {
   delay?: number; // Задержка в миллисекундах перед показом
   position?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
+  usePortal?: boolean; // Опция для использования Portal при проблемах с z-index
 }
 
 export const Tooltip = ({ 
@@ -13,12 +15,15 @@ export const Tooltip = ({
   children, 
   delay = 800, // По умолчанию 800ms задержка
   position = 'top',
-  className = ''
+  className = '',
+  usePortal = false
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
@@ -27,6 +32,9 @@ export const Tooltip = ({
     
     setShouldShow(true);
     timeoutRef.current = setTimeout(() => {
+      if (usePortal && triggerRef.current) {
+        calculatePortalPosition();
+      }
       setIsVisible(true);
     }, delay);
   };
@@ -40,6 +48,64 @@ export const Tooltip = ({
     setIsVisible(false);
   };
 
+  const calculatePortalPosition = () => {
+    if (!triggerRef.current) return;
+    
+    const rect = triggerRef.current.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    let top = 0;
+    let left = 0;
+    
+    switch (position) {
+      case 'top':
+        top = rect.top + scrollTop - 10; // 10px отступ для tooltip + стрелки
+        left = rect.left + scrollLeft + rect.width / 2;
+        break;
+      case 'bottom':
+        top = rect.bottom + scrollTop + 10;
+        left = rect.left + scrollLeft + rect.width / 2;
+        break;
+      case 'left':
+        top = rect.top + scrollTop + rect.height / 2;
+        left = rect.left + scrollLeft - 10;
+        break;
+      case 'right':
+        top = rect.top + scrollTop + rect.height / 2;
+        left = rect.right + scrollLeft + 10;
+        break;
+    }
+    
+    setTooltipPosition({ top, left });
+  };
+
+  useEffect(() => {
+    if (usePortal && shouldShow && triggerRef.current) {
+      calculatePortalPosition();
+      
+      const handleScroll = () => {
+        if (shouldShow) {
+          calculatePortalPosition();
+        }
+      };
+      
+      const handleResize = () => {
+        if (shouldShow) {
+          calculatePortalPosition();
+        }
+      };
+      
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [usePortal, shouldShow, position]);
+
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -49,6 +115,22 @@ export const Tooltip = ({
   }, []);
 
   const getPositionClasses = () => {
+    if (usePortal) {
+      // Для Portal используем трансформации для центрирования
+      switch (position) {
+        case 'top':
+          return 'transform -translate-x-1/2 -translate-y-full';
+        case 'bottom':
+          return 'transform -translate-x-1/2';
+        case 'left':
+          return 'transform -translate-x-full -translate-y-1/2';
+        case 'right':
+          return 'transform -translate-y-1/2';
+        default:
+          return 'transform -translate-x-1/2 -translate-y-full';
+      }
+    }
+    
     switch (position) {
       case 'top':
         return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2';
@@ -78,28 +160,39 @@ export const Tooltip = ({
     }
   };
 
+  const tooltipContent = shouldShow && (
+    <div
+      ref={tooltipRef}
+      className={`${usePortal ? 'absolute' : 'absolute'} ${usePortal ? 'z-[9999]' : 'z-50'} px-3 py-2 text-sm text-white bg-gray-800 dark:bg-gray-200 dark:text-gray-800 rounded-md shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-200 ${getPositionClasses()} ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
+      style={usePortal ? { 
+        top: tooltipPosition.top, 
+        left: tooltipPosition.left 
+      } : undefined}
+    >
+      {content}
+      
+      {/* Стрелка */}
+      <div
+        className={`absolute border-4 ${getArrowClasses()}`}
+      />
+    </div>
+  );
+
   return (
     <div
+      ref={triggerRef}
       className={`relative inline-block ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {children}
       
-      {shouldShow && (
-        <div
-          ref={tooltipRef}
-          className={`absolute z-50 px-3 py-2 text-sm text-white bg-gray-800 dark:bg-gray-200 dark:text-gray-800 rounded-md shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-200 ${getPositionClasses()} ${
-            isVisible ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          {content}
-          
-          {/* Стрелка */}
-          <div
-            className={`absolute border-4 ${getArrowClasses()}`}
-          />
-        </div>
+      {usePortal ? (
+        shouldShow && <Portal>{tooltipContent}</Portal>
+      ) : (
+        tooltipContent
       )}
     </div>
   );
