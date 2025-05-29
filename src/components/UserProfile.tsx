@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 
 interface UserProfileProps {
   onSignInClick: () => void;
@@ -9,17 +9,11 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
-  const { user, isAuthenticated, signOut, loading, isSupabaseAvailable } = useAuth();
-
-  // Если Supabase недоступен, не показываем профиль
-  if (!isSupabaseAvailable) {
-    return null;
-  }
+  const { user, isAuthenticated, signOut, loading } = useAuth();
 
   const handleSignOut = async () => {
     console.log('🔘 UserProfile: Нажата кнопка выхода');
     console.log('🔐 UserProfile: Текущий пользователь:', user?.email);
-    console.log('🔧 UserProfile: isSupabaseAvailable:', isSupabaseAvailable);
     
     try {
       console.log('🔄 UserProfile: Начинаем выход...');
@@ -33,8 +27,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
 
   // ЭКСТРЕННАЯ ОЧИСТКА АККАУНТА - удаляет ВСЕ данные пользователя
   const handleAccountReset = async () => {
-    if (!user?.id || !isSupabaseAvailable) {
-      console.error('❌ Нет пользователя или Supabase недоступен');
+    if (!user?.id) {
+      console.error('❌ Нет пользователя');
       return;
     }
 
