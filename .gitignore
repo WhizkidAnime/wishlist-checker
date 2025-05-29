@@ -62,3 +62,23 @@ dev-notes.txt
 TODO.md
 CHANGELOG.md
 *.debug
+
+# Development guides and documentation (keep only README.md public)
+PHASE_*.md
+ENV_SETUP_GUIDE.md
+INTEGRATION_TEST_GUIDE.md
+SUPABASE_EMAIL_SETUP.md
+SUPABASE_SETUP.md
+SUPABASE_SYNC_FIX.md
+SYNC_FIX_SUMMARY.md
+TESTING_GUIDE.md
+SERVICE_WORKER_GUIDE.md
+PRICE_INPUT_GUIDE.md
+AUTO_THEME_GUIDE.md
+*_GUIDE.md
+*_SUMMARY.md
+*_SETUP.md
+*_FIX.md
+
+# Cursor AI files
+.cursor/
