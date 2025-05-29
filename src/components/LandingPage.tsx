@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { ThemeToggle } from './ThemeToggle';
 import { UserProfile } from './UserProfile';
 
@@ -12,6 +13,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
   const { signInWithGoogle, isSupabaseAvailable } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const { 
     themeMode, 
@@ -43,8 +45,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
   const features = [
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        <svg 
+          className="w-6 h-6" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ shapeRendering: 'geometricPrecision' }}
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+          />
         </svg>
       ),
       title: "Управление желаниями",
@@ -52,8 +66,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     },
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        <svg 
+          className="w-6 h-6" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ shapeRendering: 'geometricPrecision' }}
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" 
+          />
         </svg>
       ),
       title: "Система категорий",
@@ -61,8 +87,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     },
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        <svg 
+          className="w-6 h-6" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ shapeRendering: 'geometricPrecision' }}
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" 
+          />
         </svg>
       ),
       title: "Калькулятор расходов",
@@ -70,8 +108,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     },
     {
       icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg 
+          className="w-6 h-6" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ shapeRendering: 'geometricPrecision' }}
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+          />
         </svg>
       ),
       title: "Синхронизация",
@@ -83,27 +133,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     <div className={`min-h-screen flex flex-col items-center justify-center py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
       
       {/* Панель управления */}
-      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 p-2 bg-theme-card/95 dark:bg-theme-card/80 border border-gray-200 dark:border-gray-600 shadow-lg backdrop-blur-md rounded-3xl">
+      <div className={`${
+        isMobile 
+          ? 'static w-full flex justify-center mb-6 mt-0' 
+          : 'fixed top-4 right-4 sm:top-6 sm:right-6 z-50'
+      } flex items-center gap-2 p-2 bg-theme-card/95 dark:bg-theme-card/80 border border-gray-200 dark:border-gray-600 ${
+        isMobile ? '' : 'shadow-lg'
+      } backdrop-blur-md rounded-3xl ${
+        isMobile ? 'max-w-fit' : ''
+      }`}>
         <ThemeToggle
           themeMode={themeMode}
           systemTheme={systemTheme}
           onSetTheme={setTheme}
           supportsAutoTheme={supportsAutoTheme}
-          isMobile={false} // Предполагаем десктопное отображение, можно добавить логику isMobile если нужно
+          isMobile={isMobile}
         />
         <UserProfile onSignInClick={onAuthModalOpen} />
       </div>
 
       {/* Основной контент */}
-      <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-6 sm:p-12 relative z-10 transition-colors duration-200 mt-16 sm:mt-0`}>
+      <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-6 sm:p-12 relative z-10 transition-colors duration-200 ${
+        isMobile ? 'mt-0' : 'mt-16 sm:mt-0'
+      }`}>
         
         {/* Заголовок и описание */}
         <div className="text-center mb-8 sm:mb-12">
           {/* Иконка приложения */}
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-700 to-black rounded-3xl flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <svg 
+                className="w-8 h-8 sm:w-10 sm:h-10 text-white" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ shapeRendering: 'geometricPrecision' }}
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                />
               </svg>
             </div>
           </div>
@@ -162,8 +234,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
                      hover:from-gray-700 hover:to-gray-900 disabled:opacity-50 disabled:cursor-not-allowed
                      transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-lg hover:shadow-xl`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg 
+              className="w-5 h-5" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ shapeRendering: 'geometricPrecision' }}
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+              />
             </svg>
             Войти или создать аккаунт
           </button>

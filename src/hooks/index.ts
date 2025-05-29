@@ -10,6 +10,7 @@ export { useResponsive } from './useResponsive';
 export { useDndSensors } from './useDndSensors';
 export { useServiceWorker } from './useServiceWorker';
 export { useBulkActions } from './useBulkActions';
+export { useIsMobile } from './useIsMobile';
 
 export { useAuth } from './useAuth';
 export { useSupabaseSync } from './useSupabaseSync'; 

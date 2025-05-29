@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
-import { Tooltip } from './ui/Tooltip';
+import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
 interface AddItemFormProps {
   onAddItem: (item: Omit<WishlistItem, 'id' | 'isBought'>) => void;
@@ -185,7 +185,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               
               {/* Кнопка очистки */}
               {category && (
-                <Tooltip content="Очистить">
+                <DesktopOnlyTooltip content="Очистить">
                   <button
                     type="button"
                     onClick={() => {
@@ -198,7 +198,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </Tooltip>
+                </DesktopOnlyTooltip>
               )}
               
               {/* Кнопка выпадающего списка */}
@@ -290,7 +290,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
         <div className="flex justify-center mt-4">
           <button
             type="submit"
-            className="w-auto px-6 py-2 bg-black dark:bg-gray-600 text-white rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-500 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-auto px-6 py-2 bg-theme-button text-theme-button rounded-full font-semibold hover:bg-theme-button focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!!errors.itemType || !!errors.name || !!errors.price || !price.trim()}
           >
             Добавить

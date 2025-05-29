@@ -116,6 +116,14 @@
   --color-border-light: #e5e7eb;
   --color-border-dark: #374151;
   
+  /* Цвета для кнопок */
+  --color-button-bg-light: #000000;
+  --color-button-bg-dark: #4B5563;
+  --color-button-text-light: #ffffff;
+  --color-button-text-dark: #D1D5DB;
+  --color-button-hover-light: #1f2937;
+  --color-button-hover-dark: #6b7280;
+  
   /* Цвета для тумблера */
   --color-toggle-bg-light: #f3f4f6;
   --color-toggle-bg-dark: #222222;
@@ -141,6 +149,9 @@ html:not(.dark) {
   --color-primary: var(--color-primary-light);
   --color-secondary: var(--color-secondary-light);
   --color-border: var(--color-border-light);
+  --color-button-bg: var(--color-button-bg-light);
+  --color-button-text: var(--color-button-text-light);
+  --color-button-hover: var(--color-button-hover-light);
   --color-toggle-bg: var(--color-toggle-bg-light);
   --color-toggle-active: var(--color-toggle-active-light);
   --color-toggle-hover: var(--color-toggle-hover-light);
@@ -160,6 +171,9 @@ html.dark {
   --color-primary: var(--color-primary-dark);
   --color-secondary: var(--color-secondary-dark);
   --color-border: var(--color-border-dark);
+  --color-button-bg: var(--color-button-bg-dark);
+  --color-button-text: var(--color-button-text-dark);
+  --color-button-hover: var(--color-button-hover-dark);
   --color-toggle-bg: var(--color-toggle-bg-dark);
   --color-toggle-active: var(--color-toggle-active-dark);
   --color-toggle-hover: var(--color-toggle-hover-dark);
@@ -332,6 +346,18 @@ button:focus-visible {
   
   .bg-theme-primary {
     background-color: var(--color-primary);
+  }
+  
+  .bg-theme-button {
+    background-color: var(--color-button-bg);
+  }
+  
+  .text-theme-button {
+    color: var(--color-button-text);
+  }
+  
+  .hover\\:bg-theme-button:hover {
+    background-color: var(--color-button-hover);
   }
   
   .hover\\:bg-theme-background-secondary:hover {

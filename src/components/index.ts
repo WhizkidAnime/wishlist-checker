@@ -12,6 +12,9 @@ export { WishlistContainer } from './WishlistContainer';
 
 // UI компоненты
 export { Tooltip } from './ui/Tooltip';
+export { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
+export { HelpModal } from './ui/HelpModal';
+export { MobileTooltipModal } from './ui/MobileTooltipModal';
 
 // Новые компоненты для Supabase
 export { AuthModal } from './AuthModal';

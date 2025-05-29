@@ -1,7 +1,7 @@
 import { useState, FormEvent, useEffect, ChangeEvent } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
-import { Tooltip } from './ui/Tooltip';
+import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
 interface EditItemFormProps {
   item: WishlistItem;
@@ -216,7 +216,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               
               {/* Кнопка очистки */}
               {formData.category && (
-                <Tooltip content="Очистить категорию">
+                <DesktopOnlyTooltip content="Очистить категорию">
                   <button
                     type="button"
                     onClick={() => {
@@ -229,7 +229,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </Tooltip>
+                </DesktopOnlyTooltip>
               )}
               
               {/* Кнопка выпадающего списка */}

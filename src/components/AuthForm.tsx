@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Tooltip } from './ui/Tooltip';
+import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
 interface AuthFormProps {
   onClose: () => void;
@@ -314,7 +314,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
                 Пароль
               </label>
               {mode === 'signup' && (
-                <Tooltip content="Показать требования к паролю" position="top">
+                <DesktopOnlyTooltip content="Показать требования к паролю" position="top">
                   <button
                     type="button"
                     onClick={() => setShowPasswordInfo(!showPasswordInfo)}
@@ -322,7 +322,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
                   >
                     i
                   </button>
-                </Tooltip>
+                </DesktopOnlyTooltip>
               )}
             </div>
             {mode === 'signup' && showPasswordInfo && (

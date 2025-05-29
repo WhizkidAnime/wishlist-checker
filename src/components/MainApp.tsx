@@ -12,6 +12,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { UserProfile } from './UserProfile';
 import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
+import { HelpModal } from './ui/HelpModal';
 
 import { useWishlist } from '../hooks/useWishlist';
 import { useSelection } from '../hooks/useSelection';
@@ -41,6 +42,7 @@ export const MainApp: React.FC<MainAppProps> = ({
   const [exchangeRates] = useState<Record<string, number> | null>(null);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   // Получаем userId из контекста аутентификации  
   const { user } = useAuth();
@@ -260,8 +262,17 @@ export const MainApp: React.FC<MainAppProps> = ({
             {/* Мобильная версия - панель управления сверху */}
             <div className="sm:hidden">
               <div className="flex justify-between items-center mb-4">
-                {/* Пустой div для выравнивания заголовка по центру, если нужно */} 
-                {/* <div></div> */}
+                {/* Кнопка справки слева */}
+                <button
+                  onClick={() => setIsHelpModalOpen(true)}
+                  className="flex items-center justify-center w-10 h-10 bg-theme-card border border-theme-border rounded-full shadow-md hover:bg-theme-hover transition-colors"
+                  aria-label="Справка по приложению"
+                >
+                  <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                
                 <h1 className="text-3xl font-bold text-center text-theme-text flex-grow">
                   Wishlist checker
                 </h1>
@@ -422,6 +433,12 @@ export const MainApp: React.FC<MainAppProps> = ({
           onMoveToCategory={handleBulkMoveToCategory}
           onClearSelection={clearBulkSelection}
           isMobile={isMobile}
+        />
+
+        {/* Модальное окно справки */}
+        <HelpModal
+          isOpen={isHelpModalOpen}
+          onClose={() => setIsHelpModalOpen(false)}
         />
       </SortableContext>
     </DndContext>

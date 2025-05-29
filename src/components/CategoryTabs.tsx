@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
-import { Tooltip } from './ui/Tooltip';
+import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
 interface CategoryTabsProps {
   items: WishlistItem[];
@@ -113,7 +113,7 @@ export const CategoryTabs = ({
               className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 min-w-[120px] placeholder:text-xs input-theme"
               autoFocus
             />
-            <Tooltip content="Сохранить новую категорию" position="top" usePortal={true}>
+            <DesktopOnlyTooltip content="Сохранить новую категорию" position="top" usePortal={true}>
               <button
                 onClick={handleAddCategory}
                 className="text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150 focus:outline-none"
@@ -122,8 +122,8 @@ export const CategoryTabs = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </button>
-            </Tooltip>
-            <Tooltip content="Отменить создание категории" position="top" usePortal={true}>
+            </DesktopOnlyTooltip>
+            <DesktopOnlyTooltip content="Отменить создание категории" position="top" usePortal={true}>
               <button
                 onClick={handleCancelCategory}
                 className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-150 focus:outline-none"
@@ -132,10 +132,10 @@ export const CategoryTabs = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-            </Tooltip>
+            </DesktopOnlyTooltip>
           </div>
         ) : (
-          <Tooltip content="Добавить новую категорию" position="top" usePortal={true}>
+          <DesktopOnlyTooltip content="Добавить новую категорию" position="top" usePortal={true}>
             <button
               onClick={() => setIsAddingCategory(true)}
               className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-500 transition-colors duration-150 focus:outline-none"
@@ -144,7 +144,7 @@ export const CategoryTabs = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>
-          </Tooltip>
+          </DesktopOnlyTooltip>
         )}
       </div>
     </div>

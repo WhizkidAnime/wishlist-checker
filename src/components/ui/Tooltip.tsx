@@ -1,5 +1,7 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Portal } from '../Portal';
+// import { MobileTooltipModal } from './MobileTooltipModal';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface TooltipProps {
   content: string;
@@ -8,6 +10,7 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
   usePortal?: boolean; // Опция для использования Portal при проблемах с z-index
+  title?: string; // Заголовок для мобильного модального окна
 }
 
 export const Tooltip = ({ 
@@ -16,16 +19,21 @@ export const Tooltip = ({
   delay = 800, // По умолчанию 800ms задержка
   position = 'top',
   className = '',
-  usePortal = false
+  usePortal = false,
+  title
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
+  // const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const handleMouseEnter = () => {
+    if (isMobile) return; // На мобиле не показываем tooltip по hover
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -40,12 +48,21 @@ export const Tooltip = ({
   };
 
   const handleMouseLeave = () => {
+    if (isMobile) return;
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     
     setShouldShow(false);
     setIsVisible(false);
+  };
+
+  const handleClick = () => {
+    // Убираем показ модального окна на мобильных устройствах
+    // if (isMobile) {
+    //   setMobileModalOpen(true);
+    // }
   };
 
   const calculatePortalPosition = () => {
@@ -160,7 +177,7 @@ export const Tooltip = ({
     }
   };
 
-  const tooltipContent = shouldShow && (
+  const tooltipContent = shouldShow && !isMobile && (
     <div
       ref={tooltipRef}
       className={`${usePortal ? 'absolute' : 'absolute'} ${usePortal ? 'z-[9999]' : 'z-50'} px-3 py-2 text-sm text-white bg-gray-800 dark:bg-gray-200 dark:text-gray-800 rounded-md shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-200 ${getPositionClasses()} ${
@@ -181,19 +198,32 @@ export const Tooltip = ({
   );
 
   return (
-    <div
-      ref={triggerRef}
-      className={`relative inline-block ${className}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {children}
-      
-      {usePortal ? (
-        shouldShow && <Portal>{tooltipContent}</Portal>
-      ) : (
-        tooltipContent
-      )}
-    </div>
+    <>
+      <div
+        ref={triggerRef}
+        className={`relative inline-block ${className}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+      >
+        {children}
+        
+        {usePortal ? (
+          shouldShow && !isMobile && <Portal>{tooltipContent}</Portal>
+        ) : (
+          tooltipContent
+        )}
+      </div>
+
+      {/* Мобильное модальное окно - удалено */}
+      {/* {isMobile && (
+        <MobileTooltipModal
+          isOpen={mobileModalOpen}
+          onClose={handleCloseMobileModal}
+          content={content}
+          title={title}
+        />
+      )} */}
+    </>
   );
 }; 

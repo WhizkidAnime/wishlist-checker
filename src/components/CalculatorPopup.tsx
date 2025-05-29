@@ -1,6 +1,6 @@
 import React from 'react';
 import { WishlistItem } from '../types/wishlistItem';
-import { Tooltip } from './ui/Tooltip';
+import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
 interface CalculatorPopupProps {
   selectedCount: number;
@@ -30,7 +30,7 @@ export const CalculatorPopup: React.FC<CalculatorPopupProps> = ({
         overflow: 'auto'
       }}
     >
-      <Tooltip content="Очистить список для расчета" position="left">
+      <DesktopOnlyTooltip content="Очистить список для расчета" position="left">
         <button 
           onClick={onClear}
           className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-500 transition-colors"
@@ -40,13 +40,13 @@ export const CalculatorPopup: React.FC<CalculatorPopupProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-      </Tooltip>
+      </DesktopOnlyTooltip>
       <h3 className="font-semibold text-indigo-800 dark:text-indigo-300 mb-2 pr-8">Выбрано для расчета: {selectedCount}</h3>
       <ul className="max-h-40 overflow-y-auto mb-2 pr-2 space-y-1"> 
         {selectedItems.map(item => (
-          <Tooltip content={item.name} key={item.id} position="left">
+          <DesktopOnlyTooltip content={item.name} key={item.id} position="left">
             <li className="text-indigo-700 dark:text-indigo-300 text-xs truncate">{item.name}</li>
-          </Tooltip>
+          </DesktopOnlyTooltip>
         ))}
       </ul>
       <div className="text-sm text-indigo-800 dark:text-indigo-300 mt-1 font-medium">

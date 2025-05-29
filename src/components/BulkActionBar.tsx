@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
-import { Tooltip } from './ui/Tooltip';
+import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
 interface BulkActionBarProps {
   selectedItems: WishlistItem[];
@@ -71,7 +71,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
             {/* Действия */}
             <div className={`flex items-center gap-2 ${isMobile ? 'w-full' : ''}`}>
               {/* Кнопка удаления */}
-              <Tooltip content="Удалить выбранные товары">
+              <DesktopOnlyTooltip content="Удалить выбранные товары">
                 <button
                   onClick={onDelete}
                   disabled={isDeleting || isMoving}
@@ -93,11 +93,11 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                     </>
                   )}
                 </button>
-              </Tooltip>
+              </DesktopOnlyTooltip>
 
               {/* Кнопка перемещения в категорию */}
               <div className={`relative ${isMobile ? 'flex-1' : ''}`}>
-                <Tooltip content="Переместить выбранные товары в другую категорию">
+                <DesktopOnlyTooltip content="Переместить выбранные товары в другую категорию">
                   <button
                     onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                     disabled={isDeleting || isMoving}
@@ -122,7 +122,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                       </>
                     )}
                   </button>
-                </Tooltip>
+                </DesktopOnlyTooltip>
 
                 {/* Dropdown меню категорий */}
                 {showCategoryDropdown && (
@@ -130,28 +130,28 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                     isMobile ? 'left-0 right-0 bottom-full mb-2' : 'bottom-full mb-2 left-0'
                   }`}>
                     {/* Без категории */}
-                    <Tooltip content="Переместить выбранные товары в категорию без категории">
+                    <DesktopOnlyTooltip content="Переместить выбранные товары в категорию без категории">
                       <button
                         onClick={() => handleMoveToCategory(null)}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         Без категории
                       </button>
-                    </Tooltip>
+                    </DesktopOnlyTooltip>
                     
                     {/* Существующие категории */}
                     {categories.length > 0 && (
                       <>
                         <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
                         {categories.map((category) => (
-                          <Tooltip content={`Переместить выбранные товары в категорию "${category}"`} key={category}>
+                          <DesktopOnlyTooltip content={`Переместить выбранные товары в категорию "${category}"`} key={category}>
                             <button
                               onClick={() => handleMoveToCategory(category)}
                               className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
                               {category}
                             </button>
-                          </Tooltip>
+                          </DesktopOnlyTooltip>
                         ))}
                       </>
                     )}
@@ -160,7 +160,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
               </div>
 
               {/* Кнопка отмены */}
-              <Tooltip content="Отменить выбор всех товаров">
+              <DesktopOnlyTooltip content="Отменить выбор всех товаров">
                 <button
                   onClick={onClearSelection}
                   disabled={isDeleting || isMoving}
@@ -170,7 +170,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-              </Tooltip>
+              </DesktopOnlyTooltip>
             </div>
           </div>
         </div>
