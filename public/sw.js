@@ -1,6 +1,6 @@
-const CACHE_NAME = 'wishlist-v2.0.0';
-const STATIC_CACHE_NAME = 'wishlist-static-v2.0.0';
-const DYNAMIC_CACHE_NAME = 'wishlist-dynamic-v2.0.0';
+const CACHE_NAME = 'wishlist-v2.1.0-security-fix';
+const STATIC_CACHE_NAME = 'wishlist-static-v2.1.0-security-fix';
+const DYNAMIC_CACHE_NAME = 'wishlist-dynamic-v2.1.0-security-fix';
 
 // Ресурсы для кэширования при установке
 const STATIC_ASSETS = [
@@ -49,6 +49,28 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
+        // 🚨 КРИТИЧЕСКИ ВАЖНО: Принудительно очищаем все кэши с Supabase данными
+        console.log('[SW] SECURITY FIX: Clearing all Supabase caches...');
+        return caches.keys().then(cacheNames => {
+          return Promise.all(
+            cacheNames.map(cacheName => {
+              return caches.open(cacheName).then(cache => {
+                return cache.keys().then(requests => {
+                  return Promise.all(
+                    requests.map(request => {
+                      if (request.url.includes('supabase.co')) {
+                        console.log('[SW] SECURITY FIX: Deleting Supabase cache entry:', request.url);
+                        return cache.delete(request);
+                      }
+                    })
+                  );
+                });
+              });
+            })
+          );
+        });
+      })
+      .then(() => {
         console.log('[SW] Service Worker activated');
         // Берем контроль над всеми клиентами
         return self.clients.claim();
@@ -63,6 +85,14 @@ self.addEventListener('fetch', (event) => {
   
   // Игнорируем не-GET запросы и chrome-extension
   if (request.method !== 'GET' || url.protocol === 'chrome-extension:') {
+    return;
+  }
+  
+  // 🚨 КРИТИЧЕСКИ ВАЖНО: НЕ кэшируем Supabase API запросы!
+  // Это предотвращает утечку данных между пользователями
+  if (url.hostname.includes('supabase.co')) {
+    console.log('[SW] NEVER CACHE: Supabase API request:', request.url);
+    event.respondWith(fetch(request));
     return;
   }
   
