@@ -128,34 +128,34 @@ export const useSupabaseSync = (userId: string | null) => {
         const newItems = localItems.filter(item => !remoteIds.has(item.id));
         
         if (newItems.length > 0) {
-          // Добавляем новые элементы
-          const supabaseItems = newItems.map(item => convertToSupabaseItem(item, userId));
-          
-          const { data: insertedItems, error: insertError } = await supabase
-            .from('wishlist_items')
-            .insert(supabaseItems)
-            .select('*');
+          const updatedLocalItems = [...localItems]; // Создаем копию для мутации
 
-          if (insertError) throw insertError;
-          
-          // Обновляем локальные ID на ID из базы данных для предотвращения дублей
-          if (insertedItems && insertedItems.length > 0) {
-            const updatedLocalItems = localItems.map(localItem => {
-              const newItemIndex = newItems.findIndex(ni => ni.id === localItem.id);
-              if (newItemIndex !== -1) {
-                const correspondingInserted = insertedItems[newItemIndex];
-                if (correspondingInserted) {
-                  return { ...localItem, id: correspondingInserted.id };
-                }
-              }
-              return localItem;
-            });
+          for (const newItem of newItems) {
+            const supabaseItemPayload = convertToSupabaseItem(newItem, userId);
             
-            saveToLocalStorage(SYNC_KEYS.wishlist, updatedLocalItems);
-            notifyDataUpdated();
-          }
+            const { data: insertedItem, error: insertError } = await supabase
+              .from('wishlist_items')
+              .insert(supabaseItemPayload)
+              .select('*')
+              .single();
 
-          logger.sync(`Добавлено ${newItems.length} новых товаров в облако`);
+            if (insertError) {
+              logger.sync(`Ошибка при вставке товара ${newItem.name}:`, insertError);
+              continue; 
+            }
+
+            if (insertedItem) {
+              const localItemIndex = updatedLocalItems.findIndex(li => li.id === newItem.id);
+              if (localItemIndex !== -1) {
+                updatedLocalItems[localItemIndex] = { ...updatedLocalItems[localItemIndex], id: insertedItem.id };
+              } else {
+                logger.warn(`Не найден локальный элемент для обновления ID: ${newItem.id}`);
+              }
+            }
+          }
+          saveToLocalStorage(SYNC_KEYS.wishlist, updatedLocalItems);
+          notifyDataUpdated(); // Убедитесь, что это вызывается после всех обновлений
+          logger.sync(`Обработано ${newItems.length} новых товаров.`);
         }
         
         // Проверяем обновления существующих элементов
@@ -182,7 +182,7 @@ export const useSupabaseSync = (userId: string | null) => {
           }
         }
         
-        return newItems.length > 0;
+        return newItems.length > 0; // Возвращаем true если были новые или обновленные элементы
       }
 
       return false;
