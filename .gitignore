@@ -55,6 +55,7 @@ build/
 
 # Development and documentation files (not needed for production)
 memory-bank/
+supabase/
 full stack plan.txt
 *.md.backup
 .cursorrules

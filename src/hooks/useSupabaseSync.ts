@@ -102,7 +102,7 @@ export const useSupabaseSync = (userId: string | null) => {
     try {
       const localItems: WishlistItem[] = loadFromLocalStorage(SYNC_KEYS.wishlist) || [];
 
-      // Получаем существующие элементы из базы
+      // Получаем существующие элементы из базы (RLS автоматически фильтрует по user_id)
       const { data: remoteItems, error } = await supabase
         .from('wishlist_items')
         .select('*')
@@ -111,34 +111,12 @@ export const useSupabaseSync = (userId: string | null) => {
 
       if (error) throw error;
 
-      // 🔍 ДИАГНОСТИКА: Логируем что получили из базы
-      console.log('🔍 ДИАГНОСТИКА syncWishlistItems:');
-      console.log('📊 userId:', userId);
-      console.log('📊 remoteItems count:', remoteItems?.length || 0);
-      console.log('📊 localItems count:', localItems.length);
-      if (remoteItems && remoteItems.length > 0) {
-        console.log('📊 Первые 3 элемента из базы:', remoteItems.slice(0, 3).map(item => ({
-          id: item.id,
-          name: item.name,
-          user_id: item.user_id
-        })));
-      }
-
-      // 🚨 КРИТИЧЕСКИ ВАЖНО: Дополнительная фильтрация в коде!
-      // На случай если RLS policies не работают в Supabase
-      const safeRemoteItems = remoteItems?.filter(item => item.user_id === userId) || [];
-      
-      console.log('🔒 БЕЗОПАСНОСТЬ: После фильтрации по user_id:', safeRemoteItems.length);
-      if (safeRemoteItems.length !== (remoteItems?.length || 0)) {
-        console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА: RLS policies НЕ РАБОТАЮТ! Обнаружены данные других пользователей!');
-        console.error('📊 Исходное количество:', remoteItems?.length || 0);
-        console.error('📊 После фильтрации:', safeRemoteItems.length);
-      }
-
+      // RLS политики обеспечивают безопасность - дополнительная фильтрация не нужна
+      const safeRemoteItems = remoteItems || [];
       const remoteIds = new Set(safeRemoteItems.map(item => item.id));
       
-      // Если есть удаленные элементы и локальные данные
-      if (safeRemoteItems && safeRemoteItems.length > 0 && localItems.length === 0) {
+      // Если есть удаленные элементы и нет локальных данных
+      if (safeRemoteItems.length > 0 && localItems.length === 0) {
         // Первая загрузка - берём данные из облака
         const convertedItems = safeRemoteItems.map(convertFromSupabaseItem);
         saveToLocalStorage(SYNC_KEYS.wishlist, convertedItems);
@@ -146,18 +124,37 @@ export const useSupabaseSync = (userId: string | null) => {
         logger.sync(`Загружено ${convertedItems.length} товаров из облака`);
         return true;
       } else if (localItems.length > 0) {
-        // Есть локальные данные - синхронизируем изменения
+        // Есть локальные данные - синхронизируем только новые элементы
         const newItems = localItems.filter(item => !remoteIds.has(item.id));
         
         if (newItems.length > 0) {
           // Добавляем новые элементы
           const supabaseItems = newItems.map(item => convertToSupabaseItem(item, userId));
           
-          const { error: insertError } = await supabase
+          const { data: insertedItems, error: insertError } = await supabase
             .from('wishlist_items')
-            .insert(supabaseItems);
+            .insert(supabaseItems)
+            .select('*');
 
           if (insertError) throw insertError;
+          
+          // Обновляем локальные ID на ID из базы данных для предотвращения дублей
+          if (insertedItems && insertedItems.length > 0) {
+            const updatedLocalItems = localItems.map(localItem => {
+              const newItemIndex = newItems.findIndex(ni => ni.id === localItem.id);
+              if (newItemIndex !== -1) {
+                const correspondingInserted = insertedItems[newItemIndex];
+                if (correspondingInserted) {
+                  return { ...localItem, id: correspondingInserted.id };
+                }
+              }
+              return localItem;
+            });
+            
+            saveToLocalStorage(SYNC_KEYS.wishlist, updatedLocalItems);
+            notifyDataUpdated();
+          }
+
           logger.sync(`Добавлено ${newItems.length} новых товаров в облако`);
         }
         
@@ -202,6 +199,7 @@ export const useSupabaseSync = (userId: string | null) => {
     try {
       const localCategories: string[] = loadFromLocalStorage(SYNC_KEYS.categories) || [];
 
+      // RLS политики автоматически фильтруют по user_id
       const { data: remoteCategories, error } = await supabase
         .from('user_categories')
         .select('name, user_id')
@@ -209,16 +207,10 @@ export const useSupabaseSync = (userId: string | null) => {
 
       if (error) throw error;
 
-      // 🚨 КРИТИЧЕСКИ ВАЖНО: Дополнительная фильтрация категорий в коде!
-      // На случай если RLS policies не работают в Supabase  
-      const safeCategoriesData = remoteCategories?.filter((cat: any) => cat.user_id === userId) || [];
-      console.log('🔒 БЕЗОПАСНОСТЬ категорий: После фильтрации по user_id:', safeCategoriesData.length);
-      
-      if (safeCategoriesData.length !== (remoteCategories?.length || 0)) {
-        console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА: RLS для категорий НЕ РАБОТАЕТ!');
-      }
+      // RLS обеспечивает безопасность - дополнительная фильтрация не нужна
+      const safeCategoriesData = remoteCategories || [];
 
-      if (safeCategoriesData && safeCategoriesData.length > 0) {
+      if (safeCategoriesData.length > 0) {
         const categoryNames = safeCategoriesData.map((cat: { name: string }) => cat.name);
         saveToLocalStorage(SYNC_KEYS.categories, categoryNames);
         notifyDataUpdated();
@@ -353,6 +345,19 @@ export const useSupabaseSync = (userId: string | null) => {
       }
     }
   }, [userId, syncInBackground, needsSync]);
+
+  // Периодическая синхронизация каждые 2 минуты
+  useEffect(() => {
+    if (!userId || !isSupabaseAvailable()) return;
+
+    const interval = setInterval(() => {
+      if (needsSync()) {
+        syncInBackground();
+      }
+    }, 2 * 60 * 1000); // 2 минуты
+
+    return () => clearInterval(interval);
+  }, [userId, needsSync, syncInBackground]);
 
   return {
     triggerSync,

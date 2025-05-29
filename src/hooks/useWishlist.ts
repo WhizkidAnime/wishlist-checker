@@ -126,9 +126,12 @@ export const useWishlist = (triggerSync?: () => void, isAuthenticated?: boolean)
   }, [wishlist]);
 
   const handleAddItem = (newItem: Omit<WishlistItem, 'id' | 'isBought'>) => {
+    // Генерируем более уникальный ID с рандомным компонентом
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const itemToAdd: WishlistItem = { 
       ...newItem, 
-      id: Date.now().toString(),
+      id: uniqueId,
       isBought: false 
     };
     setWishlist([itemToAdd, ...wishlist]);

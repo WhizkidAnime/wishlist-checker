@@ -200,103 +200,40 @@ export const useAuth = () => {
 
   // Выход
   const signOut = async () => {
-    console.log('🚪 useAuth: signOut вызван');
-    console.log('🔧 useAuth: isSupabaseAvailable:', isSupabaseAvailable());
-    
-    if (!isSupabaseAvailable()) {
-      console.log('⚠️ useAuth: Supabase недоступен, выходим без запроса');
-      return;
-    }
-
-    console.log('🔄 useAuth: Отправляем запрос на выход в Supabase...');
+    console.log('🔐 useAuth: Начинаем выход пользователя:', authState.user?.email);
     
     try {
-      const { error } = await supabase!.auth.signOut();
-      if (error) {
-        console.error('❌ useAuth: Ошибка выхода от Supabase:', error);
-        
-        // Если это ошибка "сессия отсутствует", то это нормально - просто очищаем локально
-        if (error.message?.includes('Auth session missing') || error.message?.includes('session not found')) {
-          console.log('ℹ️ useAuth: Сессия уже недействительна, очищаем локально');
-        } else {
-          // Для других ошибок все равно выбрасываем исключение
-          throw error;
-        }
+      // 1. Выход из Supabase
+      if (isSupabaseAvailable() && supabase) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
       }
       
-      console.log('✅ useAuth: Supabase вернул успешный результат выхода');
+      // 2. Полная очистка всех пользовательских данных
+      console.log('🧹 Очищаем все пользовательские данные...');
+      localStorage.removeItem('wishlistApp');
+      localStorage.removeItem('wishlistCategories');
       
-      // КРИТИЧЕСКИ ВАЖНО: Очищаем ВСЕ пользовательские данные при выходе
-      try {
-        // Очищаем персональные данные пользователя
-        localStorage.removeItem('wishlistApp');
-        localStorage.removeItem('wishlistCategories');
-        localStorage.removeItem('wishlist-last-modified');
-        localStorage.removeItem('wishlist-data-hash');
-        console.log('🧹 useAuth: Очищены персональные данные пользователя');
-        
-        // Очищаем служебные ключи Supabase
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('sb-')) {
-            keysToRemove.push(key);
-          }
+      // 3. Очистка всех sync данных для предотвращения конфликтов
+      localStorage.removeItem('wishlist-last-modified');
+      localStorage.removeItem('wishlist-data-hash');
+      localStorage.removeItem('wishlist-sync-state');
+      
+      // 4. Очистка всех Supabase ключей
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) {
+          localStorage.removeItem(key);
         }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        console.log('🧹 useAuth: Очищены Supabase ключи из localStorage:', keysToRemove);
-        
-        // Диспатчим события для обновления UI
-        window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
-        window.dispatchEvent(new CustomEvent('categoriesUpdated'));
-        console.log('📢 useAuth: Отправлены события обновления данных');
-        
-      } catch (storageError) {
-        console.warn('⚠️ useAuth: Не удалось очистить localStorage:', storageError);
-      }
-    } catch (error) {
-      console.error('❌ useAuth: Критическая ошибка выхода:', error);
-      
-      // Независимо от ошибки, принудительно очищаем локальное состояние
-      console.log('🧹 useAuth: Принудительная очистка локального состояния...');
-      setAuthState({
-        user: null,
-        session: null,
-        loading: false,
-        isAuthenticated: false
       });
       
-      // КРИТИЧЕСКИ ВАЖНО: Очищаем ВСЕ данные даже при ошибке
-      try {
-        // Очищаем персональные данные пользователя
-        localStorage.removeItem('wishlistApp');
-        localStorage.removeItem('wishlistCategories');
-        localStorage.removeItem('wishlist-last-modified');
-        localStorage.removeItem('wishlist-data-hash');
-        console.log('🧹 useAuth: Принудительно очищены персональные данные');
-        
-        // Очищаем служебные ключи Supabase
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('sb-')) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        console.log('🧹 useAuth: Принудительно очищены Supabase ключи:', keysToRemove);
-        
-        // Диспатчим события для обновления UI
-        window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
-        window.dispatchEvent(new CustomEvent('categoriesUpdated'));
-        console.log('📢 useAuth: Отправлены события обновления данных');
-        
-      } catch (storageError) {
-        console.warn('⚠️ useAuth: Не удалось очистить localStorage:', storageError);
-      }
+      // 5. Обновление UI компонентов
+      console.log('🔄 Обновляем UI компоненты...');
+      window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
+      window.dispatchEvent(new CustomEvent('categoriesUpdated'));
       
-      // Не выбрасываем ошибку - считаем выход успешным
-      return;
+      console.log('✅ Выход завершён успешно');
+    } catch (error) {
+      console.error('❌ Ошибка при выходе:', error);
     }
   };
 
