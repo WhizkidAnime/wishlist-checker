@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
 
 interface UserProfileProps {
   onSignInClick: () => void;
@@ -7,6 +8,7 @@ interface UserProfileProps {
 
 export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const { user, isAuthenticated, signOut, loading, isSupabaseAvailable } = useAuth();
 
   // Если Supabase недоступен, не показываем профиль
@@ -26,6 +28,59 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       setShowDropdown(false);
     } catch (error) {
       console.error('❌ UserProfile: Ошибка выхода:', error);
+    }
+  };
+
+  // ЭКСТРЕННАЯ ОЧИСТКА АККАУНТА - удаляет ВСЕ данные пользователя
+  const handleAccountReset = async () => {
+    if (!user?.id || !isSupabaseAvailable) {
+      console.error('❌ Нет пользователя или Supabase недоступен');
+      return;
+    }
+
+    console.log('🚨 ЭКСТРЕННАЯ ОЧИСТКА АККАУНТА:', user.email);
+    
+    try {
+      // Удаляем ВСЕ данные пользователя из Supabase
+      const promises = [
+        supabase!.from('wishlist_items').delete().eq('user_id', user.id),
+        supabase!.from('user_categories').delete().eq('user_id', user.id),
+        supabase!.from('user_preferences').delete().eq('user_id', user.id)
+      ];
+
+      const results = await Promise.allSettled(promises);
+      
+      // Логируем результаты
+      results.forEach((result, index) => {
+        const tables = ['wishlist_items', 'user_categories', 'user_preferences'];
+        if (result.status === 'fulfilled') {
+          console.log(`✅ Удалены данные из ${tables[index]}`);
+        } else {
+          console.error(`❌ Ошибка удаления из ${tables[index]}:`, result.reason);
+        }
+      });
+
+      // Очищаем localStorage
+      localStorage.removeItem('wishlistApp');
+      localStorage.removeItem('wishlistCategories');
+      localStorage.removeItem('wishlist-theme-mode');
+      localStorage.removeItem('wishlist-last-modified');
+      localStorage.removeItem('wishlist-data-hash');
+      
+      console.log('🧹 Очищен localStorage');
+
+      // Диспатчим события обновления
+      window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
+      window.dispatchEvent(new CustomEvent('categoriesUpdated'));
+      
+      console.log('✅ АККАУНТ ПОЛНОСТЬЮ ОЧИЩЕН');
+      
+      setShowResetModal(false);
+      alert('✅ Аккаунт успешно очищен! Все данные удалены.');
+
+    } catch (error) {
+      console.error('❌ Ошибка очистки аккаунта:', error);
+      alert('❌ Ошибка при очистке аккаунта. Попробуйте еще раз.');
     }
   };
 
@@ -151,7 +206,30 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
             </div>
 
             {/* Действия */}
-            <div className="pt-2">
+            <div className="py-2">
+              {/* Кнопка очистки аккаунта */}
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                  setShowResetModal(true);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400
+                         hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors
+                         flex items-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18"/>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/>
+                  <line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+                Очистить аккаунт
+              </button>
+              
+              {/* Разделитель */}
+              <div className="my-2 border-t border-theme-border"></div>
+              
               <button
                 onClick={handleSignOut}
                 className="w-full text-left px-4 py-2 text-sm text-theme-text 
@@ -168,6 +246,52 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Модальное окно подтверждения очистки аккаунта */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18"/>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              Очистить аккаунт
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <strong className="text-red-600 dark:text-red-400">ВНИМАНИЕ!</strong> Это действие удалит <strong>ВСЕ ваши данные</strong>:
+            </p>
+            <ul className="text-sm text-gray-600 dark:text-gray-400 mb-4 ml-4 space-y-1">
+              <li>• Все товары из вишлиста</li>
+              <li>• Все созданные категории</li>
+              <li>• Настройки темы</li>
+              <li>• Данные из облака и локального хранилища</li>
+            </ul>
+            <p className="text-sm text-red-600 dark:text-red-400 mb-6 font-medium">
+              Это действие НЕОБРАТИМО!
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleAccountReset}
+                className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none transition-colors duration-150"
+              >
+                Удалить всё
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
