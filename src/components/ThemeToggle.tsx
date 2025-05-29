@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ThemeMode, ActualTheme } from '../hooks/useTheme';
+import { Portal } from './Portal';
+import { useDropdownPosition } from '../hooks/useDropdownPosition';
 
 interface ThemeToggleProps {
   themeMode: ThemeMode;
@@ -17,10 +19,12 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   supportsAutoTheme = true
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownPosition = useDropdownPosition(triggerRef, isDropdownOpen);
 
   // Функция для получения стилей кнопки в зависимости от активности (для десктопа)
   const getButtonStyles = (mode: ThemeMode, isActive: boolean) => {
-    const baseStyles = "p-2 rounded-full transition-all duration-200 flex items-center justify-center gap-1";
+    const baseStyles = "p-2 rounded-full transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none";
     
     if (isActive) {
       switch (mode) {
@@ -103,8 +107,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <div className="relative">
         {/* Кнопка для открытия выпадающего списка */}
         <button
+          ref={triggerRef}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 p-2 rounded-full bg-theme-toggle text-theme-secondary hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm"
+          className="flex items-center gap-2 p-2 rounded-full bg-theme-toggle text-theme-secondary hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm focus:outline-none"
           aria-label="Выбор темы"
         >
           {getThemeIcon(themeMode)}
@@ -120,17 +125,23 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
           </svg>
         </button>
 
-        {/* Выпадающий список */}
-        {isDropdownOpen && (
-          <>
+        {/* Выпадающий список через Portal */}
+        {isDropdownOpen && dropdownPosition && (
+          <Portal>
             {/* Overlay для закрытия при клике вне */}
             <div 
               className="fixed inset-0 z-[9998]" 
               onClick={() => setIsDropdownOpen(false)}
             />
             
-            {/* Сам выпадающий список */}
-            <div className="absolute right-0 top-full mt-2 w-48 bg-theme-card border border-theme rounded-lg shadow-xl z-[9999] overflow-hidden">
+            {/* Выпадающий список с абсолютным позиционированием */}
+            <div 
+              className="absolute w-48 bg-theme-card border border-theme rounded-lg shadow-xl z-[9999] overflow-hidden"
+              style={{
+                top: dropdownPosition.top,
+                right: dropdownPosition.right,
+              }}
+            >
               {/* Авто */}
               {supportsAutoTheme && (
                 <button
@@ -180,7 +191,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                 <span className="text-sm font-medium">Тёмная</span>
               </button>
             </div>
-          </>
+          </Portal>
         )}
       </div>
     );

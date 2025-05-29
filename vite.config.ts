@@ -7,17 +7,8 @@ export default defineConfig({
   plugins: [react()],
   base: '/wishlist-checker/',
   build: {
-    // Убеждаемся что Service Worker не минифицируется с ошибками
     rollupOptions: {
-      input: {
-        main: './index.html',
-        sw: './public/sw.js'
-      },
-      output: {
-        entryFileNames: (chunkInfo) => {
-          return chunkInfo.name === 'sw' ? 'sw.js' : '[name]-[hash].js'
-        }
-      }
+      input: './index.html'
     }
   },
   // @ts-ignore - vitest configuration

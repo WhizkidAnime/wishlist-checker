@@ -192,6 +192,33 @@ export const useSupabaseSync = (userId: string | null) => {
     }
   }, [notifyDataUpdated]);
 
+  // Удаление элемента из Supabase
+  const deleteWishlistItem = useCallback(async (itemId: string | number) => {
+    if (!userId || !isSupabaseAvailable() || !supabase) {
+      logger.sync('Удаление невозможно: нет соединения с Supabase');
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('wishlist_items')
+        .delete()
+        .eq('id', itemId)
+        .eq('user_id', userId); // Дополнительная проверка безопасности
+        
+      if (error) {
+        logger.sync(`Ошибка удаления товара из Supabase (ID: ${itemId}):`, error);
+        return false;
+      }
+      
+      logger.sync(`Товар успешно удален из Supabase (ID: ${itemId})`);
+      return true;
+    } catch (error) {
+      logger.sync('Ошибка при удалении товара:', error);
+      return false;
+    }
+  }, [userId]);
+
   // Синхронизация категорий
   const syncCategories = useCallback(async (userId: string) => {
     if (!isSupabaseAvailable() || !supabase) return false;
@@ -361,6 +388,7 @@ export const useSupabaseSync = (userId: string | null) => {
 
   return {
     triggerSync,
-    isSupabaseAvailable: isSupabaseAvailable()
+    isSupabaseAvailable: isSupabaseAvailable(),
+    deleteWishlistItem
   };
 }; 

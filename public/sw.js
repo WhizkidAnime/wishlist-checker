@@ -1,6 +1,6 @@
-const CACHE_NAME = 'wishlist-v2.1.0-security-fix';
-const STATIC_CACHE_NAME = 'wishlist-static-v2.1.0-security-fix';
-const DYNAMIC_CACHE_NAME = 'wishlist-dynamic-v2.1.0-security-fix';
+const CACHE_NAME = 'wishlist-v2.2.0-cache-fix';
+const STATIC_CACHE_NAME = 'wishlist-static-v2.2.0-cache-fix';
+const DYNAMIC_CACHE_NAME = 'wishlist-dynamic-v2.2.0-cache-fix';
 
 // Ресурсы для кэширования при установке
 const STATIC_ASSETS = [

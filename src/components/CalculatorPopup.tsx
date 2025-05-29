@@ -20,7 +20,7 @@ export const CalculatorPopup: React.FC<CalculatorPopupProps> = ({
 }) => {
   return (
     <div 
-      className="fixed bg-indigo-50 dark:bg-gray-800 p-4 rounded-lg border border-indigo-200 dark:border-gray-600 text-sm shadow-xl z-30 max-w-[calc(100vw-40px)]"
+      className="fixed bg-indigo-50 dark:bg-gray-800 p-4 rounded-lg border border-indigo-200 dark:border-gray-600 text-sm shadow-xl z-[9999] max-w-[calc(100vw-40px)]"
       style={{
         top: position.top,
         left: position.left,

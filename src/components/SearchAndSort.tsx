@@ -119,7 +119,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
           <div className="relative" ref={sortDropdownRef}>
             <button 
               onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm transition-colors duration-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm transition-colors duration-200 focus:outline-none"
               aria-label="Открыть параметры сортировки"
             >
               <span className="font-medium">
@@ -134,7 +134,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             </button>
             
             {showSortDropdown && (
-              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-10 w-36">
+              <div className="absolute right-0 mt-2 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-[9999] w-36">
                 <button 
                   onClick={() => {
                     setSortBy('default');
@@ -176,30 +176,30 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
           </div>
         ) : (
           // Десктопная версия - кнопки в ряд
-          <div className="flex items-center gap-1.5 text-xs text-sm flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs flex-wrap">
             <span className="text-gray-500 dark:text-gray-400 mr-1">Сортировать:</span>
             <div className="flex flex-wrap gap-1.5">
               <button 
                 onClick={() => setSortBy('default')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Стандарт
               </button>
               <button 
                 onClick={() => setSortBy('type-asc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Тип А-Я
               </button>
               <button 
                 onClick={() => setSortBy('price-asc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Цена ↑
               </button>
               <button 
                 onClick={() => setSortBy('price-desc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 Цена ↓
               </button>

@@ -242,7 +242,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               </button>
               
               {showCategoryDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                <div className="absolute z-[9999] w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto">
                   {existingCategories.length > 0 ? (
                     <>
                       {existingCategories.map(cat => (

@@ -13,8 +13,8 @@ export { WishlistContainer } from './WishlistContainer';
 // Новые компоненты для Supabase
 export { AuthModal } from './AuthModal';
 export { AuthForm } from './AuthForm';
-export { EmailDebugInfo } from './EmailDebugInfo';
 export { AuthCallback } from './AuthCallback';
-export { UserProfile } from './UserProfile'; 
+export { UserProfile } from './UserProfile';
 export { LandingPage } from './LandingPage';
-export { MainApp } from './MainApp'; 
+export { MainApp } from './MainApp';
+export { Portal } from './Portal'; 

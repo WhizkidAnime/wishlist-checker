@@ -71,7 +71,7 @@ export const CategoryTabs = ({
         {/* Вкладка "Все" */}
         <button
           onClick={() => onCategoryChange('all')}
-          className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150 ${
+          className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150 focus:outline-none ${
             activeCategory === 'all'
               ? 'border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200'
               : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
@@ -85,7 +85,7 @@ export const CategoryTabs = ({
           <button
             key={category}
             onClick={() => onCategoryChange(category)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150 ${
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150 focus:outline-none ${
               activeCategory === category
                 ? 'border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200'
                 : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
@@ -114,7 +114,7 @@ export const CategoryTabs = ({
             />
             <button
               onClick={handleAddCategory}
-              className="text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150"
+              className="text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-150 focus:outline-none"
               title="Сохранить"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -123,7 +123,7 @@ export const CategoryTabs = ({
             </button>
             <button
               onClick={handleCancelCategory}
-              className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-150"
+              className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-150 focus:outline-none"
               title="Отменить"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -134,7 +134,7 @@ export const CategoryTabs = ({
         ) : (
           <button
             onClick={() => setIsAddingCategory(true)}
-            className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-500 transition-colors duration-150"
+            className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-500 transition-colors duration-150 focus:outline-none"
             title="Добавить категорию"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

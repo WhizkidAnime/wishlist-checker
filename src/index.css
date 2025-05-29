@@ -1,3 +1,89 @@
+/* Tailwind директивы для CDN версии */
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind base;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind components;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind utilities;
+
+/* Базовые CSS переменные для shadcn/ui */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+/*
+  Z-INDEX АРХИТЕКТУРА И ВЫПАДАЮЩИЕ ЭЛЕМЕНТЫ
+  
+  Для правильного отображения выпадающих элементов поверх контента:
+  
+  1. ОБЯЗАТЕЛЬНО используйте Portal для всех выпадающих меню/модалей
+  2. Z-index стандарты:
+     - Основной контент: z-0 до z-10
+     - Fixed элементы (кнопки, индикаторы): z-40 до z-50
+     - Overlay для модалей/выпадающих: z-[9998]
+     - Модали/выпадающие элементы: z-[9999]
+  
+  3. Пример правильного выпадающего элемента:
+     ```tsx
+     import { Portal } from './Portal';
+     import { useDropdownPosition } from '../hooks/useDropdownPosition';
+     
+     {isOpen && position && (
+       <Portal>
+         <div className="fixed inset-0 z-[9998]" onClick={close} />
+         <div className="absolute z-[9999]" style={{ top: position.top, right: position.right }}>
+           // Контент меню
+         </div>
+       </Portal>
+     )}
+     ```
+  
+  4. ВСЕГДА добавляйте focus:outline-none к интерактивным элементам
+*/
+
 /* CSS переменные для цветовой схемы */
 :root {
   /* Цвета для светлой темы */
@@ -8,6 +94,9 @@
   --color-text-secondary-light: #374151;
   --color-theme-light: #f9fafb;
   
+  /* RGB версии для прозрачности - светлая тема */
+  --color-card-background-light-rgb: 255, 255, 255;
+  
   /* Цвета для темной темы */
   --color-background-dark: #141414;
   --color-card-background-dark: #222222;
@@ -15,6 +104,9 @@
   --color-text-dark: #d1d5db;
   --color-text-secondary-dark: #d1d5db;
   --color-theme-dark: #141414;
+  
+  /* RGB версии для прозрачности - темная тема */
+  --color-card-background-dark-rgb: 34, 34, 34;
   
   /* Дополнительные цвета для элементов UI */
   --color-primary-light: #3b82f6;
@@ -41,6 +133,7 @@
 html:not(.dark) {
   --color-background: var(--color-background-light);
   --color-card-background: var(--color-card-background-light);
+  --color-card-background-rgb: var(--color-card-background-light-rgb);
   --color-edit-background: var(--color-edit-background-light);
   --color-text: var(--color-text-light);
   --color-text-secondary: var(--color-text-secondary-light);
@@ -52,12 +145,14 @@ html:not(.dark) {
   --color-toggle-active: var(--color-toggle-active-light);
   --color-toggle-hover: var(--color-toggle-hover-light);
   --color-text-muted: var(--color-text-muted-light);
+  --color-border-rgb: 229, 231, 235; /* #e5e7eb */
 }
 
 /* Применение переменных для темной темы */
 html.dark {
   --color-background: var(--color-background-dark);
   --color-card-background: var(--color-card-background-dark);
+  --color-card-background-rgb: var(--color-card-background-dark-rgb);
   --color-edit-background: var(--color-edit-background-dark);
   --color-text: var(--color-text-dark);
   --color-text-secondary: var(--color-text-secondary-dark);
@@ -69,15 +164,8 @@ html.dark {
   --color-toggle-active: var(--color-toggle-active-dark);
   --color-toggle-hover: var(--color-toggle-hover-dark);
   --color-text-muted: var(--color-text-muted-dark);
+  --color-border-rgb: 55, 65, 81; /* #374151 */
 }
-
-/* Tailwind директивы для CDN версии */
-/* stylelint-disable-next-line at-rule-no-unknown */
-@tailwind base;
-/* stylelint-disable-next-line at-rule-no-unknown */
-@tailwind components;
-/* stylelint-disable-next-line at-rule-no-unknown */
-@tailwind utilities;
 
 /* Оптимизации для производительности */
 *,
@@ -266,3 +354,45 @@ button:focus-visible {
     color: #6b7280;
   }
 }
+
+/* Класс для размытия фона */
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Дополнительные классы для прозрачности */
+.bg-theme-card\/95 {
+  background-color: rgba(var(--color-card-background-rgb), 0.95);
+}
+
+/* Дополнительные стили для анимаций */
+@supports (backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0)) {
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Fallback для браузеров без поддержки backdrop-filter */
+@supports not (backdrop-filter: blur(0)) and not (-webkit-backdrop-filter: blur(0)) {
+  .backdrop-blur-md {
+    background-color: rgba(var(--color-card-background-rgb), 0.98) !important;
+  }
+}
+
+/* Улучшения для темной темы */
+.border-theme-border\/50 {
+  border-color: rgba(var(--color-border-rgb, 229, 231, 235), 0.5);
+}
+
+/* Контейнер для модальных окон */
+/* #modals {
+  position: relative;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+#modals > * {
+  pointer-events: auto;
+} */

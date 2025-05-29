@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../utils/supabaseClient';
+import { Portal } from './Portal';
+import { useDropdownPosition } from '../hooks/useDropdownPosition';
 
 interface UserProfileProps {
   onSignInClick: () => void;
@@ -8,8 +10,11 @@ interface UserProfileProps {
 
 export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
+  const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
+  const [showClearSuccessNotification, setShowClearSuccessNotification] = useState(false);
   const { user, isAuthenticated, signOut, loading } = useAuth();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownPosition = useDropdownPosition(triggerRef, showDropdown);
 
   const handleSignOut = async () => {
     console.log('🔘 UserProfile: Нажата кнопка выхода');
@@ -26,7 +31,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   };
 
   // ЭКСТРЕННАЯ ОЧИСТКА АККАУНТА - удаляет ВСЕ данные пользователя
-  const handleAccountReset = async () => {
+  const performFullAccountClear = async () => {
     if (!user?.id) {
       console.error('❌ Нет пользователя');
       return;
@@ -69,14 +74,30 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       
       console.log('✅ АККАУНТ ПОЛНОСТЬЮ ОЧИЩЕН');
       
-      setShowResetModal(false);
-      alert('✅ Аккаунт успешно очищен! Все данные удалены.');
+      setShowClearConfirmModal(false);
+      setShowClearSuccessNotification(true);
 
     } catch (error) {
       console.error('❌ Ошибка очистки аккаунта:', error);
-      alert('❌ Ошибка при очистке аккаунта. Попробуйте еще раз.');
+      setShowClearConfirmModal(false);
+      // TODO: Показать кастомное уведомление об ошибке
     }
   };
+
+  const handleAccountResetClick = () => {
+    setShowDropdown(false);
+    setShowClearConfirmModal(true);
+  };
+
+  // Автоматическое скрытие уведомления об успехе
+  useEffect(() => {
+    if (showClearSuccessNotification) {
+      const timer = setTimeout(() => {
+        setShowClearSuccessNotification(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showClearSuccessNotification]);
 
   const getDisplayName = () => {
     if (user?.user_metadata?.name) {
@@ -127,9 +148,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         onClick={() => setShowDropdown(!showDropdown)}
         className="flex items-center gap-2 p-1 rounded-lg hover:bg-theme-background-secondary 
-                 transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary"
+                 transition-colors focus:outline-none"
       >
         {/* Аватар */}
         <div className="w-8 h-8 bg-theme-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
@@ -163,17 +185,29 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
         </svg>
       </button>
 
-      {/* Выпадающее меню */}
-      {showDropdown && (
-        <>
+      {/* Выпадающее меню через Portal */}
+      {showDropdown && dropdownPosition && (
+        <Portal>
           {/* Overlay для закрытия при клике вне */}
           <div 
-            className="fixed inset-0 z-10" 
+            className="fixed inset-0 z-[9998]" 
             onClick={() => setShowDropdown(false)}
           />
           
-          <div className="absolute right-0 top-full mt-2 w-64 bg-theme-card border border-theme-border 
-                         rounded-lg shadow-lg z-20 py-2">
+          {/* 
+            ВАЖНО: Z-INDEX для выпадающих элементов через Portal
+            Portal рендерит элементы в document.body, минуя все ограничения stacking context
+            Overlay: z-[9998], меню: z-[9999] - эти значения гарантируют отображение поверх всего
+            Используйте Portal + эти z-index для всех новых выпадающих меню в проекте!
+          */}
+          <div 
+            className="absolute w-64 bg-theme-card border border-theme-border 
+                       rounded-lg shadow-lg z-[9999] py-2"
+            style={{
+              top: dropdownPosition.top,
+              right: dropdownPosition.right,
+            }}
+          >
             {/* Информация о пользователе */}
             <div className="px-4 py-3 border-b border-theme-border">
               <div className="flex items-center gap-3">
@@ -203,10 +237,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
             <div className="py-2">
               {/* Кнопка очистки аккаунта */}
               <button
-                onClick={() => {
-                  setShowDropdown(false);
-                  setShowResetModal(true);
-                }}
+                onClick={handleAccountResetClick}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400
                          hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors
                          flex items-center gap-2"
@@ -239,54 +270,75 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
               </button>
             </div>
           </div>
-        </>
+        </Portal>
       )}
 
       {/* Модальное окно подтверждения очистки аккаунта */}
-      {showResetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
-            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 6h18"/>
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
-              Очистить аккаунт
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              <strong className="text-red-600 dark:text-red-400">ВНИМАНИЕ!</strong> Это действие удалит <strong>ВСЕ ваши данные</strong>:
-            </p>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 mb-4 ml-4 space-y-1">
-              <li>• Все товары из вишлиста</li>
-              <li>• Все созданные категории</li>
-              <li>• Настройки темы</li>
-              <li>• Данные из облака и локального хранилища</li>
-            </ul>
-            <p className="text-sm text-red-600 dark:text-red-400 mb-6 font-medium">
-              Это действие НЕОБРАТИМО!
-            </p>
-            <div className="flex justify-end space-x-3">
+      {showClearConfirmModal && (
+        <Portal>
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                Очистить аккаунт?
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                <p className="font-semibold text-red-600 dark:text-red-400">Это действие НЕОБРАТИМО!</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Все товары из вишлиста будут удалены.</li>
+                  <li>Все созданные категории будут удалены.</li>
+                  <li>Настройки темы будут сброшены.</li>
+                  <li>Данные из облака (если есть) и локального хранилища будут стерты.</li>
+                </ul>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowClearConfirmModal(false)}
+                  className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150 ease-in-out"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="button"
+                  onClick={performFullAccountClear}
+                  className="px-5 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-600 dark:focus:ring-offset-gray-800 transition-colors duration-150 ease-in-out"
+                >
+                  Удалить всё
+                </button>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
+
+      {/* Уведомление об успешной очистке */}
+      {showClearSuccessNotification && (
+        <Portal>
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 mx-auto text-center">
+              <div className="flex justify-center mb-4">
+                <svg className="w-12 h-12 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Аккаунт успешно очищен!
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Все ваши данные были удалены.
+              </p>
               <button
                 type="button"
-                onClick={() => setShowResetModal(false)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150"
+                onClick={() => setShowClearSuccessNotification(false)}
+                className="w-full px-5 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500 focus:outline-none transition-colors duration-150 ease-in-out"
               >
-                Отмена
-              </button>
-              <button
-                type="button"
-                onClick={handleAccountReset}
-                className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none transition-colors duration-150"
-              >
-                Удалить всё
+                Понятно
               </button>
             </div>
           </div>
-        </div>
+        </Portal>
       )}
+
     </div>
   );
 }; 

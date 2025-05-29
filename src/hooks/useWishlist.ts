@@ -6,7 +6,11 @@ import { loadFromLocalStorage, saveToLocalStorage } from '../utils/localStorageU
 
 const LOCAL_STORAGE_KEY = 'wishlistApp';
 
-export const useWishlist = (triggerSync?: () => void, isAuthenticated?: boolean) => {
+export const useWishlist = (
+  triggerSync?: () => void, 
+  isAuthenticated?: boolean, 
+  deleteFromSupabase?: (itemId: string | number) => Promise<boolean>
+) => {
   // Инициализация зависит от статуса аутентификации
   const [wishlist, setWishlist] = useState<WishlistItem[]>(() => {
     if (isAuthenticated) {
@@ -173,7 +177,18 @@ export const useWishlist = (triggerSync?: () => void, isAuthenticated?: boolean)
     }
   };
 
-  const handleDeleteItem = (id: string | number) => {
+  const handleDeleteItem = async (id: string | number) => {
+    // Если есть функция удаления из Supabase и пользователь аутентифицирован
+    if (deleteFromSupabase && isAuthenticated) {
+      const deleteSuccess = await deleteFromSupabase(id);
+      if (!deleteSuccess) {
+        // Если удаление из Supabase не удалось, показываем ошибку
+        console.error('Не удалось удалить элемент из базы данных');
+        return;
+      }
+    }
+    
+    // Удаляем из локального состояния только после успешного удаления из Supabase
     setWishlist(wishlist.filter(item => item.id !== id));
   };
 

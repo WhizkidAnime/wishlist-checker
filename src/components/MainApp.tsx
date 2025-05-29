@@ -23,11 +23,13 @@ import { useTheme } from '../hooks/useTheme';
 
 interface MainAppProps {
   triggerSync: () => Promise<void>;
+  deleteWishlistItem?: (itemId: string | number) => Promise<boolean>;
   onAuthModalOpen: () => void;
 }
 
 export const MainApp: React.FC<MainAppProps> = ({ 
   triggerSync, 
+  deleteWishlistItem,
   onAuthModalOpen 
 }) => {
   const [displayCurrency] = useState<string>('RUB');
@@ -62,7 +64,7 @@ export const MainApp: React.FC<MainAppProps> = ({
     handleDeleteItem,
     handleEditClick,
     handleCancelEdit
-  } = useWishlist(triggerSync, true); // isAuthenticated = true
+  } = useWishlist(triggerSync, true, deleteWishlistItem); // isAuthenticated = true
 
   const {
     activeCategory,
@@ -118,6 +120,7 @@ export const MainApp: React.FC<MainAppProps> = ({
   const {
     isDeleteModalOpen,
     itemToDelete,
+    isDeleting,
     handleDeleteClick,
     handleDeleteConfirm,
     handleDeleteCancel
@@ -164,6 +167,31 @@ export const MainApp: React.FC<MainAppProps> = ({
       .reduce((sum, item) => sum + item.price, 0);
   }, [displayedWishlist]);
 
+  // Используем useMemo для дочерних компонентов, чтобы предотвратить лишние рендеры
+  const themeToggleElement = useMemo(() => (
+    <ThemeToggle 
+      themeMode={themeMode}
+      systemTheme={systemTheme}
+      onSetTheme={setTheme}
+      isMobile={false} // Для десктопа
+      supportsAutoTheme={supportsAutoTheme}
+    />
+  ), [themeMode, systemTheme, setTheme, supportsAutoTheme]);
+
+  const userProfileElement = useMemo(() => (
+    <UserProfile onSignInClick={onAuthModalOpen} />
+  ), [onAuthModalOpen]);
+
+  const mobileThemeToggleElement = useMemo(() => (
+    <ThemeToggle 
+      themeMode={themeMode}
+      systemTheme={systemTheme}
+      onSetTheme={setTheme}
+      isMobile={true} // Для мобильных
+      supportsAutoTheme={supportsAutoTheme}
+    />
+  ), [themeMode, systemTheme, setTheme, supportsAutoTheme]);
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext 
@@ -173,34 +201,36 @@ export const MainApp: React.FC<MainAppProps> = ({
       >
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
-          {/* Переключатель темы для десктопа - всегда в правом верхнем углу */}
-          <div className="hidden sm:flex fixed top-12 right-6 z-50 items-center gap-4">
-            <UserProfile onSignInClick={onAuthModalOpen} />
-            <ThemeToggle 
-              themeMode={themeMode}
-              systemTheme={systemTheme}
-              onSetTheme={setTheme}
-              isMobile={false}
-              supportsAutoTheme={supportsAutoTheme}
-            />
+          {/* Десктопная панель управления - статичная */}
+          <div className="hidden sm:flex fixed top-6 right-4 z-50 items-center gap-2 p-2 
+                        bg-theme-card/95 dark:bg-theme-card/80 border border-theme-border/40 dark:border-theme-border/30 
+                        shadow-lg backdrop-blur-md rounded-lg">
+            {themeToggleElement}
+            {userProfileElement}
           </div>
 
-          {/* Заголовок с тумблером для мобильных */}
-          <div className="relative w-full max-w-4xl flex justify-center items-center mb-6 sm:mb-8 z-10">
-            <h1 className={`text-2xl sm:text-3xl font-semibold text-center ${themeConfig.text} transition-colors duration-200`}>
-              Wishlist checker
-            </h1>
+          {/* Заголовок */}
+          <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-10">
+            {/* Мобильная версия - панель управления сверху */}
+            <div className="sm:hidden">
+              <div className="flex justify-between items-center mb-4">
+                {/* Пустой div для выравнивания заголовка по центру, если нужно */} 
+                {/* <div></div> */}
+                <h1 className="text-3xl font-bold text-center text-theme-text flex-grow">
+                  Wishlist checker
+                </h1>
+                <div className="flex items-center gap-2">
+                  {userProfileElement} {/* Профиль всегда тут */}
+                  {mobileThemeToggleElement} {/* Переключатель темы */}
+                </div>
+              </div>
+            </div>
             
-            {/* Переключатель темы и профиль для мобильных - всегда рядом с заголовком */}
-            <div className="sm:hidden absolute right-0 top-1/2 transform -translate-y-1/2 flex items-center gap-2 z-40">
-              <UserProfile onSignInClick={onAuthModalOpen} />
-              <ThemeToggle 
-                themeMode={themeMode}
-                systemTheme={systemTheme}
-                onSetTheme={setTheme}
-                isMobile={true}
-                supportsAutoTheme={supportsAutoTheme}
-              />
+            {/* Десктопная версия - заголовок */}
+            <div className="hidden sm:block text-center">
+              <h1 className="text-4xl font-bold text-theme-text">
+                Wishlist checker
+              </h1>
             </div>
           </div>
           
@@ -317,6 +347,7 @@ export const MainApp: React.FC<MainAppProps> = ({
           onImportCancel={handleModalClose}
           isDeleteModalOpen={isDeleteModalOpen}
           itemToDelete={itemToDelete}
+          isDeleting={isDeleting}
           onDeleteConfirm={handleDeleteConfirm}
           onDeleteCancel={handleDeleteCancel}
           showImportSuccessToast={showImportSuccessToast}

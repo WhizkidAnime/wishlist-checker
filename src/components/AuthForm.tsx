@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { EmailDebugInfo } from './EmailDebugInfo';
 
 interface AuthFormProps {
   onClose: () => void;
@@ -17,6 +16,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [showPasswordInfo, setShowPasswordInfo] = useState(false);
   
   const { 
     signInWithPassword, 
@@ -40,6 +40,40 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
     clearForm();
   };
 
+  const validatePassword = (password: string): boolean => {
+    // Минимум 8 символов
+    if (password.length < 8) {
+      setError('Пароль должен содержать минимум 8 символов');
+      return false;
+    }
+
+    // Латинские буквы
+    if (!/[a-zA-Z]/.test(password)) {
+      setError('Пароль должен содержать латинские буквы');
+      return false;
+    }
+
+    // Большие буквы
+    if (!/[A-Z]/.test(password)) {
+      setError('Пароль должен содержать заглавные буквы');
+      return false;
+    }
+
+    // Цифры
+    if (!/\d/.test(password)) {
+      setError('Пароль должен содержать цифры');
+      return false;
+    }
+
+    // Специальные символы
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setError('Пароль должен содержать специальные символы');
+      return false;
+    }
+
+    return true;
+  };
+
   const validateForm = () => {
     if (!email) {
       setError('Введите email адрес');
@@ -55,12 +89,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
       return false;
     }
 
-    if (password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
-      return false;
-    }
-
+    // Для регистрации проверяем требования к паролю
     if (mode === 'signup') {
+      if (!validatePassword(password)) {
+        return false;
+      }
+
       if (password !== confirmPassword) {
         setError('Пароли не совпадают');
         return false;
@@ -204,21 +238,22 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       {/* Заголовок */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-theme-primary">
-          {getTitle()}
-        </h2>
+      <div className="text-center mb-6">
         <button
           onClick={handleClose}
-          className="text-theme-text hover:text-theme-primary text-xl transition-colors"
+          className="absolute top-4 right-4 text-theme-text-secondary hover:text-theme-text"
         >
           ✕
         </button>
+        
+        <h2 className="text-xl font-bold text-theme-text mb-2">
+          {getTitle()}
+        </h2>
       </div>
 
-      {/* Табы */}
+      {/* Переключатель режимов */}
       {mode !== 'reset' && (
-        <div className="flex rounded-lg bg-theme-background border border-theme-border mb-6">
+        <div className="flex rounded-lg bg-theme-background-secondary p-1 mb-4">
           <button
             onClick={() => handleModeChange('signin')}
             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
@@ -273,21 +308,44 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
         {/* Пароль */}
         {mode !== 'reset' && (
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-theme-text mb-1">
-              Пароль
-            </label>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="password" className="text-sm font-medium text-theme-text">
+                Пароль
+              </label>
+              {mode === 'signup' && (
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordInfo(!showPasswordInfo)}
+                  className="w-4 h-4 rounded-full bg-theme-text-secondary text-white text-xs flex items-center justify-center hover:bg-theme-text transition-colors"
+                  title="Требования к паролю"
+                >
+                  i
+                </button>
+              )}
+            </div>
+            {mode === 'signup' && showPasswordInfo && (
+              <div className="mb-2 p-2 text-xs bg-theme-background-secondary rounded-lg text-theme-text-secondary">
+                <strong>Требования к паролю:</strong>
+                <ul className="mt-1 list-disc list-inside space-y-0.5">
+                  <li>Минимум 8 символов</li>
+                  <li>Латинские буквы</li>
+                  <li>Заглавные буквы</li>
+                  <li>Цифры</li>
+                  <li>Специальные символы (!@#$%^&* и др.)</li>
+                </ul>
+              </div>
+            )}
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Минимум 6 символов"
+              placeholder={mode === 'signin' ? 'Введите пароль' : 'Минимум 8 символов'}
               className="w-full px-3 py-2 border border-theme-border rounded-lg 
                        bg-theme-background text-theme-text placeholder-theme-text-secondary
                        focus:outline-none focus:ring-2 focus:ring-theme-primary transition-colors"
               required
               disabled={loading}
-              minLength={6}
             />
           </div>
         )}
@@ -309,7 +367,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
                        focus:outline-none focus:ring-2 focus:ring-theme-primary transition-colors"
               required
               disabled={loading}
-              minLength={6}
             />
           </div>
         )}
@@ -387,9 +444,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
               <li>Попробуйте войти через Google</li>
             </ul>
           </div>
-
-          {/* Компонент диагностики */}
-          <EmailDebugInfo email={email} />
         </div>
       )}
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeToggle } from './ThemeToggle';
+import { UserProfile } from './UserProfile';
 
 interface LandingPageProps {
   onAuthModalOpen: () => void;
@@ -81,36 +82,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
       
-      {/* Переключатель темы для десктопа */}
-      <div className="hidden sm:flex fixed top-12 right-6 z-50">
-        <ThemeToggle 
+      {/* Панель управления */}
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 p-2 bg-theme-card/95 dark:bg-theme-card/80 border border-theme-border/40 dark:border-theme-border/30 shadow-lg backdrop-blur-md rounded-lg">
+        <ThemeToggle
           themeMode={themeMode}
           systemTheme={systemTheme}
           onSetTheme={setTheme}
-          isMobile={false}
           supportsAutoTheme={supportsAutoTheme}
+          isMobile={false} // Предполагаем десктопное отображение, можно добавить логику isMobile если нужно
         />
-      </div>
-
-      {/* Переключатель темы для мобильных */}
-      <div className="sm:hidden fixed top-6 right-4 z-50">
-        <ThemeToggle 
-          themeMode={themeMode}
-          systemTheme={systemTheme}
-          onSetTheme={setTheme}
-          isMobile={true}
-          supportsAutoTheme={supportsAutoTheme}
-        />
+        <UserProfile onSignInClick={onAuthModalOpen} />
       </div>
 
       {/* Основной контент */}
-      <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-6 sm:p-12 relative z-10 transition-colors duration-200`}>
+      <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-6 sm:p-12 relative z-10 transition-colors duration-200 mt-16 sm:mt-0`}>
         
         {/* Заголовок и описание */}
         <div className="text-center mb-8 sm:mb-12">
           {/* Иконка приложения */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-700 to-black rounded-3xl flex items-center justify-center shadow-lg">
               <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
@@ -138,7 +129,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
               key={index}
               className={`p-6 rounded-2xl ${themeConfig.background} border border-gray-200 dark:border-gray-700 transition-colors duration-200 hover:shadow-lg`}
             >
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white mb-4`}>
+              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4`}>
                 {feature.icon}
               </div>
               <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2 transition-colors duration-200`}>
@@ -167,8 +158,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
           <button
             onClick={onAuthModalOpen}
             disabled={loading}
-            className={`w-full py-3 px-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl 
-                     hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed
+            className={`w-full py-3 px-6 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl 
+                     hover:from-gray-700 hover:to-gray-900 disabled:opacity-50 disabled:cursor-not-allowed
                      transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-lg hover:shadow-xl`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,13 +197,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
             Ваши данные защищены и синхронизируются между устройствами.
           </p>
         </div>
-      </div>
-
-      {/* Дополнительная информация внизу */}
-      <div className="mt-8 text-center">
-        <p className={`text-sm ${themeConfig.text} opacity-40 transition-colors duration-200`}>
-          PWA приложение • Работает оффлайн • Установка на любое устройство
-        </p>
       </div>
     </div>
   );

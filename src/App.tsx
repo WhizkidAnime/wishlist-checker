@@ -12,7 +12,7 @@ function App() {
 
   // Аутентификация и синхронизация
   const { user, isAuthenticated } = useAuth();
-  const { triggerSync } = useSupabaseSync(user?.id || null);
+  const { triggerSync, deleteWishlistItem } = useSupabaseSync(user?.id || null);
 
   // Отслеживаем изменение isAuthenticated для автоматического показа экрана загрузки
   useEffect(() => {
@@ -62,6 +62,7 @@ function App() {
       ) : shouldShowMainApp ? (
         <MainApp 
           triggerSync={triggerSync}
+          deleteWishlistItem={deleteWishlistItem}
           onAuthModalOpen={() => setIsAuthModalOpen(true)}
         />
       ) : (
