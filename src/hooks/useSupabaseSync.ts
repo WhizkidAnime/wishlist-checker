@@ -124,12 +124,23 @@ export const useSupabaseSync = (userId: string | null) => {
         })));
       }
 
-      const remoteIds = new Set(remoteItems?.map(item => item.id) || []);
+      // 🚨 КРИТИЧЕСКИ ВАЖНО: Дополнительная фильтрация в коде!
+      // На случай если RLS policies не работают в Supabase
+      const safeRemoteItems = remoteItems?.filter(item => item.user_id === userId) || [];
+      
+      console.log('🔒 БЕЗОПАСНОСТЬ: После фильтрации по user_id:', safeRemoteItems.length);
+      if (safeRemoteItems.length !== (remoteItems?.length || 0)) {
+        console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА: RLS policies НЕ РАБОТАЮТ! Обнаружены данные других пользователей!');
+        console.error('📊 Исходное количество:', remoteItems?.length || 0);
+        console.error('📊 После фильтрации:', safeRemoteItems.length);
+      }
+
+      const remoteIds = new Set(safeRemoteItems.map(item => item.id));
       
       // Если есть удаленные элементы и локальные данные
-      if (remoteItems && remoteItems.length > 0 && localItems.length === 0) {
+      if (safeRemoteItems && safeRemoteItems.length > 0 && localItems.length === 0) {
         // Первая загрузка - берём данные из облака
-        const convertedItems = remoteItems.map(convertFromSupabaseItem);
+        const convertedItems = safeRemoteItems.map(convertFromSupabaseItem);
         saveToLocalStorage(SYNC_KEYS.wishlist, convertedItems);
         notifyDataUpdated();
         logger.sync(`Загружено ${convertedItems.length} товаров из облака`);
@@ -153,7 +164,7 @@ export const useSupabaseSync = (userId: string | null) => {
         // Проверяем обновления существующих элементов
         const existingItems = localItems.filter(item => remoteIds.has(item.id));
         for (const localItem of existingItems) {
-          const remoteItem = remoteItems?.find(r => r.id === localItem.id);
+          const remoteItem = safeRemoteItems.find(r => r.id === localItem.id);
           if (remoteItem) {
             const localConverted = convertToSupabaseItem(localItem, userId);
             const needsUpdate = 
@@ -193,13 +204,22 @@ export const useSupabaseSync = (userId: string | null) => {
 
       const { data: remoteCategories, error } = await supabase
         .from('user_categories')
-        .select('name')
+        .select('name, user_id')
         .eq('user_id', userId);
 
       if (error) throw error;
 
-      if (remoteCategories && remoteCategories.length > 0) {
-        const categoryNames = remoteCategories.map((cat: { name: string }) => cat.name);
+      // 🚨 КРИТИЧЕСКИ ВАЖНО: Дополнительная фильтрация категорий в коде!
+      // На случай если RLS policies не работают в Supabase  
+      const safeCategoriesData = remoteCategories?.filter((cat: any) => cat.user_id === userId) || [];
+      console.log('🔒 БЕЗОПАСНОСТЬ категорий: После фильтрации по user_id:', safeCategoriesData.length);
+      
+      if (safeCategoriesData.length !== (remoteCategories?.length || 0)) {
+        console.error('🚨 КРИТИЧЕСКАЯ ОШИБКА: RLS для категорий НЕ РАБОТАЕТ!');
+      }
+
+      if (safeCategoriesData && safeCategoriesData.length > 0) {
+        const categoryNames = safeCategoriesData.map((cat: { name: string }) => cat.name);
         saveToLocalStorage(SYNC_KEYS.categories, categoryNames);
         notifyDataUpdated();
         logger.sync(`Загружено ${categoryNames.length} категорий из облака`);
@@ -326,6 +346,10 @@ export const useSupabaseSync = (userId: string | null) => {
 
   // Умная синхронизация при входе пользователя (только при необходимости)
   useEffect(() => {
+    // 🚨 ВРЕМЕННО ОТКЛЮЧЕНО: Предотвращение загрузки чужих данных
+    console.log('🔴 СИНХРОНИЗАЦИЯ ВРЕМЕННО ОТКЛЮЧЕНА: RLS policies не работают');
+    return;
+    
     if (userId && isSupabaseAvailable()) {
       // Проверяем нужна ли синхронизация
       if (needsSync()) {
