@@ -1,6 +1,7 @@
-import { useState, FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
+import { Tooltip } from './ui/Tooltip';
 
 interface AddItemFormProps {
   onAddItem: (item: Omit<WishlistItem, 'id' | 'isBought'>) => void;
@@ -148,7 +149,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
             <div className={`flex rounded-md overflow-hidden border focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-colors duration-200 ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
               <input
                 type="text"
-                inputMode="decimal"
+                inputMode="text"
                 id="price"
                 value={price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
@@ -184,19 +185,20 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               
               {/* Кнопка очистки */}
               {category && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCategory('');
-                    setShowCategoryDropdown(false);
-                  }}
-                  className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-                  title="Очистить"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <Tooltip content="Очистить">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategory('');
+                      setShowCategoryDropdown(false);
+                    }}
+                    className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </Tooltip>
               )}
               
               {/* Кнопка выпадающего списка */}

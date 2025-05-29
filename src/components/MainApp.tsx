@@ -10,9 +10,12 @@ import { ConfirmModals } from './ConfirmModals';
 import { CategoryTabs } from './CategoryTabs';
 import { ThemeToggle } from './ThemeToggle';
 import { UserProfile } from './UserProfile';
+import { BulkActionBar } from './BulkActionBar';
+import { BulkDeleteModal } from './BulkDeleteModal';
 
 import { useWishlist } from '../hooks/useWishlist';
 import { useSelection } from '../hooks/useSelection';
+import { useBulkSelection } from '../hooks/useBulkSelection';
 import { useCalculatorPosition } from '../hooks/useCalculatorPosition';
 import { useResponsive } from '../hooks/useResponsive';
 import { useImportExport } from '../hooks/useImportExport';
@@ -20,6 +23,8 @@ import { useDeleteModal } from '../hooks/useDeleteModal';
 import { useDndSensors } from '../hooks/useDndSensors';
 import { useCategories } from '../hooks/useCategories';
 import { useTheme } from '../hooks/useTheme';
+import { useBulkActions } from '../hooks/useBulkActions';
+import { useAuth } from '../hooks/useAuth';
 
 interface MainAppProps {
   triggerSync: () => Promise<void>;
@@ -35,6 +40,11 @@ export const MainApp: React.FC<MainAppProps> = ({
   const [displayCurrency] = useState<string>('RUB');
   const [exchangeRates] = useState<Record<string, number> | null>(null);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+
+  // Получаем userId из контекста аутентификации  
+  const { user } = useAuth();
+  const userId = user?.id || null;
 
   // Хук для управления темой
   const { 
@@ -96,9 +106,25 @@ export const MainApp: React.FC<MainAppProps> = ({
     selectedCount,
     selectedItems,
     handleToggleSelected: baseHandleToggleSelected,
-    clearSelection,
-    removeFromSelection
+    clearSelection
   } = useSelection(wishlist);
+
+  // Хук для массовых операций (отдельно от калькулятора)
+  const {
+    bulkSelectedItemIds,
+    bulkSelectedItems,
+    handleToggleBulkSelected,
+    clearBulkSelection,
+    removeFromBulkSelection
+  } = useBulkSelection(wishlist);
+
+  // Хук для массовых операций
+  const {
+    bulkDeleteItems,
+    bulkMoveToCategory,
+    isDeleting: isBulkDeleting,
+    isMoving: isBulkMoving
+  } = useBulkActions(userId, triggerSync, clearBulkSelection);
 
   const {
     calculatorPosition,
@@ -124,9 +150,29 @@ export const MainApp: React.FC<MainAppProps> = ({
     handleDeleteClick,
     handleDeleteConfirm,
     handleDeleteCancel
-  } = useDeleteModal(handleDeleteItem, removeFromSelection);
+  } = useDeleteModal(handleDeleteItem, removeFromBulkSelection);
 
   const sensors = useDndSensors();
+
+  // Обработчики массовых действий
+  const handleBulkDelete = () => {
+    setIsBulkDeleteModalOpen(true);
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    const selectedIds = bulkSelectedItems.map(item => item.id);
+    await bulkDeleteItems(selectedIds);
+    setIsBulkDeleteModalOpen(false);
+  };
+
+  const handleBulkDeleteCancel = () => {
+    setIsBulkDeleteModalOpen(false);
+  };
+
+  const handleBulkMoveToCategory = async (categoryName: string | null) => {
+    const selectedIds = bulkSelectedItems.map(item => item.id);
+    await bulkMoveToCategory(selectedIds, categoryName);
+  };
 
   // Расширенная функция toggleSelected с поддержкой позиционирования калькулятора
   const handleToggleSelected = (id: string | number) => {
@@ -202,9 +248,9 @@ export const MainApp: React.FC<MainAppProps> = ({
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
           {/* Десктопная панель управления - статичная */}
-          <div className="hidden sm:flex fixed top-6 right-4 z-50 items-center gap-2 p-2 
-                        bg-theme-card/95 dark:bg-theme-card/80 border border-theme-border/40 dark:border-theme-border/30 
-                        shadow-lg backdrop-blur-md rounded-lg">
+          <div className="hidden sm:flex fixed top-11 right-4 z-50 items-center gap-2 p-2 
+                        bg-theme-card/95 dark:bg-theme-card/80 border border-gray-200 dark:border-gray-600 
+                        shadow-lg backdrop-blur-md rounded-3xl">
             {themeToggleElement}
             {userProfileElement}
           </div>
@@ -283,6 +329,8 @@ export const MainApp: React.FC<MainAppProps> = ({
                     exchangeRates={exchangeRates || {}}
                     isSelected={selectedItemIds.includes(item.id)}
                     onToggleSelected={handleToggleSelected}
+                    isBulkSelected={bulkSelectedItemIds.includes(item.id)}
+                    onToggleBulkSelected={handleToggleBulkSelected}
                     isMobile={isMobile}
                     onMoveItem={handleMoveItem}
                     index={index}
@@ -351,6 +399,29 @@ export const MainApp: React.FC<MainAppProps> = ({
           onDeleteConfirm={handleDeleteConfirm}
           onDeleteCancel={handleDeleteCancel}
           showImportSuccessToast={showImportSuccessToast}
+        />
+
+        {/* Модальное окно для массового удаления */}
+        {isBulkDeleteModalOpen && (
+          <BulkDeleteModal
+            isOpen={isBulkDeleteModalOpen}
+            selectedItems={bulkSelectedItems}
+            isDeleting={isBulkDeleting}
+            onConfirm={handleBulkDeleteConfirm}
+            onCancel={handleBulkDeleteCancel}
+          />
+        )}
+
+        {/* Панель массовых действий */}
+        <BulkActionBar
+          selectedItems={bulkSelectedItems}
+          categories={categories}
+          isDeleting={isBulkDeleting}
+          isMoving={isBulkMoving}
+          onDelete={handleBulkDelete}
+          onMoveToCategory={handleBulkMoveToCategory}
+          onClearSelection={clearBulkSelection}
+          isMobile={isMobile}
         />
       </SortableContext>
     </DndContext>

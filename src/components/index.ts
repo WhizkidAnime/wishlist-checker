@@ -10,6 +10,9 @@ export { ConfirmModals } from './ConfirmModals';
 export { OfflineIndicator } from './OfflineIndicator';
 export { WishlistContainer } from './WishlistContainer';
 
+// UI компоненты
+export { Tooltip } from './ui/Tooltip';
+
 // Новые компоненты для Supabase
 export { AuthModal } from './AuthModal';
 export { AuthForm } from './AuthForm';

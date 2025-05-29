@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ThemeMode, ActualTheme } from '../hooks/useTheme';
 import { Portal } from './Portal';
 import { useDropdownPosition } from '../hooks/useDropdownPosition';
+import { Tooltip } from './ui/Tooltip';
 
 interface ThemeToggleProps {
   themeMode: ThemeMode;
@@ -106,24 +107,26 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     return (
       <div className="relative">
         {/* Кнопка для открытия выпадающего списка */}
-        <button
-          ref={triggerRef}
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 p-2 rounded-full bg-theme-toggle text-theme-secondary hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm focus:outline-none"
-          aria-label="Выбор темы"
-        >
-          {getThemeIcon(themeMode)}
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className={`h-3 w-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-            strokeWidth={2}
+        <Tooltip content="Выбор темы оформления" position="left">
+          <button
+            ref={triggerRef}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 p-2 rounded-full bg-theme-toggle text-theme-secondary hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm focus:outline-none"
+            aria-label="Выбор темы"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            {getThemeIcon(themeMode)}
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className={`h-3 w-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </Tooltip>
 
         {/* Выпадающий список через Portal */}
         {isDropdownOpen && dropdownPosition && (
@@ -202,44 +205,49 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     <div className="flex justify-center items-center gap-1 p-1 bg-theme-toggle rounded-full transition-colors duration-200">
       
       {/* Кнопка автоматической темы */}
-      <button
-        onClick={() => onSetTheme('auto')}
-        className={getButtonStyles('auto', themeMode === 'auto')}
-        aria-label={`Автоматическая тема (сейчас: ${systemTheme === 'dark' ? 'тёмная' : 'светлая'})`}
-        title={`Автоматическая тема (сейчас: ${systemTheme === 'dark' ? 'тёмная' : 'светлая'})`}
-        disabled={!supportsAutoTheme}
-      >
-        {getThemeIcon('auto')}
-        <span className="text-xs font-medium">Авто</span>
-      </button>
+      <Tooltip content={`Автоматическая тема (сейчас: ${systemTheme === 'dark' ? 'тёмная' : 'светлая'})`}>
+        <button
+          onClick={() => onSetTheme('auto')}
+          className={getButtonStyles('auto', themeMode === 'auto')}
+          aria-label="Автоматическая тема"
+          disabled={!supportsAutoTheme}
+        >
+          {getThemeIcon('auto')}
+          <span className="text-xs font-medium">Авто</span>
+        </button>
+      </Tooltip>
 
       {/* Кнопка светлой темы */}
-      <button
-        onClick={() => onSetTheme('light')}
-        className={getButtonStyles('light', themeMode === 'light')}
-        aria-label="Светлая тема"
-        title="Светлая тема"
-      >
-        {getThemeIcon('light')}
-        <span className="text-xs font-medium">Светлая</span>
-      </button>
+      <Tooltip content="Светлая тема">
+        <button
+          onClick={() => onSetTheme('light')}
+          className={getButtonStyles('light', themeMode === 'light')}
+          aria-label="Светлая тема"
+        >
+          {getThemeIcon('light')}
+          <span className="text-xs font-medium">Светлая</span>
+        </button>
+      </Tooltip>
 
       {/* Кнопка тёмной темы */}
-      <button
-        onClick={() => onSetTheme('dark')}
-        className={getButtonStyles('dark', themeMode === 'dark')}
-        aria-label="Тёмная тема"
-        title="Тёмная тема"
-      >
-        {getThemeIcon('dark')}
-        <span className="text-xs font-medium">Тёмная</span>
-      </button>
+      <Tooltip content="Тёмная тема">
+        <button
+          onClick={() => onSetTheme('dark')}
+          className={getButtonStyles('dark', themeMode === 'dark')}
+          aria-label="Тёмная тема"
+        >
+          {getThemeIcon('dark')}
+          <span className="text-xs font-medium">Тёмная</span>
+        </button>
+      </Tooltip>
 
       {/* Подсказка о поддержке автоматической темы */}
       {!supportsAutoTheme && (
-        <div className="ml-1 text-xs text-theme-muted" title="Автоматическая тема не поддерживается в этом браузере">
-          ⚠️
-        </div>
+        <Tooltip content="Автоматическая тема не поддерживается в этом браузере" position="left">
+          <div className="ml-1 text-xs text-theme-muted">
+            ⚠️
+          </div>
+        </Tooltip>
       )}
     </div>
   );

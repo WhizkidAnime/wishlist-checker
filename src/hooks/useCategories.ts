@@ -113,7 +113,7 @@ export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void
   // Фильтруем товары по активной категории
   const filterByCategory = (items: WishlistItem[]) => {
     if (activeCategory === 'all') {
-      // В разделе "Все" показываем только товары БЕЗ категории
+      // В разделе "Без категории" показываем только товары БЕЗ категории
       return items.filter(item => !item.category || item.category.trim() === '');
     }
     return items.filter(item => item.category === activeCategory);
@@ -131,7 +131,7 @@ export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void
     }
   };
 
-  // Сброс на "Все" если активная категория больше не существует
+  // Сброс на "Без категории" если активная категория больше не существует
   const resetCategoryIfNeeded = () => {
     if (activeCategory !== 'all' && !categories.includes(activeCategory)) {
       setActiveCategory('all');

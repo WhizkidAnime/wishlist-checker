@@ -83,7 +83,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     <div className={`min-h-screen flex flex-col items-center justify-center py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
       
       {/* Панель управления */}
-      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 p-2 bg-theme-card/95 dark:bg-theme-card/80 border border-theme-border/40 dark:border-theme-border/30 shadow-lg backdrop-blur-md rounded-lg">
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 p-2 bg-theme-card/95 dark:bg-theme-card/80 border border-gray-200 dark:border-gray-600 shadow-lg backdrop-blur-md rounded-3xl">
         <ThemeToggle
           themeMode={themeMode}
           systemTheme={systemTheme}

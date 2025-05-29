@@ -1,5 +1,6 @@
 import React from 'react';
 import { WishlistItem } from '../types/wishlistItem';
+import { Tooltip } from './ui/Tooltip';
 
 interface CalculatorPopupProps {
   selectedCount: number;
@@ -29,19 +30,23 @@ export const CalculatorPopup: React.FC<CalculatorPopupProps> = ({
         overflow: 'auto'
       }}
     >
-      <button 
-        onClick={onClear}
-        className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-500 transition-colors"
-        aria-label="Очистить выбранные"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      <Tooltip content="Очистить список для расчета" position="left">
+        <button 
+          onClick={onClear}
+          className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-500 transition-colors"
+          aria-label="Очистить выбранные"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </Tooltip>
       <h3 className="font-semibold text-indigo-800 dark:text-indigo-300 mb-2 pr-8">Выбрано для расчета: {selectedCount}</h3>
       <ul className="max-h-40 overflow-y-auto mb-2 pr-2 space-y-1"> 
         {selectedItems.map(item => (
-          <li key={item.id} className="text-indigo-700 dark:text-indigo-300 text-xs truncate" title={item.name}>{item.name}</li>
+          <Tooltip content={item.name} key={item.id} position="left">
+            <li className="text-indigo-700 dark:text-indigo-300 text-xs truncate">{item.name}</li>
+          </Tooltip>
         ))}
       </ul>
       <div className="text-sm text-indigo-800 dark:text-indigo-300 mt-1 font-medium">

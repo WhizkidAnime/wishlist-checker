@@ -4,6 +4,7 @@ import { useRef } from 'react';
 
 import { WishlistItem as WishlistItemType } from '../types/wishlistItem';
 import { EditItemForm } from './EditItemForm';
+import { Tooltip } from './ui/Tooltip';
 
 // Функция для форматирования URL (добавляет протокол, если отсутствует)
 const formatUrl = (url: string): string => {
@@ -24,8 +25,15 @@ interface WishlistItemProps {
   onCancelEdit: () => void;
   displayCurrency: string;
   exchangeRates: Record<string, number>;
+  
+  // Калькулятор (старый функционал с кнопкой "+")
   isSelected: boolean;
   onToggleSelected: (id: string | number, buttonElement?: HTMLElement) => void;
+  
+  // Массовые операции (новый функционал с чекбоксом)
+  isBulkSelected: boolean;
+  onToggleBulkSelected: (id: string | number) => void;
+  
   isMobile: boolean;
   onMoveItem: (id: string | number, direction: 'up' | 'down') => void;
   index: number;
@@ -49,6 +57,8 @@ export const WishlistItem = ({
   exchangeRates,
   isSelected,
   onToggleSelected,
+  isBulkSelected,
+  onToggleBulkSelected,
   isMobile,
   onMoveItem,
   index,
@@ -98,21 +108,27 @@ export const WishlistItem = ({
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <div className="flex-shrink-0">
-              <button
-                ref={mobileButtonRef}
-                onClick={() => onToggleSelected(item.id, mobileButtonRef.current || undefined)}
-                className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors touch-manipulation ${
-                  isSelected ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600 text-white' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600'
-                }`}
-                style={{ touchAction: 'manipulation' }}
-                title={isSelected ? "Убрать из расчета" : "Добавить в расчет"} aria-label={isSelected ? "Убрать из расчета" : "Добавить в расчет"}
-              >
-                {isSelected ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                )}
-              </button>
+              <Tooltip content={isSelected ? "Убрать из калькулятора" : "Добавить в калькулятор"} position="top">
+                <button
+                  ref={mobileButtonRef}
+                  onClick={() => onToggleSelected(item.id, mobileButtonRef.current || undefined)}
+                  className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors touch-manipulation ${
+                    isSelected ? 'bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500 text-white' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:bg-blue-50 dark:hover:bg-blue-900/30'
+                  }`}
+                  style={{ touchAction: 'manipulation' }}
+                  aria-label={isSelected ? "Убрать из калькулятора" : "Добавить в калькулятор"}
+                >
+                  {isSelected ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                  )}
+                </button>
+              </Tooltip>
             </div>
             <div className="flex-grow min-w-0">
               <div className="font-medium text-gray-800 dark:text-gray-200 break-words">
@@ -144,51 +160,85 @@ export const WishlistItem = ({
           </div>
           <div className="flex justify-end items-center gap-2 mt-1">
             <div className="flex-shrink-0">
-              <div 
-                className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
-                onClick={() => onToggleBought(item.id)}
-                style={{ touchAction: 'manipulation' }}
-                tabIndex={0}
-                role="checkbox"
-                aria-checked={item.isBought}
-                aria-label="Отметить как купленное"
-              >
-                {item.isBought && <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-              </div>
+              <Tooltip content={item.isBought ? "Отметить как не купленное" : "Отметить как купленное"} position="top">
+                <div 
+                  className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
+                  onClick={() => onToggleBought(item.id)}
+                  style={{ touchAction: 'manipulation' }}
+                  tabIndex={0}
+                  role="checkbox"
+                  aria-checked={item.isBought}
+                  aria-label={item.isBought ? "Отметить как не купленное" : "Отметить как купленное"}
+                >
+                  {item.isBought && <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                </div>
+              </Tooltip>
             </div>
+
+            {/* Чекбокс для массовых операций */}
+            <Tooltip content={isBulkSelected ? "Убрать из выбора" : "Выбрать для массовых операций"} position="top">
+              <button
+                onClick={() => onToggleBulkSelected(item.id)}
+                className={`w-6 h-6 rounded-full flex items-center justify-center touch-manipulation transition-colors ${
+                  isBulkSelected 
+                    ? 'text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600' 
+                    : 'text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-600'
+                }`}
+                style={{ touchAction: 'manipulation' }}
+                aria-label={isBulkSelected ? "Убрать из выбора" : "Выбрать для массовых операций"}
+              >
+                {isBulkSelected ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                )}
+              </button>
+            </Tooltip>
             
             {/* Кнопки перемещения - отдельные кнопки для лучшей отзывчивости */}
             {index > 0 && (
-              <button 
-                onClick={() => onMoveItem(item.id, 'up')} 
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-800 dark:active:text-gray-100 p-2 touch-manipulation select-none"
-                style={{ touchAction: 'manipulation' }}
-                aria-label="Переместить вверх"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                </svg>
-              </button>
+              <Tooltip content="Переместить вверх" position="top">
+                <button 
+                  onClick={() => onMoveItem(item.id, 'up')} 
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-800 dark:active:text-gray-100 p-2 touch-manipulation select-none"
+                  style={{ touchAction: 'manipulation' }}
+                  aria-label="Переместить вверх"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+              </Tooltip>
             )}
             {index < totalItems - 1 && (
-              <button 
-                onClick={() => onMoveItem(item.id, 'down')} 
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-800 dark:active:text-gray-100 p-2 touch-manipulation select-none"
-                style={{ touchAction: 'manipulation' }}
-                aria-label="Переместить вниз"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+              <Tooltip content="Переместить вниз" position="top">
+                <button 
+                  onClick={() => onMoveItem(item.id, 'down')} 
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 active:text-gray-800 dark:active:text-gray-100 p-2 touch-manipulation select-none"
+                  style={{ touchAction: 'manipulation' }}
+                  aria-label="Переместить вниз"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </Tooltip>
             )}
             
-            <button onClick={() => onEditClick(item.id)} className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 active:text-blue-800 dark:active:text-blue-300 p-2 touch-manipulation" style={{ touchAction: 'manipulation' }} title="Редактировать">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            </button>
-            <button onClick={() => onDeleteItem(item.id)} className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 active:text-red-800 dark:active:text-red-300 p-2 touch-manipulation" style={{ touchAction: 'manipulation' }} title="Удалить">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </button>
+            <Tooltip content="Редактировать товар" position="top">
+              <button onClick={() => onEditClick(item.id)} className="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 active:text-blue-800 dark:active:text-blue-300 p-2 touch-manipulation" style={{ touchAction: 'manipulation' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              </button>
+            </Tooltip>
+            <Tooltip content="Удалить товар" position="top">
+              <button onClick={() => onDeleteItem(item.id)} className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 active:text-red-800 dark:active:text-red-300 p-2 touch-manipulation" style={{ touchAction: 'manipulation' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -204,56 +254,60 @@ export const WishlistItem = ({
     >
       <div className="flex items-center py-3 sm:py-4">
         <div className="mr-4 flex-shrink-0">
-          <div 
-            className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
-            onClick={() => onToggleBought(item.id)}
-            style={{ touchAction: 'manipulation' }}
-            tabIndex={0}
-            role="checkbox"
-            aria-checked={item.isBought}
-            aria-label="Отметить как купленное"
-          >
-            {item.isBought && (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3 sm:w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
+          <Tooltip content={item.isBought ? "Отметить как не купленное" : "Отметить как купленное"} position="top">
+            <div 
+              className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
+              onClick={() => onToggleBought(item.id)}
+              style={{ touchAction: 'manipulation' }}
+              tabIndex={0}
+              role="checkbox"
+              aria-checked={item.isBought}
+              aria-label={item.isBought ? "Отметить как не купленное" : "Отметить как купленное"}
+            >
+              {item.isBought && (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3 sm:w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </Tooltip>
         </div>
         
         <div className="mr-4 flex-shrink-0">
-          <button
-            ref={desktopButtonRef}
-            onClick={() => onToggleSelected(item.id, desktopButtonRef.current || undefined)}
-            className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors touch-manipulation ${
-              isSelected ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600 text-white' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500'
-            }`}
-            style={{ touchAction: 'manipulation' }}
-            title={isSelected ? "Убрать из расчета" : "Добавить в расчет"}
-            aria-label={isSelected ? "Убрать из расчета" : "Добавить в расчет"}
-          >
-            {isSelected ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-              </svg>
-            )}
-          </button>
+          <Tooltip content={isSelected ? "Убрать из калькулятора" : "Добавить в калькулятор"} position="top">
+            <button
+              ref={desktopButtonRef}
+              onClick={() => onToggleSelected(item.id, desktopButtonRef.current || undefined)}
+              className={`h-5 w-5 rounded-full p-0.5 border flex items-center justify-center focus:outline-none transition-colors touch-manipulation ${
+                isSelected ? 'bg-blue-600 dark:bg-blue-500 border-blue-600 dark:border-blue-500 text-white' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:bg-blue-50 dark:hover:bg-blue-900/30'
+              }`}
+              style={{ touchAction: 'manipulation' }}
+              aria-label={isSelected ? "Убрать из калькулятора" : "Добавить в калькулятор"}
+            >
+              {isSelected ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                </svg>
+              )}
+            </button>
+          </Tooltip>
         </div>
         
-        <button 
-          {...listeners}
-          className="mr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 cursor-grab active:cursor-grabbing focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 rounded"
-          title="Перетащить"
-          aria-label="Перетащить элемент"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+        <Tooltip content="Перетащить для изменения порядка" position="top">
+          <button 
+            {...listeners}
+            className="mr-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 cursor-grab active:cursor-grabbing focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 rounded"
+            aria-label="Перетащить элемент"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </Tooltip>
         
         <div className="flex-grow min-w-0 mr-4">
           <div className="font-medium text-gray-800 dark:text-gray-200">
@@ -294,28 +348,54 @@ export const WishlistItem = ({
         </div>
         
         <div className="flex space-x-1 flex-shrink-0 ml-1">
-          <button 
-            onClick={() => onEditClick(item.id)}
-            className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:text-blue-800 dark:active:text-blue-300 active:bg-blue-50 dark:active:bg-blue-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
-            style={{ touchAction: 'manipulation' }}
-            title="Редактировать"
-            tabIndex={0}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-          <button 
-            onClick={() => onDeleteItem(item.id)}
-            className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:text-red-800 dark:active:text-red-300 active:bg-red-50 dark:active:bg-red-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
-            style={{ touchAction: 'manipulation' }}
-            title="Удалить"
-            tabIndex={0}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+          {/* Чекбокс для массовых операций */}
+          <Tooltip content={isBulkSelected ? "Убрать из выбора" : "Выбрать для массовых операций"} position="top">
+            <button
+              onClick={() => onToggleBulkSelected(item.id)}
+              className={`rounded-full min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation ${
+                isBulkSelected 
+                  ? 'text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-600'
+              }`}
+              style={{ touchAction: 'manipulation' }}
+            >
+              {isBulkSelected ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              )}
+            </button>
+          </Tooltip>
+          
+          <Tooltip content="Редактировать товар" position="top">
+            <button 
+              onClick={() => onEditClick(item.id)}
+              className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:text-blue-800 dark:active:text-blue-300 active:bg-blue-50 dark:active:bg-blue-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
+              tabIndex={0}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+          </Tooltip>
+          
+          <Tooltip content="Удалить товар" position="top">
+            <button 
+              onClick={() => onDeleteItem(item.id)}
+              className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:text-red-800 dark:active:text-red-300 active:bg-red-50 dark:active:bg-red-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+              style={{ touchAction: 'manipulation' }}
+              tabIndex={0}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </Tooltip>
         </div>
       </div>
     </div>

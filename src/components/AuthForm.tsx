@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { Tooltip } from './ui/Tooltip';
 
 interface AuthFormProps {
   onClose: () => void;
@@ -313,14 +314,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
                 Пароль
               </label>
               {mode === 'signup' && (
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordInfo(!showPasswordInfo)}
-                  className="w-4 h-4 rounded-full bg-theme-text-secondary text-white text-xs flex items-center justify-center hover:bg-theme-text transition-colors"
-                  title="Требования к паролю"
-                >
-                  i
-                </button>
+                <Tooltip content="Показать требования к паролю" position="top">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordInfo(!showPasswordInfo)}
+                    className="w-4 h-4 rounded-full bg-theme-text-secondary text-white text-xs flex items-center justify-center hover:bg-theme-text transition-colors"
+                  >
+                    i
+                  </button>
+                </Tooltip>
               )}
             </div>
             {mode === 'signup' && showPasswordInfo && (

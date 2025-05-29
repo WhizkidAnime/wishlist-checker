@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { Tooltip } from './ui/Tooltip';
 
 interface SearchAndSortProps {
   searchQuery: string;
@@ -73,25 +74,28 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             className="w-full px-3 py-1.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder:text-xs input-theme transition-colors duration-200"
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-              aria-label="Очистить поиск"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <Tooltip content="Очистить поиск">
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </Tooltip>
           )}
         </div>
 
         <div className="flex gap-2">
-          <button 
-            onClick={onExport}
-            className="flex-none px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150"
-          >
-            Экспорт
-          </button>
+          <Tooltip content="Экспорт">
+            <button 
+              onClick={onExport}
+              className="flex-none px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150"
+            >
+              Экспорт
+            </button>
+          </Tooltip>
           <input 
             type="file" 
             accept=".json"
@@ -99,12 +103,14 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             style={{ display: 'none' }}
             id="import-file-input"
           />
-          <button 
-            onClick={() => document.getElementById('import-file-input')?.click()}
-            className="flex-none px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150"
-          >
-            Импорт
-          </button>
+          <Tooltip content="Импорт">
+            <button 
+              onClick={() => document.getElementById('import-file-input')?.click()}
+              className="flex-none px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150"
+            >
+              Импорт
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -117,21 +123,22 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
         {isMobile ? (
           // Мобильная версия - выпадающий список
           <div className="relative" ref={sortDropdownRef}>
-            <button 
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm transition-colors duration-200 focus:outline-none"
-              aria-label="Открыть параметры сортировки"
-            >
-              <span className="font-medium">
-                {sortBy === 'default' && 'Стандарт'}
-                {sortBy === 'type-asc' && 'Тип А-Я'}
-                {sortBy === 'price-asc' && 'Цена ↑'}
-                {sortBy === 'price-desc' && 'Цена ↓'}
-              </span>
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            <Tooltip content="Открыть параметры сортировки">
+              <button 
+                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm transition-colors duration-200 focus:outline-none"
+              >
+                <span className="font-medium">
+                  {sortBy === 'default' && 'Стандарт'}
+                  {sortBy === 'type-asc' && 'Тип А-Я'}
+                  {sortBy === 'price-asc' && 'Цена ↑'}
+                  {sortBy === 'price-desc' && 'Цена ↓'}
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </Tooltip>
             
             {showSortDropdown && (
               <div className="absolute right-0 mt-2 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-[9999] w-36">
@@ -179,30 +186,38 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
           <div className="flex items-center gap-1.5 text-xs flex-wrap">
             <span className="text-gray-500 dark:text-gray-400 mr-1">Сортировать:</span>
             <div className="flex flex-wrap gap-1.5">
-              <button 
-                onClick={() => setSortBy('default')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
-              >
-                Стандарт
-              </button>
-              <button 
-                onClick={() => setSortBy('type-asc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
-              >
-                Тип А-Я
-              </button>
-              <button 
-                onClick={() => setSortBy('price-asc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
-              >
-                Цена ↑
-              </button>
-              <button 
-                onClick={() => setSortBy('price-desc')}
-                className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
-              >
-                Цена ↓
-              </button>
+              <Tooltip content="Стандарт">
+                <button 
+                  onClick={() => setSortBy('default')}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                >
+                  Стандарт
+                </button>
+              </Tooltip>
+              <Tooltip content="Тип А-Я">
+                <button 
+                  onClick={() => setSortBy('type-asc')}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                >
+                  Тип А-Я
+                </button>
+              </Tooltip>
+              <Tooltip content="Цена ↑">
+                <button 
+                  onClick={() => setSortBy('price-asc')}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                >
+                  Цена ↑
+                </button>
+              </Tooltip>
+              <Tooltip content="Цена ↓">
+                <button 
+                  onClick={() => setSortBy('price-desc')}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                >
+                  Цена ↓
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}
