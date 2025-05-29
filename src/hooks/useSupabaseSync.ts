@@ -8,6 +8,7 @@ import { logger } from '../utils/logger';
 interface InternalSyncState {
   isProcessing: boolean;
   lastProcessedHash: string | null;
+  isInitialSyncComplete: boolean; // Новый флаг для отслеживания первой синхронизации
 }
 
 const SYNC_KEYS = {
@@ -15,7 +16,8 @@ const SYNC_KEYS = {
   categories: 'wishlistCategories',
   theme: 'wishlist-theme-mode',
   lastModified: 'wishlist-last-modified',
-  dataHash: 'wishlist-data-hash'
+  dataHash: 'wishlist-data-hash',
+  syncComplete: 'wishlist-initial-sync-complete' // Новый ключ
 } as const;
 
 // Минимальный интервал между синхронизациями (5 секунд)
@@ -25,7 +27,8 @@ let lastSyncTime = 0;
 export const useSupabaseSync = (userId: string | null) => {
   const [internalState, setInternalState] = useState<InternalSyncState>({
     isProcessing: false,
-    lastProcessedHash: null
+    lastProcessedHash: null,
+    isInitialSyncComplete: false
   });
 
   // Функция для уведомления об обновлении данных
@@ -95,14 +98,12 @@ export const useSupabaseSync = (userId: string | null) => {
     return currentHash !== lastHash;
   }, [userId, generateDataHash, internalState.lastProcessedHash]);
 
-  // Синхронизация товаров
+  // ИСПРАВЛЕННАЯ синхронизация товаров - Supabase как источник истины
   const syncWishlistItems = useCallback(async (userId: string) => {
     if (!isSupabaseAvailable() || !supabase) return false;
 
     try {
-      const localItems: WishlistItem[] = loadFromLocalStorage(SYNC_KEYS.wishlist) || [];
-
-      // Получаем существующие элементы из базы (RLS автоматически фильтрует по user_id)
+      // ВСЕГДА сначала получаем данные из Supabase (источник истины)
       const { data: remoteItems, error } = await supabase
         .from('wishlist_items')
         .select('*')
@@ -111,86 +112,89 @@ export const useSupabaseSync = (userId: string | null) => {
 
       if (error) throw error;
 
-      // RLS политики обеспечивают безопасность - дополнительная фильтрация не нужна
       const safeRemoteItems = remoteItems || [];
-      const remoteIds = new Set(safeRemoteItems.map(item => item.id));
-      
-      // Если есть удаленные элементы и нет локальных данных
-      if (safeRemoteItems.length > 0 && localItems.length === 0) {
-        // Первая загрузка - берём данные из облака
+      const localItems: WishlistItem[] = loadFromLocalStorage(SYNC_KEYS.wishlist) || [];
+
+      // Если это первая синхронизация после входа
+      if (!internalState.isInitialSyncComplete) {
+        // Просто загружаем данные из Supabase, игнорируя localStorage
         const convertedItems = safeRemoteItems.map(convertFromSupabaseItem);
         saveToLocalStorage(SYNC_KEYS.wishlist, convertedItems);
         notifyDataUpdated();
-        logger.sync(`Загружено ${convertedItems.length} товаров из облака`);
+        
+        // Отмечаем, что первая синхронизация завершена
+        localStorage.setItem(SYNC_KEYS.syncComplete, 'true');
+        setInternalState(prev => ({ ...prev, isInitialSyncComplete: true }));
+        
+        logger.sync(`Первая синхронизация: загружено ${convertedItems.length} товаров из облака`);
         return true;
-      } else if (localItems.length > 0) {
-        // Есть локальные данные - синхронизируем только новые элементы
-        const newItems = localItems.filter(item => !remoteIds.has(item.id));
-        
-        if (newItems.length > 0) {
-          const updatedLocalItems = [...localItems]; // Создаем копию для мутации
-
-          for (const newItem of newItems) {
-            const supabaseItemPayload = convertToSupabaseItem(newItem, userId);
-            
-            const { data: insertedItem, error: insertError } = await supabase
-              .from('wishlist_items')
-              .insert(supabaseItemPayload)
-              .select('*')
-              .single();
-
-            if (insertError) {
-              logger.sync(`Ошибка при вставке товара ${newItem.name}:`, insertError);
-              continue; 
-            }
-
-            if (insertedItem) {
-              const localItemIndex = updatedLocalItems.findIndex(li => li.id === newItem.id);
-              if (localItemIndex !== -1) {
-                updatedLocalItems[localItemIndex] = { ...updatedLocalItems[localItemIndex], id: insertedItem.id };
-              } else {
-                logger.warn(`Не найден локальный элемент для обновления ID: ${newItem.id}`);
-              }
-            }
-          }
-          saveToLocalStorage(SYNC_KEYS.wishlist, updatedLocalItems);
-          notifyDataUpdated(); // Убедитесь, что это вызывается после всех обновлений
-          logger.sync(`Обработано ${newItems.length} новых товаров.`);
-        }
-        
-        // Проверяем обновления существующих элементов
-        const existingItems = localItems.filter(item => remoteIds.has(item.id));
-        for (const localItem of existingItems) {
-          const remoteItem = safeRemoteItems.find(r => r.id === localItem.id);
-          if (remoteItem) {
-            const localConverted = convertToSupabaseItem(localItem, userId);
-            const needsUpdate = 
-              localConverted.name !== remoteItem.name ||
-              localConverted.price !== remoteItem.price ||
-              localConverted.is_bought !== remoteItem.is_bought ||
-              localConverted.comment !== remoteItem.comment;
-              
-            if (needsUpdate) {
-              const { error: updateError } = await supabase
-                .from('wishlist_items')
-                .update(localConverted)
-                .eq('id', localItem.id);
-                
-              if (updateError) throw updateError;
-              logger.sync(`Обновлён товар: ${localItem.name}`);
-            }
-          }
-        }
-        
-        return newItems.length > 0; // Возвращаем true если были новые или обновленные элементы
       }
 
-      return false;
+      // Для последующих синхронизаций - проверяем только новые локальные элементы
+      const remoteIds = new Set(safeRemoteItems.map(item => item.id));
+      const newLocalItems = localItems.filter(item => !remoteIds.has(item.id));
+      
+      if (newLocalItems.length > 0) {
+        // Загружаем новые локальные элементы в Supabase
+        for (const newItem of newLocalItems) {
+          const supabaseItemPayload = convertToSupabaseItem(newItem, userId);
+          
+          const { data: insertedItem, error: insertError } = await supabase
+            .from('wishlist_items')
+            .insert(supabaseItemPayload)
+            .select('*')
+            .single();
+
+          if (insertError) {
+            logger.sync(`Ошибка при вставке товара ${newItem.name}:`, insertError);
+            continue; 
+          }
+
+          if (insertedItem) {
+            // Обновляем ID в локальных данных
+            const updatedLocalItems = localItems.map(li => 
+              li.id === newItem.id ? { ...li, id: insertedItem.id } : li
+            );
+            saveToLocalStorage(SYNC_KEYS.wishlist, updatedLocalItems);
+          }
+        }
+        
+        notifyDataUpdated();
+        logger.sync(`Загружено ${newLocalItems.length} новых товаров в облако`);
+        return true;
+      }
+
+      // Проверяем обновления существующих элементов
+      let hasUpdates = false;
+      for (const localItem of localItems) {
+        const remoteItem = safeRemoteItems.find(r => r.id === localItem.id);
+        if (remoteItem) {
+          const localConverted = convertToSupabaseItem(localItem, userId);
+          const needsUpdate = 
+            localConverted.name !== remoteItem.name ||
+            localConverted.price !== remoteItem.price ||
+            localConverted.is_bought !== remoteItem.is_bought ||
+            localConverted.comment !== remoteItem.comment;
+            
+          if (needsUpdate) {
+            const { error: updateError } = await supabase
+              .from('wishlist_items')
+              .update(localConverted)
+              .eq('id', localItem.id);
+              
+            if (updateError) throw updateError;
+            logger.sync(`Обновлён товар: ${localItem.name}`);
+            hasUpdates = true;
+          }
+        }
+      }
+      
+      return hasUpdates;
     } catch (error) {
       logger.sync('Ошибка синхронизации товаров:', error);
       return false;
     }
-  }, [notifyDataUpdated]);
+  }, [notifyDataUpdated, internalState.isInitialSyncComplete]);
 
   // Удаление элемента из Supabase
   const deleteWishlistItem = useCallback(async (itemId: string | number) => {
@@ -219,14 +223,12 @@ export const useSupabaseSync = (userId: string | null) => {
     }
   }, [userId]);
 
-  // Синхронизация категорий
+  // ИСПРАВЛЕННАЯ синхронизация категорий
   const syncCategories = useCallback(async (userId: string) => {
     if (!isSupabaseAvailable() || !supabase) return false;
 
     try {
-      const localCategories: string[] = loadFromLocalStorage(SYNC_KEYS.categories) || [];
-
-      // RLS политики автоматически фильтруют по user_id
+      // Сначала получаем данные из Supabase (источник истины)
       const { data: remoteCategories, error } = await supabase
         .from('user_categories')
         .select('name, user_id')
@@ -234,17 +236,24 @@ export const useSupabaseSync = (userId: string | null) => {
 
       if (error) throw error;
 
-      // RLS обеспечивает безопасность - дополнительная фильтрация не нужна
       const safeCategoriesData = remoteCategories || [];
+      const localCategories: string[] = loadFromLocalStorage(SYNC_KEYS.categories) || [];
 
-      if (safeCategoriesData.length > 0) {
+      if (!internalState.isInitialSyncComplete) {
+        // Первая синхронизация - загружаем из Supabase
         const categoryNames = safeCategoriesData.map((cat: { name: string }) => cat.name);
         saveToLocalStorage(SYNC_KEYS.categories, categoryNames);
         notifyDataUpdated();
-        logger.sync(`Загружено ${categoryNames.length} категорий из облака`);
+        logger.sync(`Первая синхронизация: загружено ${categoryNames.length} категорий из облака`);
         return true;
-      } else if (localCategories.length > 0) {
-        const categoriesToInsert = localCategories.map(name => ({
+      }
+
+      // Для последующих синхронизаций - загружаем новые локальные категории
+      const remoteNames = new Set(safeCategoriesData.map((cat: { name: string }) => cat.name));
+      const newLocalCategories = localCategories.filter(name => !remoteNames.has(name));
+
+      if (newLocalCategories.length > 0) {
+        const categoriesToInsert = newLocalCategories.map(name => ({
           user_id: userId,
           name
         }));
@@ -255,7 +264,7 @@ export const useSupabaseSync = (userId: string | null) => {
 
         if (insertError) throw insertError;
 
-        logger.sync(`Загружено ${localCategories.length} категорий в облако`);
+        logger.sync(`Загружено ${newLocalCategories.length} новых категорий в облако`);
         return true;
       }
 
@@ -264,7 +273,7 @@ export const useSupabaseSync = (userId: string | null) => {
       logger.sync('Ошибка синхронизации категорий:', error);
       return false;
     }
-  }, [notifyDataUpdated]);
+  }, [notifyDataUpdated, internalState.isInitialSyncComplete]);
 
   // Синхронизация темы
   const syncTheme = useCallback(async (userId: string) => {
@@ -366,6 +375,14 @@ export const useSupabaseSync = (userId: string | null) => {
   // Умная синхронизация при входе пользователя (только при необходимости)
   useEffect(() => {
     if (userId && isSupabaseAvailable()) {
+      // Проверяем, была ли уже выполнена первая синхронизация
+      const syncComplete = localStorage.getItem(SYNC_KEYS.syncComplete);
+      if (!syncComplete) {
+        setInternalState(prev => ({ ...prev, isInitialSyncComplete: false }));
+      } else {
+        setInternalState(prev => ({ ...prev, isInitialSyncComplete: true }));
+      }
+      
       // Проверяем нужна ли синхронизация
       if (needsSync()) {
         syncInBackground();
