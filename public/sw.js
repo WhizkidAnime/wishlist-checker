@@ -1,6 +1,6 @@
-const CACHE_NAME = 'wishlist-v1.0.0';
-const STATIC_CACHE_NAME = 'wishlist-static-v1.0.0';
-const DYNAMIC_CACHE_NAME = 'wishlist-dynamic-v1.0.0';
+const CACHE_NAME = 'wishlist-v2.0.0';
+const STATIC_CACHE_NAME = 'wishlist-static-v2.0.0';
+const DYNAMIC_CACHE_NAME = 'wishlist-dynamic-v2.0.0';
 
 // Ресурсы для кэширования при установке
 const STATIC_ASSETS = [
