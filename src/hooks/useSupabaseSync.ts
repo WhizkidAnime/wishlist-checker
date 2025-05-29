@@ -111,6 +111,19 @@ export const useSupabaseSync = (userId: string | null) => {
 
       if (error) throw error;
 
+      // 🔍 ДИАГНОСТИКА: Логируем что получили из базы
+      console.log('🔍 ДИАГНОСТИКА syncWishlistItems:');
+      console.log('📊 userId:', userId);
+      console.log('📊 remoteItems count:', remoteItems?.length || 0);
+      console.log('📊 localItems count:', localItems.length);
+      if (remoteItems && remoteItems.length > 0) {
+        console.log('📊 Первые 3 элемента из базы:', remoteItems.slice(0, 3).map(item => ({
+          id: item.id,
+          name: item.name,
+          user_id: item.user_id
+        })));
+      }
+
       const remoteIds = new Set(remoteItems?.map(item => item.id) || []);
       
       // Если есть удаленные элементы и локальные данные
