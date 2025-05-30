@@ -18,7 +18,6 @@ import { useSelection } from '../hooks/useSelection';
 import { useBulkSelection } from '../hooks/useBulkSelection';
 import { useCalculatorPosition } from '../hooks/useCalculatorPosition';
 import { useResponsive } from '../hooks/useResponsive';
-import { useImportExport } from '../hooks/useImportExport';
 import { useDeleteModal } from '../hooks/useDeleteModal';
 import { useDndSensors } from '../hooks/useDndSensors';
 import { useCategories } from '../hooks/useCategories';
@@ -60,7 +59,6 @@ export const MainApp: React.FC<MainAppProps> = ({
   // Хуки для управления состоянием
   const {
     wishlist,
-    setWishlist,
     editingItemId,
     searchQuery,
     setSearchQuery,
@@ -134,16 +132,6 @@ export const MainApp: React.FC<MainAppProps> = ({
   } = useCalculatorPosition();
 
   const { isMobile, showScrollButton, scrollToTop } = useResponsive();
-
-  // Убираем неиспользуемые хуки импорта/экспорта после комментирования кнопок
-  // const {
-  //   isConfirmModalOpen,
-  //   showImportSuccessToast,
-  //   handleExport,
-  //   handleImport,
-  //   handleModalConfirm,
-  //   handleModalClose
-  // } = useImportExport(wishlist, setWishlist, triggerSync, true);
 
   const {
     isDeleteModalOpen,
