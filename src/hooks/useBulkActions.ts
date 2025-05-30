@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 
 export const useBulkActions = (
   userId: string | null,
-  triggerSync: () => Promise<void>,
+  triggerSync: (force?: boolean) => Promise<{ success: boolean; message: string; }>,
   onClearBulkSelection: () => void
 ) => {
   const [isDeleting, setIsDeleting] = useState(false);

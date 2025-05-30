@@ -43,7 +43,7 @@ export const useSupabaseSync = (userId: string | null) => {
 
     try {
       // Получаем актуальные данные из Supabase
-      const { data: remoteItems, error } = await supabase
+      const { error } = await supabase
         .from('wishlist_items')
         .select('*')
         .eq('user_id', userId)
@@ -68,7 +68,7 @@ export const useSupabaseSync = (userId: string | null) => {
 
     try {
       // Получаем актуальные категории из Supabase
-      const { data: remoteCategories, error } = await supabase
+      const { error } = await supabase
         .from('user_categories')
         .select('name, user_id')
         .eq('user_id', userId);

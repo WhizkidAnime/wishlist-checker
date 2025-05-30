@@ -4,7 +4,7 @@ import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
 
 export const useCategories = (
   wishlist: WishlistItem[], 
-  triggerSync?: () => void, 
+  triggerSync?: (force?: boolean) => Promise<{ success: boolean; message: string; }>, 
   isAuthenticated?: boolean,
   userId?: string | null
 ) => {

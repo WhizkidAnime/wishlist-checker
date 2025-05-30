@@ -5,7 +5,7 @@ import { WishlistItem } from '../types/wishlistItem';
 import { supabase } from '../utils/supabaseClient';
 
 export const useWishlist = (
-  triggerSync?: () => void, 
+  triggerSync?: (force?: boolean) => Promise<{ success: boolean; message: string; }>, 
   isAuthenticated?: boolean
 ) => {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);

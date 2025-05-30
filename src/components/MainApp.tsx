@@ -26,7 +26,7 @@ import { useBulkActions } from '../hooks/useBulkActions';
 import { useAuth } from '../hooks/useAuth';
 
 interface MainAppProps {
-  triggerSync: () => Promise<void>;
+  triggerSync: (force?: boolean) => Promise<{ success: boolean; message: string; }>;
   onAuthModalOpen: () => void;
 }
 

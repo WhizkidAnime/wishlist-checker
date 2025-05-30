@@ -196,11 +196,10 @@ export const useTheme = (userId?: string | null) => {
     // Сохраняем режим темы в localStorage
     localStorage.setItem('wishlist-theme-mode', themeMode);
     
-    // TODO: Временно отключено автоматическое сохранение в Supabase
-    // Нужно настроить правильную схему user_preferences
-    // if (userId && isThemeLoaded) {
-    //   saveThemeToSupabase(themeMode, userId);
-    // }
+    // Сохраняем тему в Supabase если пользователь аутентифицирован
+    if (userId && isThemeLoaded) {
+      saveThemeToSupabase(themeMode, userId);
+    }
     
     // Добавляем/убираем класс dark на html элемент для Tailwind
     const html = document.documentElement;
