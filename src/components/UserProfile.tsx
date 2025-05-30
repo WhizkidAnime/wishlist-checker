@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../utils/supabaseClient';
 import { Portal } from './Portal';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { clearAllUserData, checkUserDataState } from '../utils/dataCleanup';
