@@ -1,10 +1,6 @@
 import { useState, useCallback } from 'react';
-import { WishlistItem } from '../types/wishlistItem';
 import { supabase } from '../utils/supabaseClient';
-import { loadFromLocalStorage, saveToLocalStorage } from '../utils/localStorageUtils';
 import { logger } from '../utils/logger';
-
-const WISHLIST_STORAGE_KEY = 'wishlistApp';
 
 export const useBulkActions = (
   userId: string | null,
@@ -25,16 +21,7 @@ export const useBulkActions = (
     let errorCount = 0;
 
     try {
-      // Сначала обновляем localStorage для немедленного обновления UI
-      const currentItems: WishlistItem[] = loadFromLocalStorage(WISHLIST_STORAGE_KEY) || [];
-      const itemsToDelete = currentItems.filter(item => itemIds.includes(item.id));
-      const updatedItems = currentItems.filter(item => !itemIds.includes(item.id));
-      saveToLocalStorage(WISHLIST_STORAGE_KEY, updatedItems);
-
-      // Уведомляем об обновлении данных
-      window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
-
-      // Затем удаляем из Supabase
+      // Удаляем из Supabase
       const { error } = await supabase
         .from('wishlist_items')
         .delete()
@@ -42,13 +29,13 @@ export const useBulkActions = (
 
       if (error) {
         logger.error('Ошибка массового удаления из Supabase:', error);
-        // Восстанавливаем элементы в localStorage при ошибке
-        const restoredItems = [...updatedItems, ...itemsToDelete];
-        saveToLocalStorage(WISHLIST_STORAGE_KEY, restoredItems);
-        window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
         errorCount = itemIds.length;
       } else {
         deletedCount = itemIds.length;
+        
+        // Запускаем синхронизацию для обновления локального состояния
+        await triggerSync();
+        
         // Очищаем выбор
         onClearBulkSelection();
       }
@@ -64,7 +51,7 @@ export const useBulkActions = (
       deletedCount, 
       errorCount 
     };
-  }, [userId, onClearBulkSelection]);
+  }, [userId, triggerSync, onClearBulkSelection]);
 
   // Массовое перемещение товаров в категорию
   const bulkMoveToCategory = useCallback(async (
@@ -91,18 +78,6 @@ export const useBulkActions = (
         errorCount = itemIds.length;
       } else {
         movedCount = itemIds.length;
-
-        // Обновляем localStorage
-        const currentItems: WishlistItem[] = loadFromLocalStorage(WISHLIST_STORAGE_KEY) || [];
-        const updatedItems = currentItems.map(item => 
-          itemIds.includes(item.id) 
-            ? { ...item, category: categoryName || undefined }
-            : item
-        );
-        saveToLocalStorage(WISHLIST_STORAGE_KEY, updatedItems);
-
-        // Уведомляем об обновлении данных
-        window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
 
         // Запускаем синхронизацию
         await triggerSync();

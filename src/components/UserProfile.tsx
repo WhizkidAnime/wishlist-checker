@@ -306,7 +306,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       {isDataManagementOpen && (
         <Portal>
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white dark:bg-gray-800 shadow-xl max-w-md w-full p-6 rounded-3xl">
+            <div 
+              className="shadow-xl max-w-md w-full p-6 rounded-3xl"
+              style={{ backgroundColor: 'var(--color-card-background)' }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-theme-primary">Управление данными</h3>
                 <button
@@ -333,7 +336,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
                       <div className="font-medium text-theme-primary mb-2">Состояние данных:</div>
                       <div className="space-y-1 text-theme-secondary">
                         <div>📊 В облаке: {dataState.supabase.wishlistCount} товаров, {dataState.supabase.categoriesCount} категорий</div>
-                        <div>💾 Локально: {dataState.localStorage.wishlistCount} товаров, {dataState.localStorage.categoriesCount} категорий</div>
                       </div>
                     </div>
                   )}

@@ -225,24 +225,14 @@ export const useAuth = () => {
         if (error) throw error;
       }
       
-      // 2. Полная очистка всех пользовательских данных
-      logger.auth('Очищаем все пользовательские данные...');
-      localStorage.removeItem('wishlistApp');
-      localStorage.removeItem('wishlistCategories');
-      
-      // 3. Очистка всех sync данных для предотвращения конфликтов
-      localStorage.removeItem('wishlist-last-modified');
-      localStorage.removeItem('wishlist-data-hash');
-      localStorage.removeItem('wishlist-sync-state');
-      
-      // 4. Очистка всех Supabase ключей
+      // 2. Очистка всех Supabase ключей
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('sb-')) {
           localStorage.removeItem(key);
         }
       });
       
-      // 5. Обновление UI компонентов
+      // 3. Обновление UI компонентов
       logger.auth('Обновляем UI компоненты...');
       window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
       window.dispatchEvent(new CustomEvent('categoriesUpdated'));

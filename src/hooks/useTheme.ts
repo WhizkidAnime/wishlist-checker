@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type ActualTheme = 'light' | 'dark';
@@ -68,12 +69,62 @@ const supportsColorSchemeQuery = (): boolean => {
   }
 };
 
-export const useTheme = () => {
+// Функция для сохранения темы в Supabase
+const saveThemeToSupabase = async (themeMode: ThemeMode, userId: string) => {
+  if (!isSupabaseAvailable() || !supabase) return;
+  
+  try {
+    // Используем upsert для автоматического создания или обновления записи
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: userId,
+        theme: themeMode
+      }, {
+        onConflict: 'user_id'
+      });
+    
+    if (error) {
+      console.error('Error updating theme in Supabase:', error);
+    }
+  } catch (error) {
+    console.error('Error saving theme to Supabase:', error);
+  }
+};
+
+// Функция для загрузки темы из Supabase
+const loadThemeFromSupabase = async (userId: string): Promise<ThemeMode | null> => {
+  if (!isSupabaseAvailable() || !supabase) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('theme')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.warn('Error loading theme from Supabase:', error);
+      return null;
+    }
+    
+    if (data?.theme && ['light', 'dark', 'auto'].includes(data.theme)) {
+      return data.theme as ThemeMode;
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('Error loading theme from Supabase:', error);
+    return null;
+  }
+};
+
+export const useTheme = (userId?: string | null) => {
   // Инициализация режима темы
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') return 'auto';
     
-    // Проверяем сохранённый режим темы
+    // Проверяем сохранённый режим темы в localStorage (fallback)
     const savedMode = localStorage.getItem('wishlist-theme-mode') as ThemeMode;
     if (savedMode && ['light', 'dark', 'auto'].includes(savedMode)) {
       return savedMode;
@@ -91,6 +142,9 @@ export const useTheme = () => {
     return 'auto';
   });
 
+  // Состояние для отслеживания загрузки темы из Supabase
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
+
   // Текущая применяемая тема
   const [actualTheme, setActualTheme] = useState<ActualTheme>(() => {
     if (themeMode === 'auto') {
@@ -98,6 +152,24 @@ export const useTheme = () => {
     }
     return themeMode as ActualTheme;
   });
+
+  // Загрузка темы из Supabase при входе пользователя
+  useEffect(() => {
+    const loadUserTheme = async () => {
+      if (userId && !isThemeLoaded) {
+        const supabaseTheme = await loadThemeFromSupabase(userId);
+        if (supabaseTheme) {
+          setThemeMode(supabaseTheme);
+          localStorage.setItem('wishlist-theme-mode', supabaseTheme);
+        }
+        setIsThemeLoaded(true);
+      } else if (!userId) {
+        setIsThemeLoaded(true);
+      }
+    };
+
+    loadUserTheme();
+  }, [userId, isThemeLoaded]);
 
   // Функция для обновления применяемой темы
   const updateActualTheme = useCallback(() => {
@@ -124,6 +196,12 @@ export const useTheme = () => {
     // Сохраняем режим темы в localStorage
     localStorage.setItem('wishlist-theme-mode', themeMode);
     
+    // TODO: Временно отключено автоматическое сохранение в Supabase
+    // Нужно настроить правильную схему user_preferences
+    // if (userId && isThemeLoaded) {
+    //   saveThemeToSupabase(themeMode, userId);
+    // }
+    
     // Добавляем/убираем класс dark на html элемент для Tailwind
     const html = document.documentElement;
     if (currentTheme === 'dark') {
@@ -131,7 +209,7 @@ export const useTheme = () => {
     } else {
       html.classList.remove('dark');
     }
-  }, [themeMode, updateActualTheme]);
+  }, [themeMode, updateActualTheme, userId, isThemeLoaded]);
 
   // Слушаем изменения системной темы только в auto режиме
   useEffect(() => {

@@ -1,68 +1,55 @@
 import { supabase, isSupabaseAvailable } from './supabaseClient';
-import { logger } from './logger';
 
 /**
- * Полная очистка всех пользовательских данных
- * Используется для решения проблем с синхронизацией
+ * Полная очистка всех данных пользователя из Supabase
  */
 export const clearAllUserData = async (userId: string): Promise<boolean> => {
   if (!userId || !isSupabaseAvailable() || !supabase) {
-    logger.sync('Невозможно очистить данные: нет соединения с Supabase');
+    console.error('❌ Невозможно очистить данные: нет Supabase подключения или userId');
     return false;
   }
 
   try {
     console.log('🧹 Начинаем полную очистку данных пользователя...');
 
-    // 1. Удаляем все элементы wishlist из Supabase
+    // 1. Удаляем все товары из wishlist_items
     const { error: wishlistError } = await supabase
       .from('wishlist_items')
       .delete()
       .eq('user_id', userId);
 
     if (wishlistError) {
-      console.error('❌ Ошибка удаления wishlist из Supabase:', wishlistError);
+      console.error('❌ Ошибка удаления товаров:', wishlistError);
       throw wishlistError;
     }
 
-    // 2. Удаляем все категории из Supabase
+    // 2. Удаляем все категории из user_categories
     const { error: categoriesError } = await supabase
       .from('user_categories')
       .delete()
       .eq('user_id', userId);
 
     if (categoriesError) {
-      console.error('❌ Ошибка удаления категорий из Supabase:', categoriesError);
+      console.error('❌ Ошибка удаления категорий:', categoriesError);
       throw categoriesError;
     }
 
-    // 3. Сбрасываем настройки пользователя (тему оставляем)
-    const { error: preferencesError } = await supabase
+    // 3. Удаляем пользовательские настройки из user_preferences
+    const { error: settingsError } = await supabase
       .from('user_preferences')
-      .update({ 
-        last_sync: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .delete()
       .eq('user_id', userId);
 
-    if (preferencesError) {
-      console.warn('⚠️ Не удалось обновить настройки пользователя:', preferencesError);
+    if (settingsError) {
+      console.error('❌ Ошибка удаления настроек:', settingsError);
+      throw settingsError;
     }
 
-    // 4. Очищаем localStorage
-    localStorage.removeItem('wishlistApp');
-    localStorage.removeItem('wishlistCategories');
-    
-    // 5. Очищаем все sync данные
-    localStorage.removeItem('wishlist-last-modified');
-    localStorage.removeItem('wishlist-data-hash');
-    localStorage.removeItem('wishlist-sync-state');
-
-    // 6. Уведомляем компоненты об обновлении
+    // 4. Уведомляем компоненты об обновлении
     window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
     window.dispatchEvent(new CustomEvent('categoriesUpdated'));
 
-    console.log('✅ Все данные пользователя успешно очищены');
+    console.log('✅ Все данные пользователя успешно очищены из Supabase');
     return true;
 
   } catch (error) {
@@ -72,7 +59,7 @@ export const clearAllUserData = async (userId: string): Promise<boolean> => {
 };
 
 /**
- * Проверка состояния данных пользователя
+ * Проверка состояния данных пользователя в Supabase
  */
 export const checkUserDataState = async (userId: string) => {
   if (!userId || !isSupabaseAvailable() || !supabase) {
@@ -86,18 +73,10 @@ export const checkUserDataState = async (userId: string) => {
       supabase.from('user_categories').select('id').eq('user_id', userId)
     ]);
 
-    // Проверяем данные в localStorage
-    const localWishlist = JSON.parse(localStorage.getItem('wishlistApp') || '[]');
-    const localCategories = JSON.parse(localStorage.getItem('wishlistCategories') || '[]');
-
     const state = {
       supabase: {
         wishlistCount: wishlistResult.data?.length || 0,
         categoriesCount: categoriesResult.data?.length || 0
-      },
-      localStorage: {
-        wishlistCount: localWishlist.length,
-        categoriesCount: localCategories.length
       }
     };
 

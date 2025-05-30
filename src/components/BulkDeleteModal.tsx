@@ -22,7 +22,10 @@ export const BulkDeleteModal: React.FC<BulkDeleteModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-xl">
+      <div 
+        className="rounded-2xl p-6 max-w-md w-full shadow-xl"
+        style={{ backgroundColor: 'var(--color-card-background)' }}
+      >
         <div className="text-center">
           {/* Иконка предупреждения */}
           <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">

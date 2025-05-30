@@ -1,97 +1,69 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
+import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
 
-const CATEGORIES_STORAGE_KEY = 'wishlistCategories';
-
-export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void, isAuthenticated?: boolean) => {
+export const useCategories = (
+  wishlist: WishlistItem[], 
+  triggerSync?: () => void, 
+  isAuthenticated?: boolean,
+  userId?: string | null
+) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  
-  // Загружаем сохранённые категории из localStorage только для аутентифицированных
-  const [savedCategories, setSavedCategories] = useState<string[]>(() => {
-    if (!isAuthenticated) return [];
-    
-    try {
-      const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [supabaseCategories, setSupabaseCategories] = useState<string[]>([]);
 
-  // Эффект для очистки категорий при выходе из аккаунта
-  useEffect(() => {
-    if (isAuthenticated === false) {
-      // Очищаем состояние при выходе
-      setSavedCategories([]);
-      setActiveCategory('all');
-    } else if (isAuthenticated === true) {
-      // Загружаем категории при входе
-      try {
-        const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-        const parsedCategories = saved ? JSON.parse(saved) : [];
-        setSavedCategories(parsedCategories);
-      } catch {
-        setSavedCategories([]);
-      }
-    }
-  }, [isAuthenticated]);
-
-  // Функция для обновления категорий из localStorage
-  const refreshCategoriesFromStorage = () => {
-    if (!isAuthenticated) {
-      setSavedCategories([]);
+  // Загружаем категории из Supabase при авторизации
+  const loadCategoriesFromSupabase = useCallback(async () => {
+    if (!isAuthenticated || !userId || !isSupabaseAvailable() || !supabase) {
+      setSupabaseCategories([]);
       return;
     }
 
     try {
-      const saved = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-      const parsedCategories = saved ? JSON.parse(saved) : [];
-      setSavedCategories(parsedCategories);
-    } catch {
-      setSavedCategories([]);
-    }
-  };
+      const { data, error } = await supabase
+        .from('user_categories')
+        .select('name')
+        .eq('user_id', userId);
 
-  // Сохраняем категории в localStorage при изменении (только для аутентифицированных)
+      if (error) {
+        console.error('Ошибка загрузки категорий:', error);
+        return;
+      }
+
+      const categoryNames = data?.map(cat => cat.name) || [];
+      setSupabaseCategories(categoryNames);
+    } catch (error) {
+      console.error('Ошибка при загрузке категорий:', error);
+    }
+  }, [isAuthenticated, userId]);
+
+  // Загружаем категории при изменении состояния авторизации
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      // Очищаем состояние при выходе
+      setSupabaseCategories([]);
+      setActiveCategory('all');
+    } else if (isAuthenticated === true && userId) {
+      // Загружаем категории при входе
+      loadCategoriesFromSupabase();
+    }
+  }, [isAuthenticated, userId, loadCategoriesFromSupabase]);
+
+  // Слушаем события обновления категорий
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    try {
-      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(savedCategories));
-      // Автоматически запускаем синхронизацию при изменениях
-      if (triggerSync) {
-        triggerSync();
-      }
-    } catch {
-      // Игнорируем ошибки сохранения
-    }
-  }, [savedCategories, triggerSync, isAuthenticated]);
-
-  // Слушаем изменения localStorage для синхронизации после импорта (только для аутентифицированных)
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === CATEGORIES_STORAGE_KEY) {
-        refreshCategoriesFromStorage();
-      }
+    const handleCategoriesUpdate = () => {
+      loadCategoriesFromSupabase();
     };
 
-    // Также слушаем кастомное событие для принудительного обновления
-    const handleCustomUpdate = () => {
-      refreshCategoriesFromStorage();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('categoriesUpdated', handleCustomUpdate);
+    window.addEventListener('categoriesUpdated', handleCategoriesUpdate);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('categoriesUpdated', handleCustomUpdate);
+      window.removeEventListener('categoriesUpdated', handleCategoriesUpdate);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadCategoriesFromSupabase]);
 
-  // Получаем список уникальных категорий из товаров + сохранённых
+  // Получаем список уникальных категорий из товаров + из Supabase
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
     
@@ -102,13 +74,13 @@ export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void
       }
     });
     
-    // Добавляем сохранённые категории
-    savedCategories.forEach(category => {
+    // Добавляем категории из Supabase
+    supabaseCategories.forEach(category => {
       categorySet.add(category);
     });
     
     return Array.from(categorySet).sort();
-  }, [wishlist, savedCategories]);
+  }, [wishlist, supabaseCategories]);
 
   // Фильтруем товары по активной категории
   const filterByCategory = (items: WishlistItem[]) => {
@@ -120,14 +92,44 @@ export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void
   };
 
   // Обработчик добавления новой категории
-  const handleAddCategory = (categoryName: string) => {
+  const handleAddCategory = async (categoryName: string) => {
     const trimmedName = categoryName.trim();
     
-    if (trimmedName && !categories.includes(trimmedName)) {
-      // Сохраняем категорию в отдельном состоянии
-      setSavedCategories(prev => [...prev, trimmedName]);
+    if (!trimmedName || categories.includes(trimmedName) || !isAuthenticated || !userId) {
+      return;
+    }
+
+    if (!isSupabaseAvailable() || !supabase) {
+      console.error('Supabase недоступен для добавления категории');
+      return;
+    }
+
+    try {
+      // Добавляем категорию в Supabase
+      const { error } = await supabase
+        .from('user_categories')
+        .insert({
+          user_id: userId,
+          name: trimmedName
+        });
+
+      if (error) {
+        console.error('Ошибка добавления категории в Supabase:', error);
+        return;
+      }
+
+      // Обновляем локальное состояние
+      setSupabaseCategories(prev => [...prev, trimmedName]);
+      
       // Переключаемся на новую категорию
       setActiveCategory(trimmedName);
+
+      // Запускаем синхронизацию если доступна
+      if (triggerSync) {
+        triggerSync();
+      }
+    } catch (error) {
+      console.error('Ошибка при добавлении категории:', error);
     }
   };
 
@@ -145,6 +147,6 @@ export const useCategories = (wishlist: WishlistItem[], triggerSync?: () => void
     filterByCategory,
     handleAddCategory,
     resetCategoryIfNeeded,
-    refreshCategoriesFromStorage
+    refreshCategoriesFromStorage: loadCategoriesFromSupabase // переименовываем для совместимости
   };
 }; 

@@ -93,6 +93,7 @@
   --color-text-light: #1f2937;
   --color-text-secondary-light: #374151;
   --color-theme-light: #f9fafb;
+  --color-dropdown-background-light: #ffffff;
   
   /* RGB версии для прозрачности - светлая тема */
   --color-card-background-light-rgb: 255, 255, 255;
@@ -104,6 +105,7 @@
   --color-text-dark: #d1d5db;
   --color-text-secondary-dark: #d1d5db;
   --color-theme-dark: #141414;
+  --color-dropdown-background-dark: #2d2d2d;
   
   /* RGB версии для прозрачности - темная тема */
   --color-card-background-dark-rgb: 34, 34, 34;
@@ -156,6 +158,7 @@ html:not(.dark) {
   --color-toggle-active: var(--color-toggle-active-light);
   --color-toggle-hover: var(--color-toggle-hover-light);
   --color-text-muted: var(--color-text-muted-light);
+  --color-dropdown-background: var(--color-dropdown-background-light);
   --color-border-rgb: 229, 231, 235; /* #e5e7eb */
 }
 
@@ -178,6 +181,7 @@ html.dark {
   --color-toggle-active: var(--color-toggle-active-dark);
   --color-toggle-hover: var(--color-toggle-hover-dark);
   --color-text-muted: var(--color-text-muted-dark);
+  --color-dropdown-background: var(--color-dropdown-background-dark);
   --color-border-rgb: 55, 65, 81; /* #374151 */
 }
 

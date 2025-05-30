@@ -160,7 +160,7 @@ export const WishlistItem = ({
             {/* Кнопка отметки покупки - без Tooltip обертки */}
             <div className="flex-shrink-0">
               <div 
-                className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
+                className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-700'}`}
                 onClick={() => onToggleBought(item.id)}
                 style={{ touchAction: 'manipulation' }}
                 tabIndex={0}
@@ -178,7 +178,7 @@ export const WishlistItem = ({
               className={`w-6 h-6 rounded-full flex items-center justify-center touch-manipulation transition-colors ${
                 isBulkSelected 
                   ? 'text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600' 
-                  : 'text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
               style={{ touchAction: 'manipulation' }}
               aria-label={isBulkSelected ? "Убрать из выбора" : "Выбрать для массовых операций"}
@@ -243,7 +243,7 @@ export const WishlistItem = ({
         <div className="mr-4 flex-shrink-0 flex items-center">
           <DesktopOnlyTooltip content={item.isBought ? "Отметить как не купленное" : "Отметить как купленное"} position="top">
             <div 
-              className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-600 border-gray-900 dark:border-gray-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'}`}
+              className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${item.isBought ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-700'}`}
               onClick={() => onToggleBought(item.id)}
               style={{ touchAction: 'manipulation' }}
               tabIndex={0}
@@ -344,7 +344,7 @@ export const WishlistItem = ({
               className={`rounded-full min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation ${
                 isBulkSelected 
                   ? 'text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
               style={{ touchAction: 'manipulation' }}
             >
@@ -363,7 +363,7 @@ export const WishlistItem = ({
           <DesktopOnlyTooltip content="Редактировать товар" position="top">
             <button 
               onClick={() => onEditClick(item.id)}
-              className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:text-blue-800 dark:active:text-blue-300 active:bg-blue-50 dark:active:bg-blue-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+              className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 active:text-blue-800 dark:active:text-blue-300 active:bg-blue-50 dark:active:bg-blue-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
               style={{ touchAction: 'manipulation' }}
               tabIndex={0}
             >
@@ -376,7 +376,7 @@ export const WishlistItem = ({
           <DesktopOnlyTooltip content="Удалить товар" position="top">
             <button 
               onClick={() => onDeleteItem(item.id)}
-              className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 active:text-red-800 dark:active:text-red-300 active:bg-red-50 dark:active:bg-red-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+              className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 active:text-red-800 dark:active:text-red-300 active:bg-red-50 dark:active:bg-red-900/30 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
               style={{ touchAction: 'manipulation' }}
               tabIndex={0}
             >

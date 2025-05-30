@@ -158,7 +158,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
                 required
                 autoComplete="off"
               />
-              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
+              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-700 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
                 <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
               </div>
             </div>
@@ -213,7 +213,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               </button>
               
               {showCategoryDropdown && (
-                <div className="absolute z-[9999] w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto" style={{ backgroundColor: 'var(--color-dropdown-background)' }}>
                   {existingCategories.length > 0 ? (
                     <>
                       {existingCategories.map(cat => (
@@ -224,7 +224,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
                             setCategory(cat);
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none text-black dark:text-theme-secondary"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none text-black dark:text-theme-secondary"
                         >
                           {cat}
                         </button>

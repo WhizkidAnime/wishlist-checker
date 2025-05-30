@@ -117,10 +117,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             
             {/* Выпадающий список с абсолютным позиционированием */}
             <div 
-              className="absolute w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-[9999] overflow-hidden rounded-xl"
+              className="absolute w-48 border border-gray-200 dark:border-gray-700 shadow-xl z-[9999] overflow-hidden rounded-xl"
               style={{
                 top: dropdownPosition.top,
                 right: dropdownPosition.right,
+                backgroundColor: 'var(--color-card-background)'
               }}
             >
               {/* Авто */}

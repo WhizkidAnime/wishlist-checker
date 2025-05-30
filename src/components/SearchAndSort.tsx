@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
+import { cn } from '../utils/cn';
 
 interface SearchAndSortProps {
   searchQuery: string;
@@ -8,8 +9,8 @@ interface SearchAndSortProps {
   setSortBy: (sort: 'default' | 'type-asc' | 'price-asc' | 'price-desc') => void;
   showSortDropdown: boolean;
   setShowSortDropdown: (show: boolean) => void;
-  isMobile: boolean;
   itemsCount: number;
+  isMobile: boolean;
 }
 
 function getItemsCountText(count: number): string {
@@ -36,8 +37,8 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
   setSortBy,
   showSortDropdown,
   setShowSortDropdown,
-  isMobile,
-  itemsCount
+  itemsCount,
+  isMobile
 }) => {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +58,26 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
     };
   }, [showSortDropdown, setShowSortDropdown]);
 
+  const handleSortChange = (newSort: 'default' | 'type-asc' | 'price-asc' | 'price-desc') => {
+    setSortBy(newSort);
+    setShowSortDropdown(false);
+  };
+
+  const getSortLabel = () => {
+    switch (sortBy) {
+      case 'default':
+        return 'Стандарт';
+      case 'type-asc':
+        return 'Тип А-Я';
+      case 'price-asc':
+        return 'Цена ↑';
+      case 'price-desc':
+        return 'Цена ↓';
+      default:
+        return 'Стандарт';
+    }
+  };
+
   return (
     <div className="flex flex-col justify-between gap-4 border-b pb-4 border-gray-200 dark:border-gray-600">
       {/* Верхняя строка: поиск и кнопки */}
@@ -65,10 +86,10 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
         <div className="flex-grow relative">
           <input
             type="text"
-            placeholder="Поиск по названию/ссылке..."
+            placeholder="Поиск..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-4 pr-10 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-theme-card text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+            className="w-full pl-4 pr-10 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-theme-card text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 placeholder:text-xs transition-colors duration-200"
           />
           {searchQuery && (
             <button
@@ -125,58 +146,55 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             <DesktopOnlyTooltip content="Открыть параметры сортировки">
               <button 
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm transition-colors duration-200 focus:outline-none"
+                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150"
               >
-                <span className="font-medium">
-                  {sortBy === 'default' && 'Стандарт'}
-                  {sortBy === 'type-asc' && 'Тип А-Я'}
-                  {sortBy === 'price-asc' && 'Цена ↑'}
-                  {sortBy === 'price-desc' && 'Цена ↓'}
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {getSortLabel()}
+                <svg 
+                  className={cn(
+                    "w-4 h-4 ml-2 transition-transform duration-200",
+                    showSortDropdown && "rotate-180"
+                  )}
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
             </DesktopOnlyTooltip>
             
             {showSortDropdown && (
-              <div className="absolute right-0 mt-2 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-[9999] w-36">
-                <button 
-                  onClick={() => {
-                    setSortBy('default');
-                    setShowSortDropdown(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'default' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
-                >
-                  Стандарт
-                </button>
-                <button 
-                  onClick={() => {
-                    setSortBy('type-asc');
-                    setShowSortDropdown(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'type-asc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
-                >
-                  Тип А-Я
-                </button>
-                <button 
-                  onClick={() => {
-                    setSortBy('price-asc');
-                    setShowSortDropdown(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'price-asc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
-                >
-                  Цена ↑
-                </button>
-                <button 
-                  onClick={() => {
-                    setSortBy('price-desc');
-                    setShowSortDropdown(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm text-black dark:text-theme-secondary ${sortBy === 'price-desc' ? 'bg-gray-100 dark:bg-gray-600 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-600'} transition-colors duration-200`}
-                >
-                  Цена ↓
-                </button>
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors duration-200 focus:outline-none">
+                <div className="py-1">
+                  <button
+                    onClick={() => handleSortChange('default')}
+                    className={`block w-full text-left px-4 py-2 text-sm ${
+                      sortBy === 'default' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
+                  >
+                    Стандарт
+                  </button>
+                  <button
+                    onClick={() => handleSortChange('type-asc')}
+                    className={`block w-full text-left px-4 py-2 text-sm ${
+                      sortBy === 'type-asc' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
+                  >
+                    Тип А-Я
+                  </button>
+                  <button
+                    onClick={() => handleSortChange('price-asc')}
+                    className={`block w-full text-left px-4 py-2 text-sm ${
+                      sortBy === 'price-asc' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
+                  >
+                    Цена ↑
+                  </button>
+                  <button
+                    onClick={() => handleSortChange('price-desc')}
+                    className={`block w-full text-left px-4 py-2 text-sm ${
+                      sortBy === 'price-desc' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
+                  >
+                    Цена ↓
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -188,7 +206,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
               <DesktopOnlyTooltip content="Стандарт">
                 <button 
                   onClick={() => setSortBy('default')}
-                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'default' ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
                   Стандарт
                 </button>
@@ -196,7 +214,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
               <DesktopOnlyTooltip content="Тип А-Я">
                 <button 
                   onClick={() => setSortBy('type-asc')}
-                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'type-asc' ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
                   Тип А-Я
                 </button>
@@ -204,7 +222,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
               <DesktopOnlyTooltip content="Цена ↑">
                 <button 
                   onClick={() => setSortBy('price-asc')}
-                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-asc' ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
                   Цена ↑
                 </button>
@@ -212,7 +230,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
               <DesktopOnlyTooltip content="Цена ↓">
                 <button 
                   onClick={() => setSortBy('price-desc')}
-                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                  className={`px-2 py-0.5 rounded transition-colors min-w-[70px] text-center focus:outline-none ${sortBy === 'price-desc' ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-theme-secondary font-medium' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
                   Цена ↓
                 </button>

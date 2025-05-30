@@ -53,9 +53,10 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
         }`}
       >
         <div 
-          className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 ${
+          className={`rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 ${
             isMobile ? 'p-4' : 'p-3 px-6'
           }`}
+          style={{ backgroundColor: 'var(--color-card-background)' }}
         >
           <div className={`flex items-center gap-4 ${isMobile ? 'flex-col' : ''}`}>
             {/* Информация о выборе */}
@@ -126,9 +127,12 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
 
                 {/* Dropdown меню категорий */}
                 {showCategoryDropdown && (
-                  <div className={`absolute bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 min-w-48 animate-in fade-in-0 zoom-in-95 ${
-                    isMobile ? 'left-0 right-0 bottom-full mb-2' : 'bottom-full mb-2 left-0'
-                  }`}>
+                  <div 
+                    className={`absolute rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 min-w-48 animate-in fade-in-0 zoom-in-95 ${
+                      isMobile ? 'left-0 right-0 bottom-full mb-2' : 'bottom-full mb-2 left-0'
+                    }`}
+                    style={{ backgroundColor: 'var(--color-card-background)' }}
+                  >
                     {/* Без категории */}
                     <DesktopOnlyTooltip content="Переместить выбранные товары в категорию без категории">
                       <button

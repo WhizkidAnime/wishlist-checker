@@ -1,32 +1,54 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
 import { WishlistItem } from '../types/wishlistItem';
-import { loadFromLocalStorage, saveToLocalStorage } from '../utils/localStorageUtils';
-
-const LOCAL_STORAGE_KEY = 'wishlistApp';
+import { supabase } from '../utils/supabaseClient';
 
 export const useWishlist = (
   triggerSync?: () => void, 
-  isAuthenticated?: boolean, 
-  deleteFromSupabase?: (itemId: string | number) => Promise<boolean>
+  isAuthenticated?: boolean
 ) => {
-  // Флаг для предотвращения автоматической синхронизации при удалении
-  const skipNextSync = useRef(false);
-  
-  // Инициализация зависит от статуса аутентификации
-  const [wishlist, setWishlist] = useState<WishlistItem[]>(() => {
-    if (isAuthenticated) {
-      return loadFromLocalStorage(LOCAL_STORAGE_KEY) || [];
-    }
-    return [];
-  });
-  
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Эффект для очистки данных при выходе из аккаунта
+  // Загрузка данных из Supabase
+  const loadWishlistFromSupabase = async (userId: string) => {
+    if (!supabase) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const convertedItems: WishlistItem[] = (data || []).map(item => ({
+        id: item.id,
+        itemType: item.item_type || '',
+        name: item.name,
+        link: item.link || '',
+        price: Number(item.price),
+        currency: item.currency,
+        isBought: item.is_bought,
+        comment: item.comment || '',
+        category: item.category || undefined
+      }));
+
+      setWishlist(convertedItems);
+    } catch (error) {
+      console.error('Ошибка загрузки данных из Supabase:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Эффект для загрузки данных при аутентификации
   useEffect(() => {
     if (isAuthenticated === false) {
       // Очищаем состояние при выходе
@@ -34,51 +56,32 @@ export const useWishlist = (
       setEditingItemId(null);
       setSearchQuery('');
       setSortBy('default');
-      
-      // Очищаем localStorage от персональных данных
-      try {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        localStorage.removeItem('wishlistCategories');
-      } catch (error) {
-        console.warn('Не удалось очистить localStorage:', error);
-      }
-    } else if (isAuthenticated === true) {
+    } else if (isAuthenticated === true && triggerSync) {
       // Загружаем данные при входе
-      const savedData = loadFromLocalStorage(LOCAL_STORAGE_KEY) || [];
-      setWishlist(savedData);
+      // Получаем userId из Supabase auth
+      supabase?.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          loadWishlistFromSupabase(user.id);
+        }
+      });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, triggerSync]);
 
-  // Слушатель обновлений данных из Supabase (только для аутентифицированных)
+  // Слушатель обновлений (перезагрузка из Supabase)
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const handleDataUpdate = () => {
-      const updatedData = loadFromLocalStorage(LOCAL_STORAGE_KEY) || [];
-      setWishlist(updatedData);
+      supabase?.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          loadWishlistFromSupabase(user.id);
+        }
+      });
     };
 
     window.addEventListener('wishlistDataUpdated', handleDataUpdate);
     return () => window.removeEventListener('wishlistDataUpdated', handleDataUpdate);
   }, [isAuthenticated]);
-
-  // Сохранение только для аутентифицированных пользователей
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    saveToLocalStorage(LOCAL_STORAGE_KEY, wishlist);
-    
-    // Проверяем флаг skipNextSync перед запуском синхронизации
-    if (skipNextSync.current) {
-      skipNextSync.current = false; // Сбрасываем флаг
-      return;
-    }
-    
-    // Автоматически запускаем синхронизацию при изменениях
-    if (triggerSync) {
-      triggerSync();
-    }
-  }, [wishlist, triggerSync, isAuthenticated]);
 
   // Базовая функция фильтрации и сортировки (без категорий)
   const getFilteredAndSortedItems = (items: WishlistItem[]) => {
@@ -139,27 +142,108 @@ export const useWishlist = (
       .reduce((sum, item) => sum + item.price, 0);
   }, [wishlist]);
 
-  const handleAddItem = (newItem: Omit<WishlistItem, 'id' | 'isBought'>) => {
-    // Генерируем более уникальный ID с рандомным компонентом
-    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const itemToAdd: WishlistItem = { 
-      ...newItem, 
-      id: uniqueId,
-      isBought: false 
-    };
-    setWishlist([itemToAdd, ...wishlist]);
+  const handleAddItem = async (newItem: Omit<WishlistItem, 'id' | 'isBought'>) => {
+    if (!isAuthenticated || !supabase) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const supabaseItem = {
+        user_id: user.id,
+        name: newItem.name,
+        item_type: newItem.itemType || null,
+        link: newItem.link || '',
+        price: Number(newItem.price),
+        currency: newItem.currency,
+        is_bought: false,
+        comment: newItem.comment || '',
+        category: newItem.category || null,
+        sort_order: 0
+      };
+
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .insert(supabaseItem)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      // Немедленно добавляем в локальное состояние для быстрого UI
+      const convertedItem: WishlistItem = {
+        id: data.id,
+        itemType: data.item_type || '',
+        name: data.name,
+        link: data.link || '',
+        price: Number(data.price),
+        currency: data.currency,
+        isBought: data.is_bought,
+        comment: data.comment || '',
+        category: data.category || undefined
+      };
+
+      setWishlist(prev => [convertedItem, ...prev]);
+    } catch (error) {
+      console.error('Ошибка добавления товара:', error);
+    }
   };
 
-  const handleUpdateItem = (updatedItem: WishlistItem) => {
-    setWishlist(wishlist.map(item => (item.id === updatedItem.id ? updatedItem : item)));
-    setEditingItemId(null);
+  const handleUpdateItem = async (updatedItem: WishlistItem) => {
+    if (!isAuthenticated || !supabase) return;
+
+    try {
+      const supabaseUpdate = {
+        name: updatedItem.name,
+        item_type: updatedItem.itemType || null,
+        link: updatedItem.link || '',
+        price: Number(updatedItem.price),
+        currency: updatedItem.currency,
+        is_bought: updatedItem.isBought,
+        comment: updatedItem.comment || '',
+        category: updatedItem.category || null
+      };
+
+      const { error } = await supabase
+        .from('wishlist_items')
+        .update(supabaseUpdate)
+        .eq('id', updatedItem.id);
+
+      if (error) throw error;
+
+      // Обновляем локальное состояние
+      setWishlist(prev => prev.map(item => 
+        item.id === updatedItem.id ? updatedItem : item
+      ));
+      setEditingItemId(null);
+    } catch (error) {
+      console.error('Ошибка обновления товара:', error);
+    }
   };
 
-  const handleToggleBought = (id: string | number) => {
-    setWishlist(wishlist.map(item => 
-      item.id === id ? { ...item, isBought: !item.isBought } : item
-    ));
+  const handleToggleBought = async (id: string | number) => {
+    if (!isAuthenticated || !supabase) return;
+
+    try {
+      const item = wishlist.find(item => item.id === id);
+      if (!item) return;
+
+      const newIsBought = !item.isBought;
+
+      const { error } = await supabase
+        .from('wishlist_items')
+        .update({ is_bought: newIsBought })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Обновляем локальное состояние
+      setWishlist(prev => prev.map(item => 
+        item.id === id ? { ...item, isBought: newIsBought } : item
+      ));
+    } catch (error) {
+      console.error('Ошибка изменения статуса товара:', error);
+    }
   };
 
   const handleMoveItem = (id: string | number, direction: 'up' | 'down') => {
@@ -188,13 +272,14 @@ export const useWishlist = (
   };
 
   const handleDeleteItem = async (id: string | number): Promise<void> => {
-    // Проверяем, есть ли элемент в списке
-    const itemExists = wishlist.some(item => item.id === id);
-    if (!itemExists) {
-      return;
+    if (!isAuthenticated || !supabase) {
+      throw new Error('Удаление доступно только для аутентифицированных пользователей');
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Пользователь не найден');
+
       // Сразу удаляем из локального состояния для немедленного обновления UI
       setWishlist(prevWishlist => prevWishlist.filter(item => item.id !== id));
       
@@ -203,29 +288,17 @@ export const useWishlist = (
         setEditingItemId(null);
       }
 
-      // Если есть функция удаления из Supabase и пользователь аутентифицирован
-      if (deleteFromSupabase && isAuthenticated) {
-        // Устанавливаем флаг для пропуска автоматической синхронизации
-        skipNextSync.current = true;
-        
-        try {
-          const deleteSuccess = await deleteFromSupabase(id);
-          if (!deleteSuccess) {
-            // Если не удалось удалить из БД, восстанавливаем элемент
-            const originalItem = wishlist.find(item => item.id === id);
-            if (originalItem) {
-              setWishlist(prevWishlist => [...prevWishlist, originalItem]);
-            }
-            throw new Error('Не удалось удалить элемент из базы данных');
-          }
-        } catch (dbError) {
-          // При ошибке БД восстанавливаем элемент в списке
-          const originalItem = wishlist.find(item => item.id === id);
-          if (originalItem) {
-            setWishlist(prevWishlist => [...prevWishlist, originalItem]);
-          }
-          throw dbError;
-        }
+      // Удаляем из Supabase
+      const { error } = await supabase
+        .from('wishlist_items')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        // При ошибке восстанавливаем элемент
+        await loadWishlistFromSupabase(user.id);
+        throw error;
       }
       
     } catch (error) {
@@ -236,9 +309,7 @@ export const useWishlist = (
 
   return {
     wishlist,
-    setWishlist,
     editingItemId,
-    setEditingItemId,
     searchQuery,
     setSearchQuery,
     sortBy,
@@ -254,6 +325,7 @@ export const useWishlist = (
     handleDragEnd,
     handleDeleteItem,
     handleEditClick: setEditingItemId,
-    handleCancelEdit: () => setEditingItemId(null)
+    handleCancelEdit: () => setEditingItemId(null),
+    isLoading
   };
 }; 

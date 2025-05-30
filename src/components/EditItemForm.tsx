@@ -188,7 +188,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs input-theme"
                 autoComplete="off"
               />
-              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-600 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
+              <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-700 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
                 <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
               </div>
             </div>
@@ -244,7 +244,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               </button>
               
               {showCategoryDropdown && (
-                <div className="absolute z-[9999] w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto" style={{ backgroundColor: 'var(--color-dropdown-background)' }}>
                   {existingCategories.length > 0 ? (
                     <>
                       {existingCategories.map(cat => (
@@ -255,7 +255,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                             setFormData(prev => ({ ...prev, category: cat }));
                             setShowCategoryDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm text-black dark:text-theme-secondary hover:bg-gray-50 dark:hover:bg-gray-600 focus:bg-gray-50 dark:focus:bg-gray-600 focus:outline-none"
+                          className="w-full px-3 py-2 text-left text-sm text-black dark:text-theme-secondary hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none"
                         >
                           {cat}
                         </button>
@@ -325,7 +325,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-gray-500 transition-colors duration-150"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-gray-500 transition-colors duration-150"
           >
             Отмена
           </button>

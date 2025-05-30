@@ -27,13 +27,11 @@ import { useAuth } from '../hooks/useAuth';
 
 interface MainAppProps {
   triggerSync: () => Promise<void>;
-  deleteWishlistItem?: (itemId: string | number) => Promise<boolean>;
   onAuthModalOpen: () => void;
 }
 
 export const MainApp: React.FC<MainAppProps> = ({ 
   triggerSync, 
-  deleteWishlistItem,
   onAuthModalOpen 
 }) => {
   const [displayCurrency] = useState<string>('RUB');
@@ -45,6 +43,7 @@ export const MainApp: React.FC<MainAppProps> = ({
   // Получаем userId из контекста аутентификации  
   const { user } = useAuth();
   const userId = user?.id || null;
+  const isAuthenticated = !!user; // Реальный статус аутентификации
 
   // Хук для управления темой
   const { 
@@ -53,7 +52,7 @@ export const MainApp: React.FC<MainAppProps> = ({
     getThemeConfig,
     supportsAutoTheme,
     setTheme
-  } = useTheme();
+  } = useTheme(userId);
   const themeConfig = getThemeConfig();
 
   // Хуки для управления состоянием
@@ -73,7 +72,7 @@ export const MainApp: React.FC<MainAppProps> = ({
     handleDeleteItem,
     handleEditClick,
     handleCancelEdit
-  } = useWishlist(triggerSync, true, deleteWishlistItem); // isAuthenticated = true
+  } = useWishlist(triggerSync, isAuthenticated);
 
   const {
     activeCategory,
@@ -82,7 +81,7 @@ export const MainApp: React.FC<MainAppProps> = ({
     filterByCategory,
     handleAddCategory,
     resetCategoryIfNeeded
-  } = useCategories(wishlist, triggerSync, true); // isAuthenticated = true
+  } = useCategories(wishlist, triggerSync, isAuthenticated, userId);
 
   // Применяем фильтры: если есть поиск - ищем по всем товарам, иначе фильтруем по категории
   const displayedWishlist = useMemo(() => {
@@ -368,7 +367,7 @@ export const MainApp: React.FC<MainAppProps> = ({
         <button
           onClick={scrollToTop}
           aria-label="Вернуться к началу"
-          className={`fixed bottom-8 left-5 z-40 p-3 bg-gray-800 dark:bg-gray-600 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-500 focus:outline-none transition-all duration-300 ease-in-out ${showScrollButton ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`fixed bottom-8 left-5 z-40 p-3 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-all duration-300 ease-in-out ${showScrollButton ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
@@ -391,7 +390,10 @@ export const MainApp: React.FC<MainAppProps> = ({
         {/* Модальное окно подтверждения удаления */}
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+            <div 
+              className="rounded-xl shadow-xl w-full max-w-md p-6 mx-auto"
+              style={{ backgroundColor: 'var(--color-card-background)' }}
+            >
               <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите удаление</h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
                 Вы уверены, что хотите удалить "{itemToDelete?.name}"? Это действие необратимо.
@@ -401,7 +403,7 @@ export const MainApp: React.FC<MainAppProps> = ({
                   type="button"
                   onClick={handleDeleteCancel}
                   disabled={isDeleting}
-                  className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Отмена
                 </button>

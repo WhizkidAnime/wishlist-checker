@@ -11,21 +11,20 @@ interface WishlistExportData {
 export const useImportExport = (
   wishlist: WishlistItem[],
   setWishlist: (items: WishlistItem[]) => void,
-  triggerSync?: () => void, // Функция для запуска синхронизации
-  isAuthenticated?: boolean // Статус аутентификации
+  triggerSync?: () => void,
+  isAuthenticated?: boolean,
+  existingCategories: string[] = [] // Получаем категории из хука useCategories
 ) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [dataToImport, setDataToImport] = useState<WishlistExportData | WishlistItem[] | null>(null);
   const [showImportSuccessToast, setShowImportSuccessToast] = useState(false);
+  const [dataToImport, setDataToImport] = useState<WishlistItem[] | WishlistExportData | null>(null);
 
+  // Автоматически скрываем тост через 3 секунды
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
     if (showImportSuccessToast) {
-      timer = setTimeout(() => {
-        setShowImportSuccessToast(false);
-      }, 3000);
+      const timer = setTimeout(() => setShowImportSuccessToast(false), 3000);
+      return () => clearTimeout(timer);
     }
-    return () => clearTimeout(timer);
   }, [showImportSuccessToast]);
 
   const handleExport = () => {
@@ -36,16 +35,6 @@ export const useImportExport = (
     }
 
     try {
-      // Загружаем категории из localStorage
-      const categoriesFromStorage = (() => {
-        try {
-          const saved = localStorage.getItem('wishlistCategories');
-          return saved ? JSON.parse(saved) : [];
-        } catch {
-          return [];
-        }
-      })();
-
       // Собираем категории из товаров
       const categoriesFromItems = [...new Set(
         wishlist
@@ -53,8 +42,8 @@ export const useImportExport = (
           .filter((category): category is string => !!category?.trim())
       )];
 
-      // Объединяем все категории (сохранённые + из товаров)
-      const allCategories = [...new Set([...categoriesFromStorage, ...categoriesFromItems])].sort();
+      // Объединяем все категории (из товаров + переданные существующие)
+      const allCategories = [...new Set([...categoriesFromItems, ...existingCategories])].sort();
 
       // Создаём полный объект для экспорта
       const exportData: WishlistExportData = {
@@ -182,31 +171,10 @@ export const useImportExport = (
       if (Array.isArray(dataToImport)) {
         // Старый формат - только товары
         setWishlist(dataToImport);
-        // Извлекаем категории из товаров и сохраняем их
-        const categoriesFromItems = [...new Set(
-          dataToImport
-            .map(item => item.category)
-            .filter((category): category is string => !!category?.trim())
-        )].sort();
-        
-        try {
-          localStorage.setItem('wishlistCategories', JSON.stringify(categoriesFromItems));
-          // Уведомляем useCategories об обновлении
-          window.dispatchEvent(new CustomEvent('categoriesUpdated'));
-        } catch (error) {
-          console.warn("Не удалось сохранить категории в localStorage:", error);
-        }
       } else {
         // Новый формат - полный экспорт
         setWishlist(dataToImport.wishlist);
-        // Сохраняем категории в localStorage
-        try {
-          localStorage.setItem('wishlistCategories', JSON.stringify(dataToImport.categories));
-          // Уведомляем useCategories об обновлении
-          window.dispatchEvent(new CustomEvent('categoriesUpdated'));
-        } catch (error) {
-          console.warn("Не удалось сохранить категории в localStorage:", error);
-        }
+        // Категории будут автоматически обработаны через синхронизацию с Supabase
       }
       setShowImportSuccessToast(true);
       
@@ -214,6 +182,10 @@ export const useImportExport = (
       if (triggerSync) {
         triggerSync();
       }
+      
+      // Уведомляем компоненты об обновлении данных
+      window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
+      window.dispatchEvent(new CustomEvent('categoriesUpdated'));
     }
     setDataToImport(null);
     setIsConfirmModalOpen(false);
@@ -227,9 +199,11 @@ export const useImportExport = (
   return {
     isConfirmModalOpen,
     showImportSuccessToast,
+    dataToImport,
     handleExport,
     handleImport,
     handleModalConfirm,
-    handleModalClose
+    handleModalClose,
+    setShowImportSuccessToast
   };
 }; 

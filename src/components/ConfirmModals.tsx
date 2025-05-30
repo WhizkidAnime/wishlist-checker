@@ -34,7 +34,10 @@ export const ConfirmModals: React.FC<ConfirmModalsProps> = ({
       {/* Модальное окно подтверждения импорта */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+          <div 
+            className="rounded-xl shadow-xl w-full max-w-md p-6 mx-auto"
+            style={{ backgroundColor: 'var(--color-card-background)' }}
+          >
             <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите действие</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
               Вы уверены, что хотите заменить текущий список импортированным? Это действие необратимо.
@@ -43,7 +46,7 @@ export const ConfirmModals: React.FC<ConfirmModalsProps> = ({
               <button
                 type="button"
                 onClick={onImportCancel}
-                className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150 ease-in-out"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out"
               >
                 Отмена
               </button>
@@ -62,7 +65,10 @@ export const ConfirmModals: React.FC<ConfirmModalsProps> = ({
       {/* Модальное окно подтверждения удаления */}
       {isDeleteModalOpen && itemToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+          <div 
+            className="rounded-xl shadow-xl w-full max-w-md p-6 mx-auto"
+            style={{ backgroundColor: 'var(--color-card-background)' }}
+          >
             <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите удаление</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Вы уверены, что хотите удалить "<span className="font-medium text-black dark:text-theme-secondary">{itemToDelete.name}</span>"? Это действие необратимо.
@@ -72,7 +78,7 @@ export const ConfirmModals: React.FC<ConfirmModalsProps> = ({
                 type="button"
                 onClick={onDeleteCancel}
                 disabled={isDeleting}
-                className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Отмена
               </button>
