@@ -8,7 +8,7 @@ export const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuth = async () => {
       if (!supabase) {
-        window.location.href = '/';
+        window.location.href = '/wishlist-checker/';
         return;
       }
 
@@ -29,7 +29,7 @@ export const AuthCallback: React.FC = () => {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) {
-            window.location.href = '/';
+            window.location.href = '/wishlist-checker/';
             return;
           }
         } else if (accessToken && refreshToken) {
@@ -40,7 +40,7 @@ export const AuthCallback: React.FC = () => {
           });
 
           if (error) {
-            window.location.href = '/';
+            window.location.href = '/wishlist-checker/';
             return;
           }
         } else {
@@ -56,10 +56,10 @@ export const AuthCallback: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Перенаправляем на главную страницу
-        window.location.href = '/';
+        window.location.href = '/wishlist-checker/';
         
       } catch (error) {
-        window.location.href = '/';
+        window.location.href = '/wishlist-checker/';
       }
     };
 
