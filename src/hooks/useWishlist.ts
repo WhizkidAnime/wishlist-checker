@@ -195,27 +195,38 @@ export const useWishlist = (
     }
 
     try {
-      // Если есть функция удаления из Supabase и пользователь аутентифицирован
-      if (deleteFromSupabase && isAuthenticated) {
-        const deleteSuccess = await deleteFromSupabase(id);
-        if (!deleteSuccess) {
-          throw new Error('Не удалось удалить элемент из базы данных');
-        }
-      }
-      
-      // Устанавливаем флаг для пропуска следующей автоматической синхронизации
-      skipNextSync.current = true;
-      
-      // Удаляем из локального состояния
+      // Сразу удаляем из локального состояния для немедленного обновления UI
       setWishlist(prevWishlist => prevWishlist.filter(item => item.id !== id));
       
       // Отменяем редактирование если удаляется редактируемый элемент
       if (editingItemId === id) {
         setEditingItemId(null);
       }
-      
-      // Уведомляем компоненты об обновлении данных
-      window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
+
+      // Если есть функция удаления из Supabase и пользователь аутентифицирован
+      if (deleteFromSupabase && isAuthenticated) {
+        // Устанавливаем флаг для пропуска автоматической синхронизации
+        skipNextSync.current = true;
+        
+        try {
+          const deleteSuccess = await deleteFromSupabase(id);
+          if (!deleteSuccess) {
+            // Если не удалось удалить из БД, восстанавливаем элемент
+            const originalItem = wishlist.find(item => item.id === id);
+            if (originalItem) {
+              setWishlist(prevWishlist => [...prevWishlist, originalItem]);
+            }
+            throw new Error('Не удалось удалить элемент из базы данных');
+          }
+        } catch (dbError) {
+          // При ошибке БД восстанавливаем элемент в списке
+          const originalItem = wishlist.find(item => item.id === id);
+          if (originalItem) {
+            setWishlist(prevWishlist => [...prevWishlist, originalItem]);
+          }
+          throw dbError;
+        }
+      }
       
     } catch (error) {
       console.error('Ошибка при удалении элемента:', error);
