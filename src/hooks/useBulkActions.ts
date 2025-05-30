@@ -38,16 +38,17 @@ export const useBulkActions = (
         deletedCount = itemIds.length;
         logger.sync(`Массово удалено ${deletedCount} товаров из Supabase`);
 
-        // Обновляем localStorage
+        // Немедленно обновляем localStorage
         const currentItems: WishlistItem[] = loadFromLocalStorage(WISHLIST_STORAGE_KEY) || [];
         const updatedItems = currentItems.filter(item => !itemIds.includes(item.id));
         saveToLocalStorage(WISHLIST_STORAGE_KEY, updatedItems);
+        logger.sync('💾 localStorage обновлен после массового удаления');
 
         // Уведомляем об обновлении данных
         window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
 
-        // Запускаем синхронизацию
-        await triggerSync();
+        // НЕ запускаем автоматическую синхронизацию, чтобы избежать race condition
+        // await triggerSync();
 
         // Очищаем выбор
         onClearBulkSelection();
@@ -64,7 +65,7 @@ export const useBulkActions = (
       deletedCount, 
       errorCount 
     };
-  }, [userId, triggerSync, onClearBulkSelection]);
+  }, [userId, onClearBulkSelection]);
 
   // Массовое перемещение товаров в категорию
   const bulkMoveToCategory = useCallback(async (

@@ -24,6 +24,19 @@ const SYNC_KEYS = {
 const MIN_SYNC_INTERVAL = 5000;
 let lastSyncTime = 0;
 
+// Кэш недавно удаленных элементов (для предотвращения их восстановления)
+const recentlyDeletedItems = new Set<string | number>();
+const DELETED_ITEMS_CACHE_DURATION = 30000; // 30 секунд
+
+// Функция для добавления элемента в кэш удаленных
+const addToDeletedCache = (itemId: string | number) => {
+  recentlyDeletedItems.add(itemId);
+  // Автоматически удаляем из кэша через 30 секунд
+  setTimeout(() => {
+    recentlyDeletedItems.delete(itemId);
+  }, DELETED_ITEMS_CACHE_DURATION);
+};
+
 export const useSupabaseSync = (userId: string | null) => {
   const [internalState, setInternalState] = useState<InternalSyncState>({
     isProcessing: false,
@@ -132,11 +145,22 @@ export const useSupabaseSync = (userId: string | null) => {
 
       // Для последующих синхронизаций - проверяем только новые локальные элементы
       const remoteIds = new Set(safeRemoteItems.map(item => item.id));
-      const newLocalItems = localItems.filter(item => !remoteIds.has(item.id));
+      const newLocalItems = localItems.filter(item => 
+        !remoteIds.has(item.id) && 
+        !recentlyDeletedItems.has(item.id) // Исключаем недавно удаленные элементы
+      );
       
       if (newLocalItems.length > 0) {
+        logger.sync(`Найдено ${newLocalItems.length} новых локальных элементов для загрузки в облако`);
+        
         // Загружаем новые локальные элементы в Supabase
         for (const newItem of newLocalItems) {
+          // Дополнительная проверка на случай, если элемент был удален во время итерации
+          if (recentlyDeletedItems.has(newItem.id)) {
+            logger.sync(`Пропускаем элемент ${newItem.name} - он был недавно удален`);
+            continue;
+          }
+          
           const supabaseItemPayload = convertToSupabaseItem(newItem, userId);
           
           const { data: insertedItem, error: insertError } = await supabase
@@ -156,6 +180,7 @@ export const useSupabaseSync = (userId: string | null) => {
               li.id === newItem.id ? { ...li, id: insertedItem.id } : li
             );
             saveToLocalStorage(SYNC_KEYS.wishlist, updatedLocalItems);
+            logger.sync(`Загружен новый товар в облако: ${newItem.name}`);
           }
         }
         
@@ -216,6 +241,7 @@ export const useSupabaseSync = (userId: string | null) => {
       }
       
       logger.sync(`Товар успешно удален из Supabase (ID: ${itemId})`);
+      addToDeletedCache(itemId);
       return true;
     } catch (error) {
       logger.sync('Ошибка при удалении товара:', error);

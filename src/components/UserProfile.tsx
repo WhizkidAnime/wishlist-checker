@@ -134,9 +134,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
             {isMobile ? (
               // Для мобильных используем Portal
               <Portal>
-                <div className="fixed inset-0 z-[9999]">
+                <div className="fixed inset-0 z-[99999]">
                   <div className="absolute inset-0" onClick={() => setIsDropdownOpen(false)} />
-                  <div className="absolute left-1/2 top-20 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-lg shadow-lg py-2 min-w-64 z-[10000]">
+                  <div className="absolute left-1/2 top-20 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-lg shadow-lg py-2 min-w-64 z-[100000]">
                     <div className="px-4 py-2 border-b border-theme-border">
                       <div className="text-sm font-medium text-theme-primary truncate">
                         {user?.email}
@@ -210,7 +210,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       {/* Модальное окно управления данными */}
       {isDataManagementOpen && (
         <Portal>
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4">
             <div className="bg-theme-card rounded-lg shadow-xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-theme-primary">Управление данными</h3>

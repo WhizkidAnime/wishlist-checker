@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
 import { WishlistItem } from '../types/wishlistItem';
@@ -11,6 +11,9 @@ export const useWishlist = (
   isAuthenticated?: boolean, 
   deleteFromSupabase?: (itemId: string | number) => Promise<boolean>
 ) => {
+  // Флаг для предотвращения автоматической синхронизации при удалении
+  const skipNextSync = useRef(false);
+  
   // Инициализация зависит от статуса аутентификации
   const [wishlist, setWishlist] = useState<WishlistItem[]>(() => {
     if (isAuthenticated) {
@@ -64,6 +67,14 @@ export const useWishlist = (
     if (!isAuthenticated) return;
     
     saveToLocalStorage(LOCAL_STORAGE_KEY, wishlist);
+    
+    // Проверяем флаг skipNextSync перед запуском синхронизации
+    if (skipNextSync.current) {
+      skipNextSync.current = false; // Сбрасываем флаг
+      console.log('🚫 Пропускаем автоматическую синхронизацию после удаления');
+      return;
+    }
+    
     // Автоматически запускаем синхронизацию при изменениях
     if (triggerSync) {
       triggerSync();
@@ -177,19 +188,41 @@ export const useWishlist = (
     }
   };
 
-  const handleDeleteItem = async (id: string | number) => {
-    // Если есть функция удаления из Supabase и пользователь аутентифицирован
-    if (deleteFromSupabase && isAuthenticated) {
-      const deleteSuccess = await deleteFromSupabase(id);
-      if (!deleteSuccess) {
-        // Если удаление из Supabase не удалось, показываем ошибку
-        console.error('Не удалось удалить элемент из базы данных');
-        return;
-      }
-    }
+  const handleDeleteItem = async (id: string | number): Promise<void> => {
+    console.log('🗑️ Начинаем удаление элемента:', id);
     
-    // Удаляем из локального состояния только после успешного удаления из Supabase
-    setWishlist(wishlist.filter(item => item.id !== id));
+    try {
+      // Если есть функция удаления из Supabase и пользователь аутентифицирован
+      if (deleteFromSupabase && isAuthenticated) {
+        const deleteSuccess = await deleteFromSupabase(id);
+        if (!deleteSuccess) {
+          // Если удаление из Supabase не удалось, показываем ошибку
+          console.error('❌ Не удалось удалить элемент из базы данных');
+          throw new Error('Не удалось удалить элемент из базы данных');
+        }
+        console.log('✅ Элемент успешно удален из Supabase');
+      }
+      
+      // Немедленно обновляем localStorage, чтобы предотвратить race condition
+      const updatedWishlist = wishlist.filter(item => item.id !== id);
+      saveToLocalStorage(LOCAL_STORAGE_KEY, updatedWishlist);
+      console.log('💾 localStorage обновлен немедленно');
+      
+      // Устанавливаем флаг для пропуска следующей автоматической синхронизации
+      skipNextSync.current = true;
+      
+      // Удаляем из локального состояния
+      setWishlist(updatedWishlist);
+      console.log('🔄 React состояние обновлено');
+      
+      // Уведомляем компоненты об обновлении данных
+      window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
+      
+      console.log('✅ Удаление завершено успешно');
+    } catch (error) {
+      console.error('❌ Ошибка при удалении элемента:', error);
+      throw error; // Пробрасываем ошибку для обработки в модальном окне
+    }
   };
 
   return {
