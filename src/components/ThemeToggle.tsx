@@ -23,26 +23,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownPosition = useDropdownPosition(triggerRef, isDropdownOpen);
 
-  // Функция для получения стилей кнопки в зависимости от активности (для десктопа)
-  const getButtonStyles = (mode: ThemeMode, isActive: boolean) => {
-    const baseStyles = "p-2 rounded-full transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none";
-    
-    if (isActive) {
-      switch (mode) {
-        case 'auto':
-          return `${baseStyles} bg-theme-toggle-active text-purple-500 shadow-sm`;
-        case 'light':
-          return `${baseStyles} bg-theme-toggle-active text-yellow-500 shadow-sm`;
-        case 'dark':
-          return `${baseStyles} bg-theme-toggle-active text-blue-400 shadow-sm`;
-        default:
-          return `${baseStyles} bg-theme-toggle-active text-gray-500 shadow-sm`;
-      }
-    } else {
-      return `${baseStyles} text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover`;
-    }
-  };
-
   // Функция для получения иконки темы
   const getThemeIcon = (mode: ThemeMode, size: string = "h-4 w-4") => {
     switch (mode) {
@@ -110,7 +90,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         <button
           ref={triggerRef}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 p-2 rounded-full bg-theme-toggle text-theme-secondary hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm focus:outline-none"
+          className="flex items-center gap-2 p-2 bg-theme-toggle text-gray-600 dark:text-gray-400 hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm focus:outline-none rounded-lg"
           aria-label="Выбор темы"
         >
           {getThemeIcon(themeMode)}
@@ -131,13 +111,13 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
           <Portal>
             {/* Прозрачный overlay для закрытия при клике вне */}
             <div 
-              className="fixed inset-0 z-[9998] bg-transparent" 
+              className="fixed inset-0 z-[9998] bg-transparent pointer-events-auto" 
               onClick={() => setIsDropdownOpen(false)}
             />
             
             {/* Выпадающий список с абсолютным позиционированием */}
             <div 
-              className="absolute w-48 bg-theme-card border border-theme rounded-lg shadow-xl z-[9999] overflow-hidden"
+              className="absolute w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl z-[9999] overflow-hidden rounded-xl"
               style={{
                 top: dropdownPosition.top,
                 right: dropdownPosition.right,
@@ -150,14 +130,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                     onSetTheme('auto');
                     setIsDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-theme-toggle-hover transition-colors duration-200 ${
-                    themeMode === 'auto' ? 'bg-theme-toggle-active text-purple-500' : 'text-theme-secondary'
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                    themeMode === 'auto' ? 'bg-gray-100 dark:bg-gray-700 text-purple-500' : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   {getThemeIcon('auto')}
                   <span className="text-sm font-medium">Авто</span>
                   {themeMode === 'auto' && (
-                    <span className="text-xs text-theme-muted ml-auto">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
                       ({systemTheme === 'dark' ? 'тёмная' : 'светлая'})
                     </span>
                   )}
@@ -170,8 +150,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                   onSetTheme('light');
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-theme-toggle-hover transition-colors duration-200 ${
-                  themeMode === 'light' ? 'bg-theme-toggle-active text-yellow-500' : 'text-theme-secondary'
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                  themeMode === 'light' ? 'bg-gray-100 dark:bg-gray-700 text-yellow-500' : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
                 {getThemeIcon('light')}
@@ -184,8 +164,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                   onSetTheme('dark');
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-theme-toggle-hover transition-colors duration-200 ${
-                  themeMode === 'dark' ? 'bg-theme-toggle-active text-blue-400' : 'text-theme-secondary'
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                  themeMode === 'dark' ? 'bg-gray-100 dark:bg-gray-700 text-blue-400' : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
                 {getThemeIcon('dark')}
@@ -200,13 +180,17 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
 
   // Десктопная версия - три кнопки
   return (
-    <div className="flex justify-center items-center gap-1 p-1 bg-theme-toggle rounded-full transition-colors duration-200">
+    <div className="flex justify-center items-center gap-1 p-1 bg-theme-toggle transition-colors duration-200 rounded-xl">
       
       {/* Кнопка автоматической темы */}
       <DesktopOnlyTooltip content={`Автоматическая тема (сейчас: ${systemTheme === 'dark' ? 'тёмная' : 'светлая'})`}>
         <button
           onClick={() => onSetTheme('auto')}
-          className={getButtonStyles('auto', themeMode === 'auto')}
+          className={`p-2 transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none rounded-lg ${
+            themeMode === 'auto' 
+              ? 'bg-theme-toggle-active text-purple-500 shadow-sm' 
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover'
+          }`}
           aria-label="Автоматическая тема"
           disabled={!supportsAutoTheme}
         >
@@ -219,7 +203,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <DesktopOnlyTooltip content="Светлая тема">
         <button
           onClick={() => onSetTheme('light')}
-          className={getButtonStyles('light', themeMode === 'light')}
+          className={`p-2 transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none rounded-lg ${
+            themeMode === 'light' 
+              ? 'bg-theme-toggle-active text-yellow-500 shadow-sm' 
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover'
+          }`}
           aria-label="Светлая тема"
         >
           {getThemeIcon('light')}
@@ -231,7 +219,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <DesktopOnlyTooltip content="Тёмная тема">
         <button
           onClick={() => onSetTheme('dark')}
-          className={getButtonStyles('dark', themeMode === 'dark')}
+          className={`p-2 transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none rounded-lg ${
+            themeMode === 'dark' 
+              ? 'bg-theme-toggle-active text-blue-400 shadow-sm' 
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover'
+          }`}
           aria-label="Тёмная тема"
         >
           {getThemeIcon('dark')}
@@ -242,7 +234,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       {/* Подсказка о поддержке автоматической темы */}
       {!supportsAutoTheme && (
         <DesktopOnlyTooltip content="Автоматическая тема не поддерживается в этом браузере" position="left">
-          <div className="ml-1 text-xs text-theme-muted">
+          <div className="ml-1 text-xs text-gray-500 dark:text-gray-400">
             ⚠️
           </div>
         </DesktopOnlyTooltip>

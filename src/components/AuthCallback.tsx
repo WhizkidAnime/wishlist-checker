@@ -1,96 +1,69 @@
 import React, { useEffect, useState } from 'react';
-import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 
 export const AuthCallback: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading] = useState(true);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      console.log('🔄 AuthCallback: Начинаем обработку...');
-      console.log('🌐 AuthCallback: URL:', window.location.href);
-      console.log('🔍 AuthCallback: Search params:', window.location.search);
-      console.log('📍 AuthCallback: Hash:', window.location.hash);
-      
-      if (!isSupabaseAvailable()) {
-        console.error('❌ AuthCallback: Supabase недоступен');
-        setError('Supabase недоступен');
-        setLoading(false);
+    const handleAuth = async () => {
+      if (!supabase) {
+        window.location.href = '/';
         return;
       }
 
       try {
-        // Получаем параметры из URL
+        // Получаем параметры из URL и hash
         const urlParams = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.slice(1)); // убираем #
-        
-        console.log('📋 AuthCallback: URL params:', Object.fromEntries(urlParams));
-        console.log('📋 AuthCallback: Hash params:', Object.fromEntries(hashParams));
-        
-        // Проверяем разные способы получения токенов
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+
+        // Ищем нужные параметры в обоих местах
         const code = urlParams.get('code') || hashParams.get('code');
-        const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
-        const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
-        
-        console.log('🔑 AuthCallback: Code:', code ? 'найден' : 'не найден');
-        console.log('🔑 AuthCallback: Access token:', accessToken ? 'найден' : 'не найден');
-        console.log('🔑 AuthCallback: Refresh token:', refreshToken ? 'найден' : 'не найден');
-        
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
         if (code) {
-          console.log('✅ AuthCallback: Используем code flow');
           // Обмениваем код на сессию
-          const { data, error } = await supabase!.auth.exchangeCodeForSession(code);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
           
           if (error) {
-            console.error('❌ AuthCallback: Ошибка exchangeCodeForSession:', error);
-            throw error;
+            window.location.href = '/';
+            return;
           }
-          
-          console.log('✅ AuthCallback: Сессия получена:', data.session?.user?.email);
-          
         } else if (accessToken && refreshToken) {
-          console.log('✅ AuthCallback: Используем token flow');
-          // Устанавливаем сессию с токенами
-          const { data, error } = await supabase!.auth.setSession({
+          // Устанавливаем сессию из токенов
+          const { error } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: refreshToken
+            refresh_token: refreshToken,
           });
-          
+
           if (error) {
-            console.error('❌ AuthCallback: Ошибка setSession:', error);
-            throw error;
+            window.location.href = '/';
+            return;
           }
-          
-          console.log('✅ AuthCallback: Сессия установлена:', data.session?.user?.email);
-          
         } else {
-          console.warn('⚠️ AuthCallback: Токены не найдены');
-          // Нет токенов - возможно, ошибка
-          const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+          // Проверяем на ошибки в URL
           const errorCode = urlParams.get('error') || hashParams.get('error');
           
-          if (errorDescription || errorCode) {
-            console.error('❌ AuthCallback: Ошибка в URL:', { errorCode, errorDescription });
-            throw new Error(errorDescription || `Ошибка: ${errorCode}`);
+          if (errorCode) {
+            // Ошибка в URL
           }
         }
-        
+
         // Ждем немного для обновления состояния
-        console.log('⏳ AuthCallback: Ждем обновления состояния...');
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Перенаправляем на главную
-        console.log('🏠 AuthCallback: Перенаправляем на главную...');
-        window.location.href = '/wishlist-checker/';
+        // Перенаправляем на главную страницу
+        window.location.href = '/';
         
       } catch (error) {
-        console.error('❌ AuthCallback: Ошибка обработки:', error);
-        setError(error instanceof Error ? error.message : 'Произошла ошибка');
-        setLoading(false);
+        window.location.href = '/';
       }
     };
 
-    handleAuthCallback();
+    handleAuth();
   }, []);
 
   if (loading) {

@@ -11,26 +11,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Создаем клиент Supabase (если credentials доступны)
 export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-      }
-    })
-  : null;
+  ? (() => {
+      const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          // Разрешаем автоматический refresh токенов только в production
+          autoRefreshToken: true,
+          persistSession: true
+        }
+      });
+      // console.log('✅ Supabase client initialized successfully');
+      return client;
+    })()
+  : (() => {
+      // console.log('📦 Running in local storage mode (Supabase not configured)');
+      return null;
+    })();
 
 // Вспомогательная функция для проверки доступности Supabase
 export const isSupabaseAvailable = (): boolean => {
   return supabase !== null;
 };
-
-// Проверяем статус подключения при загрузке
-if (isSupabaseAvailable()) {
-  console.log('✅ Supabase client initialized successfully');
-} else {
-  console.log('📦 Running in local storage mode (Supabase not configured)');
-}
 
 // Типы для нашей базы данных
 export interface Database {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
 import { getRedirectUrl, debugAuthUrls } from '../utils/authRedirect';
+import { logger } from '../utils/logger';
 
 export interface AuthState {
   user: User | null;
@@ -35,7 +36,13 @@ export const useAuth = () => {
       try {
         const { data: { session }, error } = await supabase!.auth.getSession();
         if (error) {
-          console.error('❌ Ошибка получения сессии:', error);
+          // console.error('❌ Ошибка получения сессии:', error);
+          setAuthState({
+            user: null,
+            session: null,
+            loading: false,
+            isAuthenticated: false
+          });
         }
         
         setAuthState({
@@ -45,7 +52,7 @@ export const useAuth = () => {
           isAuthenticated: !!session?.user
         });
       } catch (error) {
-        console.error('❌ Ошибка инициализации аутентификации:', error);
+        // console.error('❌ Ошибка инициализации аутентификации:', error);
         setAuthState({
           user: null,
           session: null,
@@ -62,7 +69,16 @@ export const useAuth = () => {
       (event: AuthChangeEvent, session: Session | null) => {
         // Логируем только важные события
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          console.log(`🔐 ${event === 'SIGNED_IN' ? 'Вход' : 'Выход'}:`, session?.user?.email || 'анонимно');
+          logger.auth(`${event === 'SIGNED_IN' ? 'Вход' : 'Выход'}: ${session?.user?.email || 'анонимно'}`);
+          
+          // Дополнительная отладка для Google OAuth
+          if (event === 'SIGNED_IN' && session?.user) {
+            // console.log('🔍 Данные пользователя при входе:', {
+            //   user_metadata: session.user.user_metadata,
+            //   identities: session.user.identities,
+            //   app_metadata: session.user.app_metadata
+            // });
+          }
         }
         
         setAuthState({
@@ -200,7 +216,7 @@ export const useAuth = () => {
 
   // Выход
   const signOut = async () => {
-    console.log('🔐 useAuth: Начинаем выход пользователя:', authState.user?.email);
+    logger.auth(`useAuth: Начинаем выход пользователя: ${authState.user?.email}`);
     
     try {
       // 1. Выход из Supabase
@@ -210,7 +226,7 @@ export const useAuth = () => {
       }
       
       // 2. Полная очистка всех пользовательских данных
-      console.log('🧹 Очищаем все пользовательские данные...');
+      logger.auth('Очищаем все пользовательские данные...');
       localStorage.removeItem('wishlistApp');
       localStorage.removeItem('wishlistCategories');
       
@@ -227,13 +243,13 @@ export const useAuth = () => {
       });
       
       // 5. Обновление UI компонентов
-      console.log('🔄 Обновляем UI компоненты...');
+      logger.auth('Обновляем UI компоненты...');
       window.dispatchEvent(new CustomEvent('wishlistDataUpdated'));
       window.dispatchEvent(new CustomEvent('categoriesUpdated'));
       
-      console.log('✅ Выход завершён успешно');
+      logger.auth('Выход завершён успешно');
     } catch (error) {
-      console.error('❌ Ошибка при выходе:', error);
+      // console.error('❌ Ошибка при выходе:', error);
     }
   };
 

@@ -14,30 +14,43 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   const [isDataManagementOpen, setIsDataManagementOpen] = useState(false);
   const [dataState, setDataState] = useState<any>(null);
   const [isClearing, setIsClearing] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Закрытие дропдауна при клике вне его
+  // Отладочная информация для аватарки
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    if (isDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+    if (user) {
+      // console.log('👤 Данные пользователя:', {
+      //   name: user.name,
+      //   email: user.email,
+      //   avatar_url: user.avatar_url,
+      //   provider: user.provider
+      // });
     }
+  }, [user]);
 
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDropdownOpen]);
+  // Сброс ошибки аватарки при смене пользователя
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.id]);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       setIsDropdownOpen(false);
     } catch (error) {
-      console.error('Ошибка при выходе:', error);
+      // console.log('🚪 Клик по выходу');
+    }
+  };
+
+  const handleMobileSignOut = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // console.log('🚪 Клик по выходу');
+    try {
+      await signOut();
+    } catch (error) {
+      // console.error('Ошибка при выходе:', error);
     }
   };
 
@@ -68,7 +81,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
         alert('❌ Произошла ошибка при очистке данных. Попробуйте еще раз.');
       }
     } catch (error) {
-      console.error('Ошибка очистки данных:', error);
+      // console.error('Ошибка очистки данных:', error);
       alert('❌ Произошла ошибка при очистке данных.');
     } finally {
       setIsClearing(false);
@@ -77,9 +90,77 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
 
   const handleDataManagementClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // console.log('🔧 Клик по управлению данными');
     setIsDataManagementOpen(true);
     setIsDropdownOpen(false);
   };
+
+  // Закрытие дропдауна при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    // Отключаем для мобильных - там есть backdrop
+    if (isDropdownOpen && !isMobile) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen, isMobile]);
+
+  // Функция для очистки URL аватарки Google
+  const cleanGoogleAvatarUrl = (url: string) => {
+    if (!url) return url;
+    
+    // Для Google аватарок используем более простой подход
+    if (url.includes('googleusercontent.com')) {
+      try {
+        // Создаем новый URL объект для безопасной работы
+        const urlObj = new URL(url);
+        // Для Google используем базовый URL без параметров размера
+        const basePath = urlObj.pathname;
+        return `${urlObj.origin}${basePath}=s128-c`;
+      } catch (error) {
+        // console.warn('❌ Ошибка парсинга Google URL:', error);
+        // Fallback: просто заменяем размер если есть
+        return url.replace(/=s\d+-c$/, '=s128-c');
+      }
+    }
+    
+    return url;
+  };
+
+  // Получаем очищенный URL аватарки
+  const getAvatarUrl = () => {
+    const rawUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+    if (!rawUrl) return null;
+    
+    try {
+      return cleanGoogleAvatarUrl(rawUrl);
+    } catch (error) {
+      // console.warn('❌ Ошибка обработки URL аватарки:', error);
+      return null;
+    }
+  };
+
+  // Получаем резервный URL аватарки (без параметров размера)
+  const getFallbackAvatarUrl = () => {
+    const rawUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+    if (!rawUrl) return null;
+    
+    if (rawUrl.includes('googleusercontent.com')) {
+      // Убираем все параметры после знака равенства
+      return rawUrl.split('=')[0];
+    }
+    
+    return rawUrl;
+  };
+
+  const avatarUrl = getAvatarUrl();
+  const fallbackAvatarUrl = getFallbackAvatarUrl();
 
   if (!isAuthenticated) {
     return (
@@ -103,24 +184,30 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
           className="flex items-center gap-2 p-2 rounded-lg hover:bg-theme-hover transition-colors"
           title={user?.email || 'Профиль пользователя'}
         >
-          {user?.user_metadata?.avatar_url ? (
+          {!avatarError && avatarUrl ? (
             <img
-              src={user.user_metadata.avatar_url}
+              src={avatarUrl}
               alt="Аватар"
-              className="w-8 h-8 rounded-full"
+              className="w-8 h-8 rounded-full object-cover"
+              onError={(e) => {
+                // console.warn('❌ Ошибка загрузки аватарки:', avatarUrl);
+                
+                // Пробуем fallback URL
+                if (fallbackAvatarUrl && avatarUrl !== fallbackAvatarUrl) {
+                  // console.log('🔄 Пробуем fallback URL:', fallbackAvatarUrl);
+                  (e.target as HTMLImageElement).src = fallbackAvatarUrl;
+                } else {
+                  setAvatarError(true);
+                }
+              }}
             />
           ) : (
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
               {user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
           )}
-          {!isMobile && (
-            <span className="text-theme-primary text-sm max-w-32 truncate">
-              {user?.email}
-            </span>
-          )}
           <svg 
-            className={`w-4 h-4 text-theme-secondary transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+            className={`w-4 h-4 text-theme-secondary transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -134,44 +221,52 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
             {isMobile ? (
               // Для мобильных используем Portal
               <Portal>
-                <div className="fixed inset-0 z-[99999]">
-                  <div className="absolute inset-0" onClick={() => setIsDropdownOpen(false)} />
-                  <div className="absolute left-1/2 top-20 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-lg shadow-lg py-2 min-w-64 z-[100000]">
-                    <div className="px-4 py-2 border-b border-theme-border">
-                      <div className="text-sm font-medium text-theme-primary truncate">
-                        {user?.email}
-                      </div>
-                      <div className="text-xs text-theme-secondary">
-                        {user?.user_metadata?.full_name || 'Пользователь'}
-                      </div>
+                <div 
+                  className="fixed inset-0 z-[99998] pointer-events-auto"
+                  onClick={() => {
+                    // console.log('Клик по backdrop');
+                    setIsDropdownOpen(false);
+                  }} 
+                />
+                <div 
+                  className="absolute left-1/2 top-20 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-xl shadow-lg py-2 min-w-64 z-[99999]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-4 py-2 border-b border-theme-border">
+                    <div className="text-sm font-medium text-theme-primary truncate">
+                      {user?.email}
                     </div>
-                    
-                    <button
-                      onClick={handleDataManagementClick}
-                      className="w-full px-4 py-2 text-left text-sm text-theme-primary hover:bg-theme-hover transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Управление данными
-                    </button>
-
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Выйти
-                    </button>
+                    <div className="text-xs text-theme-secondary">
+                      {user?.user_metadata?.full_name || 'Пользователь'}
+                    </div>
                   </div>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // console.log('UserProfile: Клик по кнопке Управление данными!');
+                      handleDataManagementClick(e);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-theme-primary hover:bg-theme-hover transition-colors flex items-center gap-2"
+                  >
+                    Управление данными
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // console.log('UserProfile: Клик по кнопке Выйти!');
+                      handleMobileSignOut(e);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
+                  >
+                    Выйти
+                  </button>
                 </div>
               </Portal>
             ) : (
               // Для десктопа обычное позиционирование без Portal
-              <div className="absolute right-0 top-full mt-2 bg-theme-card border border-theme-border rounded-lg shadow-lg py-2 min-w-64 z-50">
+              <div className="absolute right-0 top-full mt-2 bg-theme-card border border-theme-border rounded-xl shadow-lg py-2 min-w-64 z-50">
                 <div className="px-4 py-2 border-b border-theme-border">
                   <div className="text-sm font-medium text-theme-primary truncate">
                     {user?.email}
@@ -210,8 +305,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       {/* Модальное окно управления данными */}
       {isDataManagementOpen && (
         <Portal>
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4">
-            <div className="bg-theme-card rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white dark:bg-gray-800 shadow-xl max-w-md w-full p-6 rounded-3xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-theme-primary">Управление данными</h3>
                 <button

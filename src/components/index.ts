@@ -7,7 +7,6 @@ export { ThemeToggle } from './ThemeToggle';
 export { SearchAndSort } from './SearchAndSort';
 export { CalculatorPopup } from './CalculatorPopup';
 export { ConfirmModals } from './ConfirmModals';
-export { OfflineIndicator } from './OfflineIndicator';
 export { WishlistContainer } from './WishlistContainer';
 
 // UI компоненты

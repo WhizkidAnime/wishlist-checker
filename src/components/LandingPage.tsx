@@ -137,9 +137,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
         isMobile 
           ? 'static w-full flex justify-center mb-6 mt-0' 
           : 'fixed top-4 right-4 sm:top-6 sm:right-6 z-50'
-      } flex items-center gap-2 p-2 bg-theme-card/95 dark:bg-theme-card/80 border border-gray-200 dark:border-gray-600 ${
-        isMobile ? '' : 'shadow-lg'
-      } backdrop-blur-md rounded-3xl ${
+      } flex items-center gap-2 ${
         isMobile ? 'max-w-fit' : ''
       }`}>
         <ThemeToggle

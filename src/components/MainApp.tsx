@@ -6,7 +6,6 @@ import { AddItemForm } from './AddItemForm';
 import { WishlistItem } from './WishlistItem';
 import { SearchAndSort } from './SearchAndSort';
 import { CalculatorPopup } from './CalculatorPopup';
-import { ConfirmModals } from './ConfirmModals';
 import { CategoryTabs } from './CategoryTabs';
 import { ThemeToggle } from './ThemeToggle';
 import { UserProfile } from './UserProfile';
@@ -136,14 +135,15 @@ export const MainApp: React.FC<MainAppProps> = ({
 
   const { isMobile, showScrollButton, scrollToTop } = useResponsive();
 
-  const {
-    isConfirmModalOpen,
-    showImportSuccessToast,
-    handleExport,
-    handleImport,
-    handleModalConfirm,
-    handleModalClose
-  } = useImportExport(wishlist, setWishlist, triggerSync, true); // isAuthenticated = true
+  // Убираем неиспользуемые хуки импорта/экспорта после комментирования кнопок
+  // const {
+  //   isConfirmModalOpen,
+  //   showImportSuccessToast,
+  //   handleExport,
+  //   handleImport,
+  //   handleModalConfirm,
+  //   handleModalClose
+  // } = useImportExport(wishlist, setWishlist, triggerSync, true);
 
   const {
     isDeleteModalOpen,
@@ -249,26 +249,26 @@ export const MainApp: React.FC<MainAppProps> = ({
       >
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
-          {/* Десктопная панель управления - статичная */}
-          <div className="hidden sm:flex fixed top-11 right-4 z-50 items-center gap-2 p-2 
-                        bg-theme-card/95 dark:bg-theme-card/80 border border-gray-200 dark:border-gray-600 
-                        shadow-lg backdrop-blur-md rounded-3xl">
-            {themeToggleElement}
-            {userProfileElement}
+          {/* Простая панель управления для десктопа */}
+          <div className="hidden sm:block fixed top-4 right-4 z-50">
+            <div className="flex items-center gap-2">
+              {themeToggleElement}
+              {userProfileElement}
+            </div>
           </div>
 
           {/* Заголовок */}
-          <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-10">
-            {/* Мобильная версия - панель управления сверху */}
+          <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-30">
+            {/* Мобильная версия - простая панель управления сверху */}
             <div className="sm:hidden">
               <div className="flex justify-between items-center mb-4">
                 {/* Кнопка справки слева */}
                 <button
                   onClick={() => setIsHelpModalOpen(true)}
-                  className="flex items-center justify-center w-10 h-10 bg-theme-card border border-theme-border rounded-full shadow-md hover:bg-theme-hover transition-colors"
+                  className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                   aria-label="Справка по приложению"
                 >
-                  <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
@@ -276,9 +276,11 @@ export const MainApp: React.FC<MainAppProps> = ({
                 <h1 className="text-3xl font-bold text-center text-theme-text flex-grow">
                   Wishlist checker
                 </h1>
+                
+                {/* Простая панель управления справа */}
                 <div className="flex items-center gap-2">
-                  {userProfileElement} {/* Профиль всегда тут */}
-                  {mobileThemeToggleElement} {/* Переключатель темы */}
+                  {userProfileElement}
+                  {mobileThemeToggleElement}
                 </div>
               </div>
             </div>
@@ -319,8 +321,6 @@ export const MainApp: React.FC<MainAppProps> = ({
               showSortDropdown={showSortDropdown}
               setShowSortDropdown={setShowSortDropdown}
               isMobile={isMobile}
-              onExport={handleExport}
-              onImport={handleImport}
               itemsCount={displayedWishlist.length}
             />
 
@@ -400,17 +400,45 @@ export const MainApp: React.FC<MainAppProps> = ({
         )}
 
         {/* Модальные окна */}
-        <ConfirmModals
-          isImportModalOpen={isConfirmModalOpen}
-          onImportConfirm={handleModalConfirm}
-          onImportCancel={handleModalClose}
-          isDeleteModalOpen={isDeleteModalOpen}
-          itemToDelete={itemToDelete}
-          isDeleting={isDeleting}
-          onDeleteConfirm={handleDeleteConfirm}
-          onDeleteCancel={handleDeleteCancel}
-          showImportSuccessToast={showImportSuccessToast}
-        />
+        {/* Модальное окно подтверждения удаления */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 mx-auto">
+              <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите удаление</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Вы уверены, что хотите удалить "{itemToDelete?.name}"? Это действие необратимо.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleDeleteCancel}
+                  disabled={isDeleting}
+                  className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Отмена
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                  className="px-4 py-1.5 border border-transparent rounded-full text-sm font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {isDeleting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Удаление...
+                    </>
+                  ) : (
+                    'Удалить'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Модальное окно для массового удаления */}
         {isBulkDeleteModalOpen && (

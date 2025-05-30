@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css'
 
-import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal, AuthCallback, LandingPage, MainApp } from './components';
 
 import { useAuth, useSupabaseSync } from './hooks';
@@ -36,10 +35,10 @@ function App() {
     return <AuthCallback />;
   }
 
+  // Устаревшая функция - оставляем для обратной совместимости
   const handleAuthSuccess = () => {
-    // Эта функция больше не нужна, так как мы отслеживаем изменения через useEffect
-    // Оставляем для совместимости
-    console.log('handleAuthSuccess вызван (устаревший)');
+    // console.log('handleAuthSuccess вызван (устаревший)');
+    // Эта функция больше не нужна, так как мы используем хук useAuth
   };
 
   // Показываем экран загрузки только во время задержки после успешного входа
@@ -70,9 +69,6 @@ function App() {
           onAuthModalOpen={() => setIsAuthModalOpen(true)}
         />
       )}
-
-      {/* Offline индикатор и уведомления об обновлениях */}
-      <OfflineIndicator />
 
       {/* Модальное окно аутентификации */}
       <AuthModal

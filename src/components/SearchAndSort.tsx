@@ -9,8 +9,6 @@ interface SearchAndSortProps {
   showSortDropdown: boolean;
   setShowSortDropdown: (show: boolean) => void;
   isMobile: boolean;
-  onExport: () => void;
-  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   itemsCount: number;
 }
 
@@ -39,8 +37,6 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
   showSortDropdown,
   setShowSortDropdown,
   isMobile,
-  onExport,
-  onImport,
   itemsCount
 }) => {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
@@ -64,29 +60,31 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
   return (
     <div className="flex flex-col justify-between gap-4 border-b pb-4 border-gray-200 dark:border-gray-600">
       {/* Верхняя строка: поиск и кнопки */}
-      <div className="flex flex-row items-center gap-4">
-        <div className="relative flex-grow w-48">
-          <input 
+      <div className="flex items-center gap-4">
+        {/* Поле поиска с кнопкой очистки */}
+        <div className="flex-grow relative">
+          <input
             type="text"
-            placeholder="Поиск по названию/типу..."
+            placeholder="Поиск по названию/ссылке..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder:text-xs input-theme transition-colors duration-200"
+            className="w-full pl-4 pr-10 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-theme-card text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
           />
           {searchQuery && (
-            <DesktopOnlyTooltip content="Очистить поиск">
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </DesktopOnlyTooltip>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+              aria-label="Очистить поиск"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
         </div>
 
+        {/* Кнопки экспорта/импорта - ЗАКОММЕНТИРОВАНЫ */}
+        {/*
         <div className="flex gap-2">
           <DesktopOnlyTooltip content="Экспорт">
             <button 
@@ -112,6 +110,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             </button>
           </DesktopOnlyTooltip>
         </div>
+        */}
       </div>
 
       {/* Нижняя строка: счетчик и сортировка */}

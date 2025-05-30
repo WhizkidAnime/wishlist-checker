@@ -29,16 +29,16 @@ export const logger = {
     }
   },
 
-  // Логи синхронизации (только в dev режиме)
+  // Логи синхронизации (только при включенном debug)
   sync: (message: string, ...args: any[]) => {
-    if (isDevelopment) {
+    if (isDebugEnabled) {
       console.log(`[SYNC] ${message}`, ...args);
     }
   },
 
-  // Логи аутентификации (только в dev режиме) 
+  // Логи аутентификации (только при включенном debug) 
   auth: (message: string, ...args: any[]) => {
-    if (isDevelopment) {
+    if (isDebugEnabled) {
       console.log(`[AUTH] ${message}`, ...args);
     }
   }

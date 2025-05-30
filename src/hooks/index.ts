@@ -8,7 +8,6 @@ export { useCalculatorPosition } from './useCalculatorPosition';
 export { useDeleteModal } from './useDeleteModal';
 export { useResponsive } from './useResponsive';
 export { useDndSensors } from './useDndSensors';
-export { useServiceWorker } from './useServiceWorker';
 export { useBulkActions } from './useBulkActions';
 export { useIsMobile } from './useIsMobile';
 
