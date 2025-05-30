@@ -6,11 +6,11 @@
     <script>
       // GitHub Pages SPA hack для PWA
       // Перенаправляем все 404 запросы на index.html с сохранением пути
-      const path = window.location.pathname;
+      const path = window.location.pathname.replace('/wishlist-checker', '');
       const query = window.location.search;
       const hash = window.location.hash;
       
-      window.location.replace('/' + (path !== '/' ? '?redirect=' + encodeURIComponent(path + query + hash) : ''));
+      window.location.replace('/wishlist-checker/' + (path ? '?redirect=' + encodeURIComponent(path + query + hash) : ''));
     </script>
   </head>
   <body>
