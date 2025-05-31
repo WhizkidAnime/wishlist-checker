@@ -72,6 +72,12 @@ export const useWishlist = (
     if (!isAuthenticated) return;
 
     const handleDataUpdate = () => {
+      // Не перезагружаем данные, если сейчас что-то редактируется
+      if (editingItemId !== null) {
+        console.log('Пропускаем синхронизацию: элемент в режиме редактирования');
+        return;
+      }
+      
       supabase?.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           loadWishlistFromSupabase(user.id);
@@ -81,7 +87,7 @@ export const useWishlist = (
 
     window.addEventListener('wishlistDataUpdated', handleDataUpdate);
     return () => window.removeEventListener('wishlistDataUpdated', handleDataUpdate);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, editingItemId]);
 
   // Базовая функция фильтрации и сортировки (без категорий)
   const getFilteredAndSortedItems = (items: WishlistItem[]) => {

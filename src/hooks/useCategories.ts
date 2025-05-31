@@ -133,6 +133,61 @@ export const useCategories = (
     }
   };
 
+  // Обработчик удаления категории
+  const handleDeleteCategory = async (categoryName: string) => {
+    if (!categoryName || !isAuthenticated || !userId) {
+      return { success: false, message: 'Недостаточно данных для удаления' };
+    }
+
+    if (!isSupabaseAvailable() || !supabase) {
+      return { success: false, message: 'Supabase недоступен' };
+    }
+
+    try {
+      // Сначала перемещаем все товары из удаляемой категории в "Без категории" (category = null)
+      const { error: updateItemsError } = await supabase
+        .from('wishlist_items')
+        .update({ category: null })
+        .eq('user_id', userId)
+        .eq('category', categoryName);
+
+      if (updateItemsError) {
+        console.error('Ошибка обновления товаров при удалении категории:', updateItemsError);
+        return { success: false, message: 'Ошибка перемещения товаров в "Без категории"' };
+      }
+
+      // Затем удаляем саму категорию из Supabase
+      const { error: deleteCategoryError } = await supabase
+        .from('user_categories')
+        .delete()
+        .eq('user_id', userId)
+        .eq('name', categoryName);
+
+      if (deleteCategoryError) {
+        console.error('Ошибка удаления категории из Supabase:', deleteCategoryError);
+        return { success: false, message: 'Ошибка удаления категории из базы данных' };
+      }
+
+      // Обновляем локальное состояние
+      setSupabaseCategories(prev => prev.filter(cat => cat !== categoryName));
+      
+      // Если удаляемая категория была активной, переключаемся на "Без категории"
+      if (activeCategory === categoryName) {
+        setActiveCategory('all');
+      }
+
+      // Запускаем синхронизацию если доступна для обновления товаров
+      if (triggerSync) {
+        await triggerSync();
+      }
+
+      return { success: true, message: 'Категория успешно удалена, товары перемещены в "Без категории"' };
+    } catch (error) {
+      console.error('Ошибка при удалении категории:', error);
+      return { success: false, message: 'Произошла ошибка при удалении' };
+    }
+  };
+
   // Сброс на "Без категории" если активная категория больше не существует
   const resetCategoryIfNeeded = () => {
     if (activeCategory !== 'all' && !categories.includes(activeCategory)) {
@@ -146,6 +201,7 @@ export const useCategories = (
     categories,
     filterByCategory,
     handleAddCategory,
+    handleDeleteCategory,
     resetCategoryIfNeeded,
     refreshCategoriesFromStorage: loadCategoriesFromSupabase // переименовываем для совместимости
   };

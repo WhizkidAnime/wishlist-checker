@@ -32,9 +32,16 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [isUserEditing, setIsUserEditing] = useState(false); // Флаг активного редактирования
   
   // Обновляем состояние формы при изменении редактируемого элемента
   useEffect(() => {
+    // Не сбрасываем форму, если пользователь активно редактирует
+    if (isUserEditing) {
+      console.log('Пропускаем сброс формы: пользователь активно редактирует');
+      return;
+    }
+    
     setFormData({
         itemType: item.itemType || '',
         name: item.name || '',
@@ -44,11 +51,12 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
         category: item.category || '',
     });
     setErrors({}); 
-  }, [item]);
+  }, [item, isUserEditing]);
 
   // Обработчик изменения поля ввода
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name: fieldName, value } = e.target;
+    setIsUserEditing(true); // Устанавливаем флаг активного редактирования
     setFormData(prev => ({ ...prev, [fieldName]: value }));
 
     // Валидация при изменении (можно добавить более сложную)
@@ -128,7 +136,13 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
       category: formData.category.trim() || undefined,
     };
     
+    setIsUserEditing(false); // Сбрасываем флаг перед сохранением
     onUpdateItem(updatedItem);
+  };
+
+  const handleCancel = () => {
+    setIsUserEditing(false); // Сбрасываем флаг при отмене
+    onCancel();
   };
 
   return (
@@ -220,6 +234,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                   <button
                     type="button"
                     onClick={() => {
+                      setIsUserEditing(true);
                       setFormData(prev => ({ ...prev, category: '' }));
                       setShowCategoryDropdown(false);
                     }}
@@ -252,6 +267,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                           key={cat}
                           type="button"
                           onClick={() => {
+                            setIsUserEditing(true);
                             setFormData(prev => ({ ...prev, category: cat }));
                             setShowCategoryDropdown(false);
                           }}
@@ -324,7 +340,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
         <div className="flex justify-between gap-2 mt-4">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={handleCancel}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-gray-500 transition-colors duration-150"
           >
             Отмена

@@ -50,6 +50,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             <div className="space-y-2 text-sm">
               <p><strong className="text-theme-primary">Переключение:</strong> нажимайте на вкладки для переключения между категориями</p>
               <p><strong className="text-theme-primary">Создание:</strong> кнопка «+» создает новую категорию</p>
+              <p><strong className="text-theme-primary">Удаление:</strong> на десктопе наведите курсор на категорию и нажмите крестик; на мобиле дважды тапните по активной категории</p>
               <p><strong className="text-theme-primary">«Без категории»:</strong> показывает товары без категории</p>
               <p><strong className="text-theme-primary">Счетчики:</strong> цифры показывают количество товаров в каждой категории</p>
             </div>

@@ -28,7 +28,10 @@ function App() {
   }, [isAuthenticated, isAuthModalOpen]);
 
   // Проверяем, является ли это auth callback
-  const isAuthCallback = window.location.search.includes('code=') || window.location.pathname.includes('/auth/callback');
+  const isAuthCallback = window.location.search.includes('code=') || 
+                        window.location.pathname.includes('/auth/callback') ||
+                        window.location.hash.includes('access_token=') ||
+                        window.location.search.includes('error=');
   
   // Если это auth callback, показываем компонент обработки
   if (isAuthCallback) {

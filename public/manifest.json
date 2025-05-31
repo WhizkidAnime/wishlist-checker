@@ -2,8 +2,8 @@
   "name": "Wishlist checker",
   "short_name": "Wishlist",
   "description": "Персональный планировщик покупок - сохраняйте желаемые товары с ценами и категориями. Работает offline!",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/wishlist-checker/",
+  "scope": "/wishlist-checker/",
   "display": "standalone",
   "theme_color": "#3b82f6",
   "background_color": "#F9FAFB",
@@ -11,6 +11,7 @@
   "categories": ["productivity", "shopping", "lifestyle"],
   "lang": "ru",
   "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "icons": [
     {
       "src": "icons/wishlist-icon.svg",
@@ -45,13 +46,19 @@
       "name": "Добавить товар",
       "short_name": "Добавить",
       "description": "Быстро добавить новый товар в wishlist",
-      "url": "/?action=add",
+      "url": "/wishlist-checker/?action=add",
       "icons": [
         {
           "src": "icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+wishlist",
+      "url": "/wishlist-checker/?url=%s"
     }
   ]
 } 

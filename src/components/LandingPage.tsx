@@ -30,13 +30,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
       return;
     }
 
+    // Детекция iOS PWA режима
+    const isIOSPWA = () => {
+      return (
+        'standalone' in window.navigator &&
+        (window.navigator as any).standalone === true &&
+        /iPad|iPhone|iPod/.test(navigator.userAgent)
+      );
+    };
+
+    // Предупреждение для iOS PWA пользователей
+    if (isIOSPWA()) {
+      const userConfirmed = window.confirm(
+        'Для входа через Google в PWA режиме на iOS может потребоваться открыть приложение в Safari. Продолжить?'
+      );
+      
+      if (!userConfirmed) {
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
     try {
       await signInWithGoogle();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Произошла ошибка');
+      console.error('Google Sign-In Error:', error);
+      
+      // Специальная обработка для iOS
+      if (isIOSPWA()) {
+        setError('Для входа через Google в PWA режиме откройте приложение в Safari браузере');
+      } else {
+        setError(error instanceof Error ? error.message : 'Произошла ошибка при входе через Google');
+      }
     } finally {
       setLoading(false);
     }
@@ -273,6 +300,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
             </svg>
             {loading ? 'Выполняется вход...' : 'Продолжить с Google'}
           </button>
+
+          {/* Предупреждение для iOS PWA */}
+          {(() => {
+            const isIOSPWA = 'standalone' in window.navigator &&
+              (window.navigator as any).standalone === true &&
+              /iPad|iPhone|iPod/.test(navigator.userAgent);
+            
+            if (isIOSPWA) {
+              return (
+                <div className="w-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-amber-600 dark:text-amber-400 text-lg">⚠️</span>
+                    <div className="text-sm">
+                      <p className="font-medium text-amber-800 dark:text-amber-200 mb-1">
+                        Вход через Google в PWA режиме
+                      </p>
+                      <p className="text-amber-700 dark:text-amber-300">
+                        Если возникнут проблемы, откройте приложение в Safari браузере для входа через Google.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           <p className={`text-xs ${themeConfig.text} opacity-50 text-center mt-4`}>
             Создайте аккаунт с паролем или войдите через Google.<br/>

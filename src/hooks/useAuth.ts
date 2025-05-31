@@ -3,6 +3,14 @@ import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
 import { getRedirectUrl, debugAuthUrls } from '../utils/authRedirect';
 import { logger } from '../utils/logger';
+import { 
+  isIOSPWA, 
+  isIOSSafari, 
+  getRecommendedOAuthMethod, 
+  showIOSOAuthWarning,
+  getIOSOAuthErrorMessage,
+  logDeviceInfo 
+} from '../utils/iosSupport';
 
 export interface AuthState {
   user: User | null;
@@ -200,17 +208,43 @@ export const useAuth = () => {
     // Отладочная информация
     if (process.env.NODE_ENV === 'development') {
       debugAuthUrls();
+      logDeviceInfo();
     }
 
-    const { error } = await supabase!.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: getRedirectUrl()
-      }
-    });
+    // Показываем предупреждение для iOS PWA пользователей
+    if (!showIOSOAuthWarning()) {
+      return;
+    }
 
-    if (error) {
-      throw error;
+    const oauthMethod = getRecommendedOAuthMethod();
+    
+    try {
+      if (oauthMethod === 'external' && isIOSPWA()) {
+        // Для iOS PWA открываем в внешнем браузере
+        const authUrl = `https://umvghchvnsuqnxrvzhct.supabase.co/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(getRedirectUrl())}&prompt=select_account`;
+        window.open(authUrl, '_blank');
+        return;
+      }
+
+      // Стандартный OAuth flow
+      const { error } = await supabase!.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: getRedirectUrl(),
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account'
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      // Специальная обработка ошибок для iOS
+      const errorMessage = getIOSOAuthErrorMessage(error);
+      throw new Error(errorMessage);
     }
   };
 

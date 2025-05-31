@@ -11,6 +11,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { UserProfile } from './UserProfile';
 import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
+import { CategoryDeleteModal } from './CategoryDeleteModal';
 import { HelpModal } from './ui/HelpModal';
 
 import { useWishlist } from '../hooks/useWishlist';
@@ -39,6 +40,9 @@ export const MainApp: React.FC<MainAppProps> = ({
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isCategoryDeleteModalOpen, setIsCategoryDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string>('');
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   // Получаем userId из контекста аутентификации  
   const { user } = useAuth();
@@ -80,6 +84,7 @@ export const MainApp: React.FC<MainAppProps> = ({
     categories,
     filterByCategory,
     handleAddCategory,
+    handleDeleteCategory,
     resetCategoryIfNeeded
   } = useCategories(wishlist, triggerSync, isAuthenticated, userId);
 
@@ -161,6 +166,37 @@ export const MainApp: React.FC<MainAppProps> = ({
   const handleBulkMoveToCategory = async (categoryName: string | null) => {
     const selectedIds = bulkSelectedItems.map(item => item.id);
     await bulkMoveToCategory(selectedIds, categoryName);
+  };
+
+  // Обработчики удаления категории
+  const handleCategoryDeleteClick = (categoryName: string) => {
+    setCategoryToDelete(categoryName);
+    setIsCategoryDeleteModalOpen(true);
+  };
+
+  const handleCategoryDeleteConfirm = async () => {
+    if (!categoryToDelete) return;
+    
+    setIsDeletingCategory(true);
+    try {
+      const result = await handleDeleteCategory(categoryToDelete);
+      if (result.success) {
+        setIsCategoryDeleteModalOpen(false);
+        setCategoryToDelete('');
+      } else {
+        console.error('Ошибка удаления категории:', result.message);
+        // Здесь можно добавить уведомление пользователю об ошибке
+      }
+    } catch (error) {
+      console.error('Критическая ошибка при удалении категории:', error);
+    } finally {
+      setIsDeletingCategory(false);
+    }
+  };
+
+  const handleCategoryDeleteCancel = () => {
+    setIsCategoryDeleteModalOpen(false);
+    setCategoryToDelete('');
   };
 
   // Расширенная функция toggleSelected с поддержкой позиционирования калькулятора
@@ -298,6 +334,7 @@ export const MainApp: React.FC<MainAppProps> = ({
               activeCategory={activeCategory}
               onCategoryChange={setActiveCategory}
               onAddCategory={handleAddCategory}
+              onDeleteCategory={handleCategoryDeleteClick}
             />
             
             <SearchAndSort
@@ -403,7 +440,7 @@ export const MainApp: React.FC<MainAppProps> = ({
                   type="button"
                   onClick={handleDeleteCancel}
                   disabled={isDeleting}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Отмена
                 </button>
@@ -440,6 +477,16 @@ export const MainApp: React.FC<MainAppProps> = ({
             onCancel={handleBulkDeleteCancel}
           />
         )}
+
+        {/* Модальное окно удаления категории */}
+        <CategoryDeleteModal
+          isOpen={isCategoryDeleteModalOpen}
+          categoryName={categoryToDelete}
+          itemsCount={categoryToDelete ? wishlist.filter(item => item.category === categoryToDelete).length : 0}
+          isDeleting={isDeletingCategory}
+          onConfirm={handleCategoryDeleteConfirm}
+          onCancel={handleCategoryDeleteCancel}
+        />
 
         {/* Панель массовых действий */}
         <BulkActionBar
