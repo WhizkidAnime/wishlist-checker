@@ -5,7 +5,6 @@ import { getRedirectUrl, debugAuthUrls } from '../utils/authRedirect';
 import { logger } from '../utils/logger';
 import { 
   isIOSPWA, 
-  isIOSSafari, 
   getRecommendedOAuthMethod, 
   showIOSOAuthWarning,
   getIOSOAuthErrorMessage,
