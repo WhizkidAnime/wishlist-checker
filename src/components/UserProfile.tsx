@@ -229,11 +229,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
                     setIsDropdownOpen(false);
                   }} 
                 />
-                <div 
-                  className="absolute left-1/2 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-xl shadow-lg py-2 min-w-64 z-[99999]"
-                  style={{ top: 'calc(100% + 16px)' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
+                                  <div 
+                    className="fixed bg-theme-card border border-theme-border rounded-xl shadow-lg py-2 min-w-64 z-[99999]"
+                    style={{ 
+                      top: '80px',
+                      right: '16px'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                   <div className="px-4 py-2 border-b border-theme-border">
                     <div className="text-sm font-medium text-theme-primary truncate">
                       {user?.email}
