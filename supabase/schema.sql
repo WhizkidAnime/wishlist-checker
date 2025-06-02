@@ -153,4 +153,37 @@
 
     -- =====================================================
     -- Схема готова к использованию!
-    -- ===================================================== 
+    -- =====================================================
+
+    -- =====================================================
+    -- 7. RPC функция для атомарного обновления порядка товаров
+    -- =====================================================
+
+    -- Функция для атомарного обновления порядка товаров
+    CREATE OR REPLACE FUNCTION update_items_order(
+        p_user_id UUID,
+        p_item_orders JSONB
+    )
+    RETURNS BOOLEAN AS $$
+    DECLARE
+        item_data JSONB;
+    BEGIN
+        -- Проверяем что пользователь имеет доступ
+        IF p_user_id != auth.uid() THEN
+            RAISE EXCEPTION 'Access denied';
+        END IF;
+        
+        -- Обновляем порядок для каждого товара
+        FOR item_data IN SELECT * FROM jsonb_array_elements(p_item_orders)
+        LOOP
+            UPDATE public.wishlist_items 
+            SET sort_order = (item_data->>'sort_order')::INTEGER
+            WHERE id = (item_data->>'id')::UUID 
+            AND user_id = p_user_id;
+        END LOOP;
+        
+        RETURN TRUE;
+    EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error updating items order: %', SQLERRM;
+    END;
+    $$ LANGUAGE plpgsql SECURITY DEFINER; 

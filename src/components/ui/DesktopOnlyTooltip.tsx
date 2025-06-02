@@ -6,7 +6,7 @@ interface DesktopOnlyTooltipProps {
   content: string;
   children: ReactNode;
   delay?: number;
-  position?: 'top' | 'bottom' | 'left' | 'right';
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
   className?: string;
   usePortal?: boolean;
 }
@@ -15,9 +15,9 @@ export const DesktopOnlyTooltip: React.FC<DesktopOnlyTooltipProps> = ({
   content, 
   children, 
   delay,
-  position,
+  position = 'auto',
   className,
-  usePortal
+  usePortal = true
 }) => {
   const isMobile = useIsMobile();
 

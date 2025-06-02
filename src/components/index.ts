@@ -22,4 +22,5 @@ export { AuthCallback } from './AuthCallback';
 export { UserProfile } from './UserProfile';
 export { LandingPage } from './LandingPage';
 export { MainApp } from './MainApp';
-export { Portal } from './Portal'; 
+export { Portal } from './Portal';
+export { AdaptiveControlPanel } from './AdaptiveControlPanel'; 

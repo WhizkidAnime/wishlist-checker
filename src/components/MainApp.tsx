@@ -7,8 +7,7 @@ import { WishlistItem } from './WishlistItem';
 import { SearchAndSort } from './SearchAndSort';
 import { CalculatorPopup } from './CalculatorPopup';
 import { CategoryTabs } from './CategoryTabs';
-import { ThemeToggle } from './ThemeToggle';
-import { UserProfile } from './UserProfile';
+import { AdaptiveControlPanel } from './AdaptiveControlPanel';
 import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
 import { CategoryDeleteModal } from './CategoryDeleteModal';
@@ -135,7 +134,7 @@ export const MainApp: React.FC<MainAppProps> = ({
     hideCalculator
   } = useCalculatorPosition();
 
-  const { isMobile, showScrollButton, scrollToTop } = useResponsive();
+  const { isMobile, isDesktopWide, showScrollButton, scrollToTop } = useResponsive();
 
   const {
     isDeleteModalOpen,
@@ -238,30 +237,18 @@ export const MainApp: React.FC<MainAppProps> = ({
       .reduce((sum, item) => sum + item.price, 0);
   }, [displayedWishlist]);
 
-  // Используем useMemo для дочерних компонентов, чтобы предотвратить лишние рендеры
-  const themeToggleElement = useMemo(() => (
-    <ThemeToggle 
+  // Используем useMemo для адаптивной панели управления
+  const adaptiveControlPanel = useMemo(() => (
+    <AdaptiveControlPanel
       themeMode={themeMode}
       systemTheme={systemTheme}
       onSetTheme={setTheme}
-      isMobile={false} // Для десктопа
       supportsAutoTheme={supportsAutoTheme}
+      onAuthModalOpen={onAuthModalOpen}
+      isMobile={isMobile}
+      isDesktopWide={isDesktopWide}
     />
-  ), [themeMode, systemTheme, setTheme, supportsAutoTheme]);
-
-  const userProfileElement = useMemo(() => (
-    <UserProfile onSignInClick={onAuthModalOpen} />
-  ), [onAuthModalOpen]);
-
-  const mobileThemeToggleElement = useMemo(() => (
-    <ThemeToggle 
-      themeMode={themeMode}
-      systemTheme={systemTheme}
-      onSetTheme={setTheme}
-      isMobile={true} // Для мобильных
-      supportsAutoTheme={supportsAutoTheme}
-    />
-  ), [themeMode, systemTheme, setTheme, supportsAutoTheme]);
+  ), [themeMode, systemTheme, setTheme, supportsAutoTheme, onAuthModalOpen, isMobile, isDesktopWide]);
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -272,12 +259,9 @@ export const MainApp: React.FC<MainAppProps> = ({
       >
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
-          {/* Простая панель управления для десктопа */}
-          <div className="hidden sm:block fixed top-4 right-4 z-50">
-            <div className="flex items-center gap-2">
-              {themeToggleElement}
-              {userProfileElement}
-            </div>
+          {/* Адаптивная панель управления */}
+          <div className={`fixed top-4 right-4 z-50 ${isMobile ? 'hidden' : 'block'}`}>
+            {adaptiveControlPanel}
           </div>
 
           {/* Заголовок */}
@@ -288,7 +272,7 @@ export const MainApp: React.FC<MainAppProps> = ({
                 {/* Кнопка справки слева */}
                 <button
                   onClick={() => setIsHelpModalOpen(true)}
-                  className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                  className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-shrink-0"
                   aria-label="Справка по приложению"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,14 +280,17 @@ export const MainApp: React.FC<MainAppProps> = ({
                   </svg>
                 </button>
                 
-                <h1 className="text-3xl font-bold text-center text-theme-text flex-grow">
-                  Wishlist checker
-                </h1>
+                {/* Заголовок по центру в две строки */}
+                <div className="flex-1 text-center mx-3">
+                  <h1 className="text-2xl font-bold text-theme-text leading-tight">
+                    <div>Wishlist</div>
+                    <div>checker</div>
+                  </h1>
+                </div>
                 
-                {/* Простая панель управления справа */}
-                <div className="flex items-center gap-2">
-                  {userProfileElement}
-                  {mobileThemeToggleElement}
+                {/* Адаптивная панель управления справа */}
+                <div className="flex-shrink-0">
+                  {adaptiveControlPanel}
                 </div>
               </div>
             </div>

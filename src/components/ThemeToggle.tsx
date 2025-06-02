@@ -21,7 +21,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const dropdownPosition = useDropdownPosition(triggerRef, isDropdownOpen);
+  // Увеличиваем отступ для мобильной версии, чтобы дропдаун не перекрывал заголовок
+  const dropdownPosition = useDropdownPosition(triggerRef, isDropdownOpen, isMobile ? 16 : 8);
 
   // Функция для получения иконки темы
   const getThemeIcon = (mode: ThemeMode, size: string = "h-4 w-4") => {
@@ -90,7 +91,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         <button
           ref={triggerRef}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 p-2 bg-theme-toggle text-gray-600 dark:text-gray-400 hover:bg-theme-toggle-hover transition-all duration-200 shadow-sm focus:outline-none rounded-lg"
+          className="flex items-center gap-2 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200 focus:outline-none"
           aria-label="Выбор темы"
         >
           {getThemeIcon(themeMode)}
@@ -120,7 +121,10 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
               className="absolute w-48 border border-gray-200 dark:border-gray-700 shadow-xl z-[9999] overflow-hidden rounded-xl"
               style={{
                 top: dropdownPosition.top,
-                right: dropdownPosition.right,
+                ...(dropdownPosition.right && dropdownPosition.right < 200 
+                  ? { right: dropdownPosition.right } 
+                  : { left: dropdownPosition.left || 0 }
+                ),
                 backgroundColor: 'var(--color-card-background)'
               }}
             >
@@ -179,40 +183,39 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     );
   }
 
-  // Десктопная версия - три кнопки
+  // Десктопная версия - минималистичные кнопки без текста
   return (
-    <div className="flex justify-center items-center gap-1 p-1 bg-theme-toggle transition-colors duration-200 rounded-xl">
+    <div className="flex items-center gap-1 p-1 bg-theme-toggle transition-colors duration-200 rounded-xl">
       
       {/* Кнопка автоматической темы */}
-      <DesktopOnlyTooltip content={`Автоматическая тема (сейчас: ${systemTheme === 'dark' ? 'тёмная' : 'светлая'})`}>
-        <button
-          onClick={() => onSetTheme('auto')}
-          className={`p-2 transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none rounded-lg ${
-            themeMode === 'auto' 
-              ? 'bg-theme-toggle-active text-purple-500 shadow-sm' 
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover'
-          }`}
-          aria-label="Автоматическая тема"
-          disabled={!supportsAutoTheme}
-        >
-          {getThemeIcon('auto')}
-          <span className="text-xs font-medium">Авто</span>
-        </button>
-      </DesktopOnlyTooltip>
+      {supportsAutoTheme && (
+        <DesktopOnlyTooltip content={`Автоматическая тема (сейчас: ${systemTheme === 'dark' ? 'тёмная' : 'светлая'})`}>
+          <button
+            onClick={() => onSetTheme('auto')}
+            className={`p-2 transition-all duration-200 flex items-center justify-center focus:outline-none rounded-lg ${
+              themeMode === 'auto' 
+                ? 'bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400' 
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+            aria-label="Автоматическая тема"
+          >
+            {getThemeIcon('auto')}
+          </button>
+        </DesktopOnlyTooltip>
+      )}
 
       {/* Кнопка светлой темы */}
       <DesktopOnlyTooltip content="Светлая тема">
         <button
           onClick={() => onSetTheme('light')}
-          className={`p-2 transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none rounded-lg ${
+          className={`p-2 transition-all duration-200 flex items-center justify-center focus:outline-none rounded-lg ${
             themeMode === 'light' 
-              ? 'bg-theme-toggle-active text-yellow-500 shadow-sm' 
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover'
+              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400' 
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
           aria-label="Светлая тема"
         >
           {getThemeIcon('light')}
-          <span className="text-xs font-medium">Светлая</span>
         </button>
       </DesktopOnlyTooltip>
 
@@ -220,26 +223,16 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <DesktopOnlyTooltip content="Тёмная тема">
         <button
           onClick={() => onSetTheme('dark')}
-          className={`p-2 transition-all duration-200 flex items-center justify-center gap-1 focus:outline-none rounded-lg ${
+          className={`p-2 transition-all duration-200 flex items-center justify-center focus:outline-none rounded-lg ${
             themeMode === 'dark' 
-              ? 'bg-theme-toggle-active text-blue-400 shadow-sm' 
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-theme-toggle-hover'
+              ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' 
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
           aria-label="Тёмная тема"
         >
           {getThemeIcon('dark')}
-          <span className="text-xs font-medium">Тёмная</span>
         </button>
       </DesktopOnlyTooltip>
-
-      {/* Подсказка о поддержке автоматической темы */}
-      {!supportsAutoTheme && (
-        <DesktopOnlyTooltip content="Автоматическая тема не поддерживается в этом браузере" position="left">
-          <div className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-            ⚠️
-          </div>
-        </DesktopOnlyTooltip>
-      )}
     </div>
   );
 }; 

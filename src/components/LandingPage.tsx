@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
-import { useIsMobile } from '../hooks/useIsMobile';
-import { ThemeToggle } from './ThemeToggle';
-import { UserProfile } from './UserProfile';
+import { useResponsive } from '../hooks/useResponsive';
+import { AdaptiveControlPanel } from './AdaptiveControlPanel';
 
 interface LandingPageProps {
   onAuthModalOpen: () => void;
@@ -13,7 +12,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
   const { signInWithGoogle, isSupabaseAvailable } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isMobile = useIsMobile();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const { isMobile, isDesktopWide } = useResponsive();
 
   const { 
     themeMode, 
@@ -156,25 +156,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     }
   ];
 
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % features.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + features.length) % features.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
       
-      {/* Панель управления */}
+      {/* Адаптивная панель управления */}
       <div className={`${
         isMobile 
           ? 'static w-full flex justify-center mb-6 mt-0' 
           : 'fixed top-4 right-4 sm:top-6 sm:right-6 z-50'
-      } flex items-center gap-2 ${
-        isMobile ? 'max-w-fit' : ''
       }`}>
-        <ThemeToggle
+        <AdaptiveControlPanel
           themeMode={themeMode}
           systemTheme={systemTheme}
           onSetTheme={setTheme}
           supportsAutoTheme={supportsAutoTheme}
+          onAuthModalOpen={onAuthModalOpen}
           isMobile={isMobile}
+          isDesktopWide={isDesktopWide}
         />
-        <UserProfile onSignInClick={onAuthModalOpen} />
       </div>
 
       {/* Основной контент */}
@@ -220,24 +231,95 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
         </div>
 
         {/* Функциональные возможности */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 sm:mb-12">
-          {features.map((feature, index) => (
-            <div 
-              key={index}
-              className={`p-6 rounded-2xl ${themeConfig.background} border border-gray-200 dark:border-gray-700 transition-colors duration-200 hover:shadow-lg`}
-            >
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4`}>
-                {feature.icon}
+        {isMobile ? (
+          /* Мобильная карусель */
+          <div className="mb-8 relative">
+            <div className="overflow-hidden rounded-2xl">
+              <div 
+                className="flex transition-transform duration-300 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {features.map((feature, index) => (
+                  <div 
+                    key={index}
+                    className={`w-full flex-shrink-0 p-6 ${themeConfig.background} border border-gray-200 dark:border-gray-700 text-center`}
+                  >
+                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4 mx-auto`}>
+                      {feature.icon}
+                    </div>
+                    <h3 className={`text-lg font-semibold ${themeConfig.text} mb-3 transition-colors duration-200`}>
+                      {feature.title}
+                    </h3>
+                    <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200 leading-relaxed`}>
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
               </div>
-              <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2 transition-colors duration-200`}>
-                {feature.title}
-              </h3>
-              <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200`}>
-                {feature.description}
-              </p>
             </div>
-          ))}
-        </div>
+            
+            {/* Навигация карусели */}
+            <div className="flex items-center justify-between mt-4">
+              {/* Кнопка назад */}
+              <button
+                onClick={prevSlide}
+                className={`p-2 rounded-full ${themeConfig.text} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                aria-label="Предыдущая карточка"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              {/* Индикаторы */}
+              <div className="flex gap-2">
+                {features.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentSlide 
+                        ? 'bg-gray-800 dark:bg-gray-200' 
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                    aria-label={`Перейти к карточке ${index + 1}`}
+                  />
+                ))}
+              </div>
+              
+              {/* Кнопка вперед */}
+              <button
+                onClick={nextSlide}
+                className={`p-2 rounded-full ${themeConfig.text} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                aria-label="Следующая карточка"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Десктопная сетка */
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 sm:mb-12">
+            {features.map((feature, index) => (
+              <div 
+                key={index}
+                className={`p-6 rounded-2xl ${themeConfig.background} border border-gray-200 dark:border-gray-700 transition-colors duration-200 hover:shadow-lg`}
+              >
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4`}>
+                  {feature.icon}
+                </div>
+                <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2 transition-colors duration-200`}>
+                  {feature.title}
+                </h3>
+                <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200`}>
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Кнопки авторизации */}
         <div className="flex flex-col items-center space-y-4 max-w-md mx-auto">
@@ -251,13 +333,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
             </div>
           )}
 
-          {/* Основная кнопка авторизации */}
+          {/* Основная кнопка авторизации - монохромный дизайн */}
           <button
             onClick={onAuthModalOpen}
             disabled={loading}
-            className={`w-full py-3 px-6 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl 
-                     hover:from-gray-700 hover:to-gray-900 disabled:opacity-50 disabled:cursor-not-allowed
-                     transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-lg hover:shadow-xl`}
+            className={`w-full py-3 px-6 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl 
+                     hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-lg hover:shadow-xl
+                     border border-gray-900 dark:border-gray-100`}
           >
             <svg 
               className="w-5 h-5" 
@@ -284,12 +367,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
             <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
           </div>
 
-          {/* Кнопка Google */}
+          {/* Кнопка Google - монохромный дизайн */}
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
             className={`w-full py-3 px-6 border-2 border-gray-300 dark:border-gray-600 ${themeConfig.text} rounded-xl 
-                     hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
+                     hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 
+                     disabled:opacity-50 disabled:cursor-not-allowed
                      transition-all duration-200 font-medium flex items-center justify-center gap-3 shadow-sm hover:shadow-md`}
           >
             <svg width="20" height="20" viewBox="0 0 18 18">

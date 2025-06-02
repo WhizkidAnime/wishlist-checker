@@ -28,6 +28,39 @@ export const CategoryTabs = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
+  // Обработчик прокрутки колесом мыши для горизонтальной прокрутки
+  const handleWheel = (e: React.WheelEvent) => {
+    if (scrollContainerRef.current) {
+      // Проверяем, можем ли мы предотвратить событие
+      // Не используем preventDefault для пассивных слушателей
+      try {
+        // Только пытаемся предотвратить если не пассивный слушатель
+        if (e.cancelable !== false) {
+          e.preventDefault();
+        }
+        e.stopPropagation();
+      } catch (error) {
+        // Игнорируем ошибки preventDefault в пассивных слушателях
+        console.log('Не удалось предотвратить событие (пассивный слушатель)');
+      }
+      
+      scrollContainerRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
+  // Функции для прокрутки влево и вправо
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
+
   // Автоматическая прокрутка до конца при открытии формы добавления
   useEffect(() => {
     if (isAddingCategory && scrollContainerRef.current) {
@@ -104,7 +137,26 @@ export const CategoryTabs = ({
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-600 mb-4">
-      <div ref={scrollContainerRef} className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+      <div className="relative">
+        {/* Кнопка прокрутки влево */}
+        {isMobile && (
+          <button
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 shadow-md rounded-full p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            style={{ marginTop: '-1px' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
+        <div 
+          ref={scrollContainerRef} 
+          className={`flex items-center gap-1 overflow-x-auto scrollbar-hide ${isMobile ? 'px-8' : ''}`}
+          onWheel={handleWheel}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
         {/* Вкладка "Без категории" */}
         <button
           onClick={() => onCategoryChange('all')}
@@ -150,10 +202,7 @@ export const CategoryTabs = ({
               </DesktopOnlyTooltip>
             )}
             
-            {/* Индикатор двойного тапа на мобиле */}
-            {isMobile && activeCategory === category && lastTappedCategory === category && (
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            )}
+
           </div>
         ))}
 
@@ -206,6 +255,20 @@ export const CategoryTabs = ({
               </svg>
             </button>
           </DesktopOnlyTooltip>
+        )}
+        </div>
+
+        {/* Кнопка прокрутки вправо */}
+        {isMobile && (
+          <button
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 shadow-md rounded-full p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            style={{ marginTop: '-1px' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         )}
       </div>
     </div>

@@ -25,7 +25,6 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
 }) => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const selectedCount = selectedItems.length;
-  const selectedTotal = selectedItems.reduce((sum, item) => sum + item.price, 0);
 
   if (selectedCount === 0) return null;
 
@@ -63,9 +62,6 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
             <div className="flex-shrink-0 text-center">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Выбрано: {selectedCount}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {selectedTotal.toLocaleString()} RUB
               </div>
             </div>
 
@@ -128,37 +124,37 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                 {/* Dropdown меню категорий */}
                 {showCategoryDropdown && (
                   <div 
-                    className={`absolute rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 min-w-48 animate-in fade-in-0 zoom-in-95 ${
+                    className={`absolute rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-w-48 w-auto animate-in fade-in-0 zoom-in-95 ${
                       isMobile ? 'left-0 right-0 bottom-full mb-2' : 'bottom-full mb-2 left-0'
                     }`}
                     style={{ backgroundColor: 'var(--color-card-background)' }}
                   >
-                    {/* Без категории */}
-                    <DesktopOnlyTooltip content="Переместить выбранные товары в категорию без категории">
+                    {/* Контейнер с ограниченной высотой и скроллингом */}
+                    <div className="max-h-52 overflow-y-auto scrollbar-hide py-1 flex flex-col">
+                      {/* Без категории */}
                       <button
                         onClick={() => handleMoveToCategory(null)}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap block"
                       >
                         Без категории
                       </button>
-                    </DesktopOnlyTooltip>
-                    
-                    {/* Существующие категории */}
-                    {categories.length > 0 && (
-                      <>
-                        <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
-                        {categories.map((category) => (
-                          <DesktopOnlyTooltip content={`Переместить выбранные товары в категорию "${category}"`} key={category}>
+                      
+                      {/* Существующие категории */}
+                      {categories.length > 0 && (
+                        <>
+                          <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
+                          {categories.map((category) => (
                             <button
+                              key={category}
                               onClick={() => handleMoveToCategory(category)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors whitespace-nowrap block"
                             >
                               {category}
                             </button>
-                          </DesktopOnlyTooltip>
-                        ))}
-                      </>
-                    )}
+                          ))}
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

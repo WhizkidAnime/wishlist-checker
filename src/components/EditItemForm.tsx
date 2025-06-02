@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect, ChangeEvent } from 'react';
+import { useState, FormEvent, useEffect, ChangeEvent, useRef } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
@@ -34,6 +34,26 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [isUserEditing, setIsUserEditing] = useState(false); // Флаг активного редактирования
   
+  // Ref для контейнера выпадающего списка категорий
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Обработчик клика вне области выпадающего списка
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    if (showCategoryDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCategoryDropdown]);
+
   // Обновляем состояние формы при изменении редактируемого элемента
   useEffect(() => {
     // Не сбрасываем форму, если пользователь активно редактирует
@@ -210,7 +230,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           </div>
 
           {/* Категория */}
-          <div className="relative sm:col-span-2 lg:col-span-1">
+          <div className="relative sm:col-span-2 lg:col-span-1" ref={categoryDropdownRef}>
             <label htmlFor={`edit-category-${item.id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Категория (опционально)
             </label>
@@ -222,41 +242,39 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 value={formData.category}
                 onChange={handleChange}
                 onFocus={() => setShowCategoryDropdown(true)}
-                onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
                 className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs input-theme"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
               />
-              
-              {/* Кнопка очистки */}
-              {formData.category && (
-                <DesktopOnlyTooltip content="Очистить категорию">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUserEditing(true);
-                      setFormData(prev => ({ ...prev, category: '' }));
-                      setShowCategoryDropdown(false);
-                    }}
-                    className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </DesktopOnlyTooltip>
-              )}
-              
-              {/* Кнопка выпадающего списка */}
-              <button
-                type="button"
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+              {/* Контейнер для иконок */}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+                {formData.category && (
+                  <DesktopOnlyTooltip content="Очистить категорию">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserEditing(true);
+                        setFormData(prev => ({ ...prev, category: '' }));
+                        setShowCategoryDropdown(false);
+                      }}
+                      className="w-4 h-4 mr-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none flex items-center justify-center"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </DesktopOnlyTooltip>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none flex items-center justify-center"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
               
               {showCategoryDropdown && (
                 <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-40 overflow-y-auto" style={{ backgroundColor: 'var(--color-dropdown-background)' }}>

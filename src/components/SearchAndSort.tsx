@@ -146,12 +146,12 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             <DesktopOnlyTooltip content="Открыть параметры сортировки">
               <button 
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
-                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150"
+                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 flex items-center whitespace-nowrap"
               >
-                {getSortLabel()}
+                <span>{getSortLabel()}</span>
                 <svg 
                   className={cn(
-                    "w-4 h-4 ml-2 transition-transform duration-200",
+                    "w-4 h-4 ml-2 flex-shrink-0 transition-transform duration-200",
                     showSortDropdown && "rotate-180"
                   )}
                   fill="none" 
@@ -164,32 +164,37 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             </DesktopOnlyTooltip>
             
             {showSortDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-colors duration-200 focus:outline-none">
+              <div 
+                className={`absolute top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50 ${
+                  isMobile ? 'right-0' : 'left-0'
+                }`}
+                style={{ backgroundColor: 'var(--color-card-background)' }}
+              >
                 <div className="py-1">
                   <button
                     onClick={() => handleSortChange('default')}
-                    className={`block w-full text-left px-4 py-2 text-sm ${
+                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 ${
                       sortBy === 'default' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
                   >
                     Стандарт
                   </button>
                   <button
                     onClick={() => handleSortChange('type-asc')}
-                    className={`block w-full text-left px-4 py-2 text-sm ${
+                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 ${
                       sortBy === 'type-asc' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
                   >
                     Тип А-Я
                   </button>
                   <button
                     onClick={() => handleSortChange('price-asc')}
-                    className={`block w-full text-left px-4 py-2 text-sm ${
+                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 ${
                       sortBy === 'price-asc' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
                   >
                     Цена ↑
                   </button>
                   <button
                     onClick={() => handleSortChange('price-desc')}
-                    className={`block w-full text-left px-4 py-2 text-sm ${
+                    className={`block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 ${
                       sortBy === 'price-desc' ? 'bg-gray-100 dark:bg-gray-700 font-medium' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition-colors duration-200`}
                   >
                     Цена ↓

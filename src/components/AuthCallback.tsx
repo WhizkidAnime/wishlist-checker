@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { useSystemTheme, getSystemThemeClasses } from '../utils/systemTheme';
 
 export const AuthCallback: React.FC = () => {
   const [loading] = useState(true);
   const [error] = useState<string | null>(null);
+  
+  // Системная тема для экрана загрузки
+  const systemTheme = useSystemTheme();
+  const systemThemeClasses = getSystemThemeClasses(systemTheme);
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -120,11 +125,13 @@ export const AuthCallback: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-theme-primary mx-auto mb-4"></div>
-          <p className="text-theme-text">Завершаем вход в аккаунт...</p>
-          <p className="text-theme-text-secondary text-sm mt-2">
+      <div className={`min-h-screen flex items-center justify-center ${systemThemeClasses.background} transition-colors duration-200`}>
+        <div className={`${systemThemeClasses.card} rounded-3xl shadow-lg p-8 text-center max-w-md mx-4 border ${systemThemeClasses.border}`}>
+          <div className={`animate-spin rounded-full h-16 w-16 border-4 ${systemThemeClasses.spinner} mx-auto mb-6`}></div>
+          <h2 className={`text-xl font-semibold ${systemThemeClasses.primary} mb-2`}>
+            Завершаем вход в аккаунт...
+          </h2>
+          <p className={`${systemThemeClasses.textSecondary} text-sm`}>
             Если процесс затягивается, попробуйте обновить страницу
           </p>
         </div>
@@ -143,19 +150,19 @@ export const AuthCallback: React.FC = () => {
     }, []);
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-theme-background">
-        <div className="text-center max-w-md mx-auto p-6">
+      <div className={`min-h-screen flex items-center justify-center ${systemThemeClasses.background} transition-colors duration-200`}>
+        <div className={`${systemThemeClasses.card} rounded-3xl shadow-lg p-8 text-center max-w-md mx-4 border ${systemThemeClasses.border}`}>
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-theme-primary mb-4">
+          <h2 className={`text-xl font-bold ${systemThemeClasses.primary} mb-4`}>
             Ошибка входа
           </h2>
-          <p className="text-theme-text mb-4">{error}</p>
-          <p className="text-theme-text-secondary text-sm">
+          <p className={`${systemThemeClasses.text} mb-4`}>{error}</p>
+          <p className={`${systemThemeClasses.textSecondary} text-sm mb-4`}>
             Автоматическое перенаправление через 3 секунды...
           </p>
           <button
             onClick={() => window.location.href = '/wishlist-checker/'}
-            className="mt-4 px-4 py-2 bg-theme-primary text-white rounded-lg hover:opacity-90 transition-colors"
+            className={`px-6 py-3 ${systemTheme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg transition-colors duration-200 font-medium`}
           >
             Вернуться на главную
           </button>

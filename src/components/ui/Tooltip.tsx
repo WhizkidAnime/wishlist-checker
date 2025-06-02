@@ -7,7 +7,7 @@ interface TooltipProps {
   content: string;
   children: ReactNode;
   delay?: number; // Задержка в миллисекундах перед показом
-  position?: 'top' | 'bottom' | 'left' | 'right';
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
   className?: string;
   usePortal?: boolean; // Опция для использования Portal при проблемах с z-index
 }
@@ -16,18 +16,59 @@ export const Tooltip = ({
   content, 
   children, 
   delay = 800, // По умолчанию 800ms задержка
-  position = 'top',
+  position = 'auto', // Изменяем по умолчанию на 'auto'
   className = '',
-  usePortal = false
+  usePortal = true // Включаем Portal по умолчанию для лучшего позиционирования
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
+  const [actualPosition, setActualPosition] = useState<'top' | 'bottom' | 'left' | 'right'>('top');
   // const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  // Функция для определения оптимальной позиции
+  const calculateOptimalPosition = (triggerRect: DOMRect): 'top' | 'bottom' | 'left' | 'right' => {
+    if (position !== 'auto') {
+      return position;
+    }
+
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const tooltipHeight = 40; // Примерная высота тултипа
+    const tooltipWidth = 200; // Примерная ширина тултипа
+    const margin = 10; // Отступ от края экрана
+
+    // Проверяем доступное место сверху
+    const spaceAbove = triggerRect.top;
+    // Проверяем доступное место снизу
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    // Проверяем доступное место слева
+    const spaceLeft = triggerRect.left;
+    // Проверяем доступное место справа
+    const spaceRight = viewportWidth - triggerRect.right;
+
+    // Приоритет: снизу > сверху > справа > слева
+    if (spaceBelow >= tooltipHeight + margin) {
+      return 'bottom';
+    } else if (spaceAbove >= tooltipHeight + margin) {
+      return 'top';
+    } else if (spaceRight >= tooltipWidth + margin) {
+      return 'right';
+    } else if (spaceLeft >= tooltipWidth + margin) {
+      return 'left';
+    }
+
+    // Если места мало везде, выбираем сторону с наибольшим пространством
+    const maxSpace = Math.max(spaceAbove, spaceBelow, spaceLeft, spaceRight);
+    if (maxSpace === spaceBelow) return 'bottom';
+    if (maxSpace === spaceAbove) return 'top';
+    if (maxSpace === spaceRight) return 'right';
+    return 'left';
+  };
 
   const handleMouseEnter = () => {
     if (isMobile) return; // На мобиле не показываем tooltip по hover
@@ -38,8 +79,14 @@ export const Tooltip = ({
     
     setShouldShow(true);
     timeoutRef.current = setTimeout(() => {
-      if (usePortal && triggerRef.current) {
-        calculatePortalPosition();
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        const optimalPosition = calculateOptimalPosition(rect);
+        setActualPosition(optimalPosition);
+        
+        if (usePortal) {
+          calculatePortalPosition(optimalPosition);
+        }
       }
       setIsVisible(true);
     }, delay);
@@ -63,7 +110,7 @@ export const Tooltip = ({
     // }
   };
 
-  const calculatePortalPosition = () => {
+  const calculatePortalPosition = (positionToUse: 'top' | 'bottom' | 'left' | 'right') => {
     if (!triggerRef.current) return;
     
     const rect = triggerRef.current.getBoundingClientRect();
@@ -73,7 +120,7 @@ export const Tooltip = ({
     let top = 0;
     let left = 0;
     
-    switch (position) {
+    switch (positionToUse) {
       case 'top':
         top = rect.top + scrollTop - 10; // 10px отступ для tooltip + стрелки
         left = rect.left + scrollLeft + rect.width / 2;
@@ -97,17 +144,26 @@ export const Tooltip = ({
 
   useEffect(() => {
     if (usePortal && shouldShow && triggerRef.current) {
-      calculatePortalPosition();
+      const rect = triggerRef.current.getBoundingClientRect();
+      const optimalPosition = calculateOptimalPosition(rect);
+      setActualPosition(optimalPosition);
+      calculatePortalPosition(optimalPosition);
       
       const handleScroll = () => {
-        if (shouldShow) {
-          calculatePortalPosition();
+        if (shouldShow && triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          const optimalPosition = calculateOptimalPosition(rect);
+          setActualPosition(optimalPosition);
+          calculatePortalPosition(optimalPosition);
         }
       };
       
       const handleResize = () => {
-        if (shouldShow) {
-          calculatePortalPosition();
+        if (shouldShow && triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          const optimalPosition = calculateOptimalPosition(rect);
+          setActualPosition(optimalPosition);
+          calculatePortalPosition(optimalPosition);
         }
       };
       
@@ -132,7 +188,7 @@ export const Tooltip = ({
   const getPositionClasses = () => {
     if (usePortal) {
       // Для Portal используем трансформации для центрирования
-      switch (position) {
+      switch (actualPosition) {
         case 'top':
           return 'transform -translate-x-1/2 -translate-y-full';
         case 'bottom':
@@ -146,7 +202,7 @@ export const Tooltip = ({
       }
     }
     
-    switch (position) {
+    switch (actualPosition) {
       case 'top':
         return 'bottom-full left-1/2 transform -translate-x-1/2 mb-2';
       case 'bottom':
@@ -161,7 +217,7 @@ export const Tooltip = ({
   };
 
   const getArrowClasses = () => {
-    switch (position) {
+    switch (actualPosition) {
       case 'top':
         return 'top-full left-1/2 transform -translate-x-1/2 border-l-transparent border-r-transparent border-b-transparent border-t-gray-800 dark:border-t-gray-200';
       case 'bottom':

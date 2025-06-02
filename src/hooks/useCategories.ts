@@ -1,6 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
+import { 
+  persistActiveCategoryToDB, 
+  getLastActiveCategoryFromDB, 
+  clearActiveCategoryFromDB 
+} from '../utils/categoryPersistence';
 
 export const useCategories = (
   wishlist: WishlistItem[], 
@@ -8,8 +13,23 @@ export const useCategories = (
   isAuthenticated?: boolean,
   userId?: string | null
 ) => {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [activeCategory, setActiveCategoryState] = useState<string>('all');
   const [supabaseCategories, setSupabaseCategories] = useState<string[]>([]);
+  const [hasAttemptedRestore, setHasAttemptedRestore] = useState(false);
+
+  // Обертка для setActiveCategory с сохранением в IndexedDB
+  const setActiveCategory = useCallback((category: string) => {
+    setActiveCategoryState(category);
+    if (category === 'all') {
+      clearActiveCategoryFromDB().catch(error => {
+        console.warn('[IndexedDB] Ошибка при очистке категории (выбрана "all"):', error);
+      });
+    } else {
+      persistActiveCategoryToDB(category).catch(error => {
+        console.warn('[IndexedDB] Ошибка при сохранении категории:', error);
+      });
+    }
+  }, []);
 
   // Загружаем категории из Supabase при авторизации
   const loadCategoriesFromSupabase = useCallback(async () => {
@@ -36,14 +56,16 @@ export const useCategories = (
     }
   }, [isAuthenticated, userId]);
 
-  // Загружаем категории при изменении состояния авторизации
+  // Загружаем категории при изменении состояния авторизации и очищаем состояние при выходе
   useEffect(() => {
     if (isAuthenticated === false) {
-      // Очищаем состояние при выходе
       setSupabaseCategories([]);
-      setActiveCategory('all');
+      setActiveCategoryState('all'); 
+      setHasAttemptedRestore(false); // Сбрасываем флаг при выходе
+      clearActiveCategoryFromDB().catch(error => {
+        console.warn('[IndexedDB] Ошибка при очистке категории (выход):', error);
+      });
     } else if (isAuthenticated === true && userId) {
-      // Загружаем категории при входе
       loadCategoriesFromSupabase();
     }
   }, [isAuthenticated, userId, loadCategoriesFromSupabase]);
@@ -66,26 +88,36 @@ export const useCategories = (
   // Получаем список уникальных категорий из товаров + из Supabase
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
-    
-    // Добавляем категории из товаров
     wishlist.forEach(item => {
       if (item.category) {
         categorySet.add(item.category);
       }
     });
-    
-    // Добавляем категории из Supabase
     supabaseCategories.forEach(category => {
       categorySet.add(category);
     });
-    
     return Array.from(categorySet).sort();
   }, [wishlist, supabaseCategories]);
+
+  // Восстанавливаем сохраненную категорию после загрузки списка категорий и авторизации
+  useEffect(() => {
+    if (isAuthenticated && categories.length > 0 && !hasAttemptedRestore) {
+      setHasAttemptedRestore(true); // Устанавливаем флаг, что попытка восстановления была
+      getLastActiveCategoryFromDB().then(savedCategory => {
+        if (savedCategory && categories.includes(savedCategory)) {
+          // Устанавливаем состояние без вызова обертки setActiveCategory,
+          // чтобы избежать немедленного повторного сохранения/очистки
+          setActiveCategoryState(savedCategory); 
+        }
+      }).catch(error => {
+        console.warn('[IndexedDB] Ошибка при восстановлении категории:', error);
+      });
+    }
+  }, [categories, isAuthenticated, hasAttemptedRestore]);
 
   // Фильтруем товары по активной категории
   const filterByCategory = (items: WishlistItem[]) => {
     if (activeCategory === 'all') {
-      // В разделе "Без категории" показываем только товары БЕЗ категории
       return items.filter(item => !item.category || item.category.trim() === '');
     }
     return items.filter(item => item.category === activeCategory);
@@ -94,37 +126,23 @@ export const useCategories = (
   // Обработчик добавления новой категории
   const handleAddCategory = async (categoryName: string) => {
     const trimmedName = categoryName.trim();
-    
     if (!trimmedName || categories.includes(trimmedName) || !isAuthenticated || !userId) {
       return;
     }
-
     if (!isSupabaseAvailable() || !supabase) {
       console.error('Supabase недоступен для добавления категории');
       return;
     }
-
     try {
-      // Добавляем категорию в Supabase
       const { error } = await supabase
         .from('user_categories')
-        .insert({
-          user_id: userId,
-          name: trimmedName
-        });
-
+        .insert({ user_id: userId, name: trimmedName });
       if (error) {
         console.error('Ошибка добавления категории в Supabase:', error);
         return;
       }
-
-      // Обновляем локальное состояние
       setSupabaseCategories(prev => [...prev, trimmedName]);
-      
-      // Переключаемся на новую категорию
-      setActiveCategory(trimmedName);
-
-      // Запускаем синхронизацию если доступна
+      setActiveCategory(trimmedName); // Используем обертку для сохранения
       if (triggerSync) {
         triggerSync();
       }
@@ -138,49 +156,35 @@ export const useCategories = (
     if (!categoryName || !isAuthenticated || !userId) {
       return { success: false, message: 'Недостаточно данных для удаления' };
     }
-
     if (!isSupabaseAvailable() || !supabase) {
       return { success: false, message: 'Supabase недоступен' };
     }
-
     try {
-      // Сначала перемещаем все товары из удаляемой категории в "Без категории" (category = null)
       const { error: updateItemsError } = await supabase
         .from('wishlist_items')
         .update({ category: null })
         .eq('user_id', userId)
         .eq('category', categoryName);
-
       if (updateItemsError) {
         console.error('Ошибка обновления товаров при удалении категории:', updateItemsError);
         return { success: false, message: 'Ошибка перемещения товаров в "Без категории"' };
       }
-
-      // Затем удаляем саму категорию из Supabase
       const { error: deleteCategoryError } = await supabase
         .from('user_categories')
         .delete()
         .eq('user_id', userId)
         .eq('name', categoryName);
-
       if (deleteCategoryError) {
         console.error('Ошибка удаления категории из Supabase:', deleteCategoryError);
         return { success: false, message: 'Ошибка удаления категории из базы данных' };
       }
-
-      // Обновляем локальное состояние
       setSupabaseCategories(prev => prev.filter(cat => cat !== categoryName));
-      
-      // Если удаляемая категория была активной, переключаемся на "Без категории"
       if (activeCategory === categoryName) {
-        setActiveCategory('all');
+        setActiveCategory('all'); // Используем обертку, она обработает очистку
       }
-
-      // Запускаем синхронизацию если доступна для обновления товаров
       if (triggerSync) {
         await triggerSync();
       }
-
       return { success: true, message: 'Категория успешно удалена, товары перемещены в "Без категории"' };
     } catch (error) {
       console.error('Ошибка при удалении категории:', error);
@@ -191,7 +195,7 @@ export const useCategories = (
   // Сброс на "Без категории" если активная категория больше не существует
   const resetCategoryIfNeeded = () => {
     if (activeCategory !== 'all' && !categories.includes(activeCategory)) {
-      setActiveCategory('all');
+      setActiveCategory('all'); // Используем обертку, она обработает очистку
     }
   };
 
@@ -203,6 +207,6 @@ export const useCategories = (
     handleAddCategory,
     handleDeleteCategory,
     resetCategoryIfNeeded,
-    refreshCategoriesFromStorage: loadCategoriesFromSupabase // переименовываем для совместимости
+    refreshCategoriesFromStorage: loadCategoriesFromSupabase
   };
 }; 

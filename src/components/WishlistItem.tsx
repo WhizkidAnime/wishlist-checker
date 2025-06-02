@@ -360,6 +360,36 @@ export const WishlistItem = ({
             </button>
           </DesktopOnlyTooltip>
           
+          {/* Кнопки перемещения для мобильных устройств */}
+          {isMobile && index > 0 && (
+            <DesktopOnlyTooltip content="Переместить вверх" position="top">
+              <button 
+                onClick={() => onMoveItem(item.id, 'up')} 
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:text-gray-800 dark:active:text-gray-100 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+                aria-label="Переместить вверх"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+            </DesktopOnlyTooltip>
+          )}
+          {isMobile && index < totalItems - 1 && (
+            <DesktopOnlyTooltip content="Переместить вниз" position="top">
+              <button 
+                onClick={() => onMoveItem(item.id, 'down')} 
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:text-gray-800 dark:active:text-gray-100 p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+                aria-label="Переместить вниз"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </DesktopOnlyTooltip>
+          )}
+          
           <DesktopOnlyTooltip content="Редактировать товар" position="top">
             <button 
               onClick={() => onEditClick(item.id)}

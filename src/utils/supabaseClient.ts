@@ -124,5 +124,17 @@ export interface Database {
         };
       };
     };
+    Functions: {
+      update_items_order: {
+        Args: {
+          p_user_id: string;
+          p_item_orders: Array<{
+            id: string;
+            sort_order: number;
+          }>;
+        };
+        Returns: boolean;
+      };
+    };
   };
 } 

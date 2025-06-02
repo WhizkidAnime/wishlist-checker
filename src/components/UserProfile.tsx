@@ -166,12 +166,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
     return (
       <button
         onClick={onSignInClick}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        className="flex items-center gap-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl transition-all duration-200 hover:bg-gray-800 dark:hover:bg-gray-200 border border-gray-900 dark:border-gray-100 h-10"
+        title="Войти в аккаунт"
       >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd" />
         </svg>
-        Войти
+        <span className="text-sm font-medium">Войти</span>
       </button>
     );
   }
@@ -229,7 +230,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
                   }} 
                 />
                 <div 
-                  className="absolute left-1/2 top-20 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-xl shadow-lg py-2 min-w-64 z-[99999]"
+                  className="absolute left-1/2 transform -translate-x-1/2 bg-theme-card border border-theme-border rounded-xl shadow-lg py-2 min-w-64 z-[99999]"
+                  style={{ top: 'calc(100% + 16px)' }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="px-4 py-2 border-b border-theme-border">

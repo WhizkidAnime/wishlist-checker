@@ -47,7 +47,7 @@ export const useSupabaseSync = (userId: string | null) => {
         .from('wishlist_items')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('sort_order', { ascending: true });
 
       if (error) throw error;
 

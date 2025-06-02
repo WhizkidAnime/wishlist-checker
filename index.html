@@ -36,6 +36,122 @@
     <link rel="apple-touch-icon" sizes="60x60" href="/icons/icon-180x180.png" />
     <link rel="apple-touch-icon" sizes="57x57" href="/icons/icon-180x180.png" />
 
+    <!-- Встроенные стили для экрана загрузки -->
+    <style>
+      /* Базовые стили для экрана загрузки */
+      #initial-loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease-in-out;
+        padding: 1rem;
+      }
+
+      /* Светлая тема по умолчанию */
+      #initial-loading-screen {
+        background-color: #f9fafb;
+      }
+
+      #initial-loading-card {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        text-align: center;
+        max-width: 24rem;
+        width: 100%;
+      }
+
+      #initial-loading-spinner {
+        width: 4rem;
+        height: 4rem;
+        border: 4px solid #e5e7eb;
+        border-top: 4px solid #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1.5rem auto;
+      }
+
+      #initial-loading-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2563eb;
+        margin-bottom: 0.5rem;
+      }
+
+      #initial-loading-text {
+        color: #4b5563;
+        font-size: 0.875rem;
+      }
+
+      /* Темная тема - системная */
+      @media (prefers-color-scheme: dark) {
+        #initial-loading-screen:not(.dark-theme) {
+          background-color: #111827;
+        }
+
+        #initial-loading-screen:not(.dark-theme) #initial-loading-card {
+          background-color: #1f2937;
+          border-color: #374151;
+        }
+
+        #initial-loading-screen:not(.dark-theme) #initial-loading-spinner {
+          border-color: #374151;
+          border-top-color: #60a5fa;
+        }
+
+        #initial-loading-screen:not(.dark-theme) #initial-loading-title {
+          color: #60a5fa;
+        }
+
+        #initial-loading-screen:not(.dark-theme) #initial-loading-text {
+          color: #d1d5db;
+        }
+      }
+
+      /* Темная тема - принудительная через класс */
+      #initial-loading-screen.dark-theme {
+        background-color: #111827;
+      }
+
+      #initial-loading-screen.dark-theme #initial-loading-card {
+        background-color: #1f2937;
+        border-color: #374151;
+      }
+
+      #initial-loading-screen.dark-theme #initial-loading-spinner {
+        border-color: #374151;
+        border-top-color: #60a5fa;
+      }
+
+      #initial-loading-screen.dark-theme #initial-loading-title {
+        color: #60a5fa;
+      }
+
+      #initial-loading-screen.dark-theme #initial-loading-text {
+        color: #d1d5db;
+      }
+
+      /* Анимация спиннера */
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Скрытие экрана загрузки */
+      #initial-loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+
     <script type="text/javascript">
       // GitHub Pages SPA обработка для PWA
       // Обрабатываем перенаправления от 404.html
@@ -49,9 +165,82 @@
           window.history.replaceState(null, null, newUrl);
         }
       })();
+
+      // Применение темы на основе сохраненных настроек пользователя
+      function applyUserTheme() {
+        try {
+          // Получаем сохраненную тему пользователя
+          const savedThemeMode = localStorage.getItem('wishlist-theme-mode');
+          const oldTheme = localStorage.getItem('wishlist-theme');
+          
+          let shouldUseDarkTheme = false;
+          
+          if (savedThemeMode === 'dark') {
+            shouldUseDarkTheme = true;
+          } else if (savedThemeMode === 'light') {
+            shouldUseDarkTheme = false;
+          } else if (oldTheme === 'dark') {
+            shouldUseDarkTheme = true;
+          } else if (oldTheme === 'light') {
+            shouldUseDarkTheme = false;
+          } else {
+            // Режим auto или нет сохраненных настроек - используем системную тему
+            shouldUseDarkTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          
+          // Применяем тему к экрану загрузки
+          const loadingScreen = document.getElementById('initial-loading-screen');
+          if (loadingScreen) {
+            if (shouldUseDarkTheme) {
+              loadingScreen.classList.add('dark-theme');
+            } else {
+              loadingScreen.classList.remove('dark-theme');
+            }
+          }
+        } catch (error) {
+          console.warn('Error applying user theme:', error);
+        }
+      }
+
+      // Скрытие экрана загрузки после загрузки React приложения
+      window.addEventListener('DOMContentLoaded', function() {
+        // Применяем тему сразу
+        applyUserTheme();
+        
+        // Ждем загрузки React приложения
+        const checkReactLoaded = () => {
+          const root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            // React приложение загружено, скрываем экран загрузки
+            const loadingScreen = document.getElementById('initial-loading-screen');
+            if (loadingScreen) {
+              loadingScreen.classList.add('hidden');
+              // Полностью удаляем через 300ms (время анимации)
+              setTimeout(() => {
+                loadingScreen.remove();
+              }, 300);
+            }
+          } else {
+            // Проверяем снова через 100ms
+            setTimeout(checkReactLoaded, 100);
+          }
+        };
+        
+        // Начинаем проверку через 500ms, чтобы дать время React приложению загрузиться
+        setTimeout(checkReactLoaded, 500);
+      });
     </script>
   </head>
   <body>
+    <!-- Встроенный экран загрузки -->
+    <div id="initial-loading-screen">
+      <div id="initial-loading-card">
+        <div id="initial-loading-spinner"></div>
+        <h2 id="initial-loading-title">Загрузка...</h2>
+        <p id="initial-loading-text">Инициализация приложения</p>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
