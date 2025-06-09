@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { AdaptiveControlPanel } from './AdaptiveControlPanel';
+import Carousel, { CarouselItem } from './Carousel';
 
 interface LandingPageProps {
   onAuthModalOpen: () => void;
@@ -12,7 +13,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
   const { signInWithGoogle, isSupabaseAvailable } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
+
   const { isMobile, isDesktopWide } = useResponsive();
 
   const { 
@@ -69,8 +70,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     }
   };
 
-  const features = [
+  const features: CarouselItem[] = [
     {
+      id: 1,
       icon: (
         <svg 
           className="w-6 h-6" 
@@ -92,6 +94,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
       description: "Добавляйте товары с названием, ссылкой и ценой. Отмечайте купленные и следите за прогрессом."
     },
     {
+      id: 2,
       icon: (
         <svg 
           className="w-6 h-6" 
@@ -113,6 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
       description: "Организуйте желания по категориям: электроника, одежда, хобби и другие."
     },
     {
+      id: 3,
       icon: (
         <svg 
           className="w-6 h-6" 
@@ -134,6 +138,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
       description: "Выбирайте несколько товаров и мгновенно видите общую стоимость покупок."
     },
     {
+      id: 4,
       icon: (
         <svg 
           className="w-6 h-6" 
@@ -156,17 +161,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
     }
   ];
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % features.length);
-  };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + features.length) % features.length);
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
@@ -232,92 +227,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
 
         {/* Функциональные возможности */}
         {isMobile ? (
-          /* Мобильная карусель */
-          <div className="mb-8 relative">
-            <div className="overflow-hidden rounded-2xl">
-              <div 
-                className="flex transition-transform duration-300 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {features.map((feature, index) => (
-                  <div 
-                    key={index}
-                    className={`w-full flex-shrink-0 p-6 ${themeConfig.background} border border-gray-200 dark:border-gray-700 text-center`}
-                  >
-                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4 mx-auto`}>
-                      {feature.icon}
-                    </div>
-                    <h3 className={`text-lg font-semibold ${themeConfig.text} mb-3 transition-colors duration-200`}>
-                      {feature.title}
-                    </h3>
-                    <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200 leading-relaxed`}>
-                      {feature.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Навигация карусели */}
-            <div className="flex items-center justify-between mt-4">
-              {/* Кнопка назад */}
-              <button
-                onClick={prevSlide}
-                className={`p-2 rounded-full ${themeConfig.text} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                aria-label="Предыдущая карточка"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              {/* Индикаторы */}
-              <div className="flex gap-2">
-                {features.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentSlide 
-                        ? 'bg-gray-800 dark:bg-gray-200' 
-                        : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                    aria-label={`Перейти к карточке ${index + 1}`}
-                  />
-                ))}
-              </div>
-              
-              {/* Кнопка вперед */}
-              <button
-                onClick={nextSlide}
-                className={`p-2 rounded-full ${themeConfig.text} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                aria-label="Следующая карточка"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
+          /* Мобильная карусель с framer-motion */
+          <div className="mb-8 flex justify-center">
+            <Carousel
+              items={features}
+              baseWidth={Math.min(320, window.innerWidth - 40)}
+              autoplay={true}
+              autoplayDelay={4000}
+              pauseOnHover={true}
+              loop={true}
+              round={false}
+              themeConfig={{
+                background: themeConfig.cardBackground || themeConfig.background,
+                text: themeConfig.text,
+                border: 'border-gray-200 dark:border-gray-700'
+              }}
+            />
           </div>
         ) : (
-          /* Десктопная сетка */
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 sm:mb-12">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className={`p-6 rounded-2xl ${themeConfig.background} border border-gray-200 dark:border-gray-700 transition-colors duration-200 hover:shadow-lg`}
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4`}>
-                  {feature.icon}
-                </div>
-                <h3 className={`text-lg font-semibold ${themeConfig.text} mb-2 transition-colors duration-200`}>
-                  {feature.title}
-                </h3>
-                <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200`}>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
+          /* Десктопная карусель */
+          <div className="mb-8 sm:mb-12 flex justify-center">
+            <Carousel
+              items={features}
+              baseWidth={Math.min(500, window.innerWidth - 100)}
+              autoplay={true}
+              autoplayDelay={5000}
+              pauseOnHover={true}
+              loop={true}
+              round={false}
+              themeConfig={{
+                background: themeConfig.cardBackground || themeConfig.background,
+                text: themeConfig.text,
+                border: 'border-gray-200 dark:border-gray-700'
+              }}
+            />
           </div>
         )}
 

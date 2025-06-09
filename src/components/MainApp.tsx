@@ -492,6 +492,19 @@ export const MainApp: React.FC<MainAppProps> = ({
           isOpen={isHelpModalOpen}
           onClose={() => setIsHelpModalOpen(false)}
         />
+
+        {/* Скрытая ссылка на демо (только в dev режиме) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-2 right-2 opacity-20 hover:opacity-100 transition-opacity duration-200 z-50">
+            <button
+              onClick={() => window.location.href = '/wishlist-checker/demo/errors'}
+              className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded"
+              title="Демо ErrorPage"
+            >
+              🔧 Demo
+            </button>
+          </div>
+        )}
       </SortableContext>
     </DndContext>
   );

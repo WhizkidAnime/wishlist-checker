@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css'
 
-import { AuthModal, AuthCallback, LandingPage, MainApp } from './components';
+import { AuthModal, AuthCallback, LandingPage, MainApp, NotFoundPage, ErrorPageDemo } from './components';
 
 import { useAuth, useSupabaseSync } from './hooks';
 import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
@@ -9,6 +9,27 @@ import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authSuccessDelay, setAuthSuccessDelay] = useState(false);
+
+  // Глобальные функции для тестирования (только в dev режиме)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      (window as any).showErrorPageDemo = () => {
+        window.location.href = '/wishlist-checker/demo/errors';
+      };
+      
+      (window as any).show404 = () => {
+        window.location.href = '/wishlist-checker/nonexistent-page';
+      };
+      
+      console.log('🔧 Dev функции доступны:');
+      console.log('- showErrorPageDemo() - открыть демо страниц ошибок');
+      console.log('- show404() - открыть страницу 404');
+    } else {
+      // В production убираем функции
+      delete (window as any).showErrorPageDemo;
+      delete (window as any).show404;
+    }
+  }, []);
 
   // Аутентификация и синхронизация
   const { user, isAuthenticated, loading } = useAuth();
@@ -38,9 +59,27 @@ function App() {
                         window.location.hash.includes('access_token=') ||
                         window.location.search.includes('error=');
   
+  // Проверяем путь для обработки 404
+  const pathname = window.location.pathname;
+  const validPaths = ['/', '/wishlist-checker/', '/wishlist-checker/auth/callback'];
+  const isValidPath = validPaths.some(path => pathname === path || pathname.startsWith(path));
+  
+  // Демо режим только в development
+  const isDemoMode = process.env.NODE_ENV === 'development' && pathname.includes('/demo/errors');
+  
   // Если это auth callback, показываем компонент обработки
   if (isAuthCallback) {
     return <AuthCallback />;
+  }
+  
+  // Если это демо режим, показываем демо
+  if (isDemoMode) {
+    return <ErrorPageDemo />;
+  }
+  
+  // Если путь неизвестен, показываем 404
+  if (!isValidPath && !pathname.includes('?redirect=')) {
+    return <NotFoundPage onReturnHome={() => window.location.href = '/wishlist-checker/'} />;
   }
 
   // Устаревшая функция - оставляем для обратной совместимости

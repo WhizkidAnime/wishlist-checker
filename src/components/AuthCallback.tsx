@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { useSystemTheme, getSystemThemeClasses } from '../utils/systemTheme';
+import { ErrorPage } from './ErrorPage';
 
 export const AuthCallback: React.FC = () => {
-  const [loading] = useState(true);
-  const [error] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Системная тема для экрана загрузки
   const systemTheme = useSystemTheme();
@@ -55,15 +56,28 @@ export const AuthCallback: React.FC = () => {
 
         if (errorCode) {
           console.error('❌ OAuth Error:', errorCode, errorDescription);
-          // Для iOS PWA пробуем альтернативный подход
-          if (isIOSPWA() && errorCode === 'access_denied') {
-            // Возможно, пользователь отменил вход - просто перенаправляем
+          
+          let errorMessage = '';
+          let shouldRedirect = false;
+          
+          if (errorCode === 'access_denied') {
+            if (isIOSPWA()) {
+              shouldRedirect = true; // Для iOS PWA сразу перенаправляем
+            } else {
+              errorMessage = 'Вход отменен пользователем';
+            }
+          } else {
+            errorMessage = `Ошибка OAuth: ${errorDescription || errorCode}`;
+          }
+          
+          if (shouldRedirect) {
             window.location.href = '/wishlist-checker/';
             return;
+          } else if (errorMessage) {
+            setError(errorMessage);
+            setLoading(false);
+            return;
           }
-          // Для других ошибок тоже перенаправляем на главную
-          window.location.href = '/wishlist-checker/';
-          return;
         }
 
         if (code) {
@@ -73,7 +87,8 @@ export const AuthCallback: React.FC = () => {
           
           if (error) {
             console.error('❌ Code exchange error:', error);
-            window.location.href = '/wishlist-checker/';
+            setError('Ошибка при обмене кода авторизации');
+            setLoading(false);
             return;
           }
           console.log('✅ Code exchange successful');
@@ -87,13 +102,15 @@ export const AuthCallback: React.FC = () => {
 
           if (error) {
             console.error('❌ Session set error:', error);
-            window.location.href = '/wishlist-checker/';
+            setError('Ошибка при установке сессии');
+            setLoading(false);
             return;
           }
           console.log('✅ Session set successful');
         } else {
           console.warn('⚠️ No auth parameters found, redirecting...');
-          window.location.href = '/wishlist-checker/';
+          setError('Не найдены параметры авторизации');
+          setLoading(false);
           return;
         }
 
@@ -116,7 +133,8 @@ export const AuthCallback: React.FC = () => {
         
       } catch (error) {
         console.error('❌ Auth callback error:', error);
-        window.location.href = '/wishlist-checker/';
+        setError('Произошла неожиданная ошибка при авторизации');
+        setLoading(false);
       }
     };
 
@@ -140,34 +158,14 @@ export const AuthCallback: React.FC = () => {
   }
 
   if (error) {
-    // Автоматическое перенаправление через 3 секунды при ошибке
-    React.useEffect(() => {
-      const timer = setTimeout(() => {
-        window.location.href = '/wishlist-checker/';
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }, []);
-
     return (
-      <div className={`min-h-screen flex items-center justify-center ${systemThemeClasses.background} transition-colors duration-200`}>
-        <div className={`${systemThemeClasses.card} rounded-3xl shadow-lg p-8 text-center max-w-md mx-4 border ${systemThemeClasses.border}`}>
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className={`text-xl font-bold ${systemThemeClasses.primary} mb-4`}>
-            Ошибка входа
-          </h2>
-          <p className={`${systemThemeClasses.text} mb-4`}>{error}</p>
-          <p className={`${systemThemeClasses.textSecondary} text-sm mb-4`}>
-            Автоматическое перенаправление через 3 секунды...
-          </p>
-          <button
-            onClick={() => window.location.href = '/wishlist-checker/'}
-            className={`px-6 py-3 ${systemTheme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg transition-colors duration-200 font-medium`}
-          >
-            Вернуться на главную
-          </button>
-        </div>
-      </div>
+      <ErrorPage
+        errorCode="🔐"
+        title="Ошибка авторизации"
+        description={error}
+        onReturnHome={() => window.location.href = '/wishlist-checker/'}
+        showReturnButton={true}
+      />
     );
   }
 

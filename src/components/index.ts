@@ -14,6 +14,7 @@ export { Tooltip } from './ui/Tooltip';
 export { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 export { HelpModal } from './ui/HelpModal';
 export { MobileTooltipModal } from './ui/MobileTooltipModal';
+export { default as FuzzyText } from './ui/FuzzyText';
 
 // Новые компоненты для Supabase
 export { AuthModal } from './AuthModal';
@@ -23,4 +24,8 @@ export { UserProfile } from './UserProfile';
 export { LandingPage } from './LandingPage';
 export { MainApp } from './MainApp';
 export { Portal } from './Portal';
-export { AdaptiveControlPanel } from './AdaptiveControlPanel'; 
+export { AdaptiveControlPanel } from './AdaptiveControlPanel';
+export { default as Carousel } from './Carousel';
+export { ErrorPage } from './ErrorPage';
+export { NotFoundPage } from './NotFoundPage';
+export { ErrorPageDemo } from './ErrorPageDemo'; 
