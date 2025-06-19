@@ -108,10 +108,14 @@ export const MainApp: React.FC<MainAppProps> = ({
 
   // Уведомляем о состоянии загрузки данных
   useEffect(() => {
+    console.log('🔄 Состояние загрузки wishlist:', isWishlistLoading, 'Авторизован:', isAuthenticated);
     if (onDataLoaded) {
-      onDataLoaded(!isWishlistLoading);
+      // Для авторизованных пользователей ждем окончания загрузки
+      // Для неавторизованных - сразу считаем готовым
+      const dataReady = isAuthenticated ? !isWishlistLoading : true;
+      onDataLoaded(dataReady);
     }
-  }, [isWishlistLoading, onDataLoaded]);
+  }, [isWishlistLoading, onDataLoaded, isAuthenticated]);
 
   const {
     selectedItemIds,

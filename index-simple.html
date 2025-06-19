@@ -217,113 +217,46 @@
         }
       }
 
-      // Скрытие экрана загрузки после загрузки React приложения
+      // УПРОЩЕННАЯ версия - скрытие экрана загрузки после загрузки React приложения
       window.addEventListener('DOMContentLoaded', function() {
         // Применяем тему сразу
         applyUserTheme();
         
-        // Обновляем статус загрузки
-        const loadingText = document.getElementById('initial-loading-text');
-        const statuses = [
-          'Инициализация приложения',
-          'Загрузка компонентов',
-          'Подготовка интерфейса',
-          'Проверка авторизации',
-          'Загрузка данных',
-          'Данные загружены'
-        ];
-        let statusIndex = 0;
-        
-        const updateStatus = () => {
-          if (loadingText && statusIndex < statuses.length - 1) {
-            statusIndex++;
-            loadingText.textContent = statuses[statusIndex];
-          }
-        };
-        
-        // Обновляем статус каждые 400ms
-        const statusInterval = setInterval(updateStatus, 400);
-        
-        // Переменные для отслеживания состояния загрузки
-        let isReactLoaded = false;
-        let isDataLoaded = false;
-        
-        // Время начала загрузки для обеспечения минимальной задержки
-        const startTime = Date.now();
-        const MIN_LOADING_TIME = 1000; // Минимум 1 секунда загрузки для плавности UX
-        const MAX_LOADING_TIME = 10000; // Максимум 10 секунд - после этого принудительно скрываем
-        
-        // Функция для скрытия загрузочного экрана
-        const hideLoadingScreen = (reason = 'completed') => {
-          console.log('🎯 Скрываем загрузочный экран:', reason);
-          clearInterval(statusInterval);
-          
-          // Показываем финальный статус
-          if (loadingText) {
-            loadingText.textContent = reason === 'timeout' ? 'Загрузка завершена' : statuses[statuses.length - 1];
-          }
-          
-          // Рассчитываем нужную задержку для плавности
-          const elapsedTime = Date.now() - startTime;
-          const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsedTime);
-          
-          setTimeout(() => {
-            const loadingScreen = document.getElementById('initial-loading-screen');
-            if (loadingScreen) {
-              loadingScreen.classList.add('hidden');
-              // Полностью удаляем через 300ms (время анимации)
-              setTimeout(() => {
-                loadingScreen.remove();
-              }, 300);
-            }
-          }, remainingTime + 200);
-        };
-
-        // Функция для проверки полной готовности приложения
-        const checkFullyLoaded = () => {
-          if (isReactLoaded && isDataLoaded) {
-            hideLoadingScreen('completed');
-          }
-        };
-        
-        // Timeout защита - принудительно скрываем экран после MAX_LOADING_TIME
-        setTimeout(() => {
-          if (!isReactLoaded || !isDataLoaded) {
-            console.warn('⚠️ Timeout загрузки - принудительно скрываем экран');
-            console.log('Состояние:', { isReactLoaded, isDataLoaded });
-            hideLoadingScreen('timeout');
-          }
-        }, MAX_LOADING_TIME);
-
-        // Слушаем событие загрузки данных из React приложения
-        window.addEventListener('appDataLoaded', () => {
-          console.log('📦 Получено событие appDataLoaded');
-          isDataLoaded = true;
-          if (loadingText) {
-            loadingText.textContent = 'Данные загружены';
-          }
-          checkFullyLoaded();
-        });
-        
-        // Ждем загрузки React приложения
+        // Простая проверка React приложения с timeout
         const checkReactLoaded = () => {
           const root = document.getElementById('root');
           if (root && root.children.length > 0) {
-            // React приложение загружено
-            console.log('⚛️ React приложение загружено');
-            isReactLoaded = true;
-            if (loadingText) {
-              loadingText.textContent = 'Загрузка данных';
-            }
-            checkFullyLoaded();
+            // React приложение загружено, скрываем экран загрузки
+            setTimeout(() => {
+              const loadingScreen = document.getElementById('initial-loading-screen');
+              if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                // Полностью удаляем через 300ms (время анимации)
+                setTimeout(() => {
+                  loadingScreen.remove();
+                }, 300);
+              }
+            }, 500); // Минимальная задержка для плавности
           } else {
             // Проверяем снова через 100ms
             setTimeout(checkReactLoaded, 100);
           }
         };
         
-        // Начинаем проверку через 500ms, чтобы дать время React приложению загрузиться
+        // Начинаем проверку через 500ms
         setTimeout(checkReactLoaded, 500);
+        
+        // Защита от зависания - принудительно скрываем через 8 секунд
+        setTimeout(() => {
+          const loadingScreen = document.getElementById('initial-loading-screen');
+          if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+            console.warn('Принудительно скрываем загрузочный экран (timeout)');
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+              loadingScreen.remove();
+            }, 300);
+          }
+        }, 8000);
       });
     </script>
   </head>
@@ -340,4 +273,4 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
-</html>
+</html> 

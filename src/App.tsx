@@ -34,12 +34,23 @@ function App() {
 
   // Обработчик загрузки данных
   const handleDataLoaded = (loaded: boolean) => {
+    console.log('📊 Состояние загрузки данных:', loaded);
     // Отправляем глобальное событие для синхронизации с загрузочным экраном
     if (loaded) {
+      console.log('🚀 Отправляем событие appDataLoaded');
       const event = new CustomEvent('appDataLoaded');
       window.dispatchEvent(event);
     }
   };
+
+  // Для неавторизованных пользователей сразу отправляем событие готовности
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      console.log('👤 Неавторизованный пользователь - данные не нужны');
+      const event = new CustomEvent('appDataLoaded');
+      window.dispatchEvent(event);
+    }
+  }, [isAuthenticated]);
 
   // Проверяем, является ли это auth callback
   const isAuthCallback = window.location.search.includes('code=') || 

@@ -13,7 +13,7 @@ export const useWishlist = (
   const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
-  const [isLoading, setIsLoading] = useState(isAuthenticated === true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
 
   // Загрузка данных из Supabase
