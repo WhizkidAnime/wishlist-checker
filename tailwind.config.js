@@ -63,8 +63,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Кастомные цвета для темной темы (оставляем для совместимости)
-        'dark-bg': '#222222',
+        // Кастомные цвета для темной темы
+        'theme-dark-bg': '#141414',
+        'theme-dark-card': '#222222',
+        'dark-bg': '#222222', // оставляем для совместимости
         'light-bg': '#F9FAFB',
       },
       borderRadius: {

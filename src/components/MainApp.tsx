@@ -12,6 +12,7 @@ import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
 import { CategoryDeleteModal } from './CategoryDeleteModal';
 import { HelpModal } from './ui/HelpModal';
+import { ProgressBar } from './ProgressBar';
 
 import { useWishlist } from '../hooks/useWishlist';
 import { useSelection } from '../hooks/useSelection';
@@ -28,11 +29,13 @@ import { useAuth } from '../hooks/useAuth';
 interface MainAppProps {
   triggerSync: (force?: boolean) => Promise<{ success: boolean; message: string; }>;
   onAuthModalOpen: () => void;
+  onDataLoaded?: (isLoaded: boolean) => void;
 }
 
 export const MainApp: React.FC<MainAppProps> = ({ 
   triggerSync, 
-  onAuthModalOpen 
+  onAuthModalOpen,
+  onDataLoaded 
 }) => {
   const [displayCurrency] = useState<string>('RUB');
   const [exchangeRates] = useState<Record<string, number> | null>(null);
@@ -74,7 +77,8 @@ export const MainApp: React.FC<MainAppProps> = ({
     handleDragEnd,
     handleDeleteItem,
     handleEditClick,
-    handleCancelEdit
+    handleCancelEdit,
+    isLoading: isWishlistLoading
   } = useWishlist(triggerSync, isAuthenticated);
 
   const {
@@ -101,6 +105,13 @@ export const MainApp: React.FC<MainAppProps> = ({
   useEffect(() => {
     resetCategoryIfNeeded();
   }, [categories, resetCategoryIfNeeded]);
+
+  // Уведомляем о состоянии загрузки данных
+  useEffect(() => {
+    if (onDataLoaded) {
+      onDataLoaded(!isWishlistLoading);
+    }
+  }, [isWishlistLoading, onDataLoaded]);
 
   const {
     selectedItemIds,
@@ -368,22 +379,12 @@ export const MainApp: React.FC<MainAppProps> = ({
               </div>
             )}
 
-            {displayedWishlist.length > 0 && (
-              <div className="mt-6 sm:mt-8 border-t border-gray-200 dark:border-gray-600 pt-4 sm:pt-6">
-                <div className="flex flex-col gap-1 sm:text-right sm:ml-auto">
-                  <div className="flex justify-end">
-                    <div className="text-lg sm:text-xl font-semibold text-black dark:text-theme-secondary">
-                      Итого некупленных: <span className="text-black dark:text-theme-secondary">{displayedTotalUnbought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <div className="text-base sm:text-lg font-medium text-black dark:text-theme-secondary">
-                      Итого купленных: <span className="text-black dark:text-theme-secondary">{displayedTotalBought.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <ProgressBar
+              totalUnbought={displayedTotalUnbought}
+              totalBought={displayedTotalBought}
+              currency={displayCurrency}
+              isMobile={isMobile}
+            />
           </div>
         </div>
         
@@ -492,19 +493,6 @@ export const MainApp: React.FC<MainAppProps> = ({
           isOpen={isHelpModalOpen}
           onClose={() => setIsHelpModalOpen(false)}
         />
-
-        {/* Скрытая ссылка на демо (только в dev режиме) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-2 right-2 opacity-20 hover:opacity-100 transition-opacity duration-200 z-50">
-            <button
-              onClick={() => window.location.href = '/wishlist-checker/demo/errors'}
-              className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-600 dark:hover:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded"
-              title="Демо ErrorPage"
-            >
-              🔧 Demo
-            </button>
-          </div>
-        )}
       </SortableContext>
     </DndContext>
   );

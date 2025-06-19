@@ -84,21 +84,31 @@
         font-weight: 600;
         color: #2563eb;
         margin-bottom: 0.5rem;
+        min-height: 1.75rem;
+        min-width: 8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       #initial-loading-text {
         color: #4b5563;
         font-size: 0.875rem;
+        min-height: 1.25rem;
+        min-width: 12rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       /* Темная тема - системная */
       @media (prefers-color-scheme: dark) {
         #initial-loading-screen:not(.dark-theme) {
-          background-color: #111827;
+          background-color: #141414;
         }
 
         #initial-loading-screen:not(.dark-theme) #initial-loading-card {
-          background-color: #1f2937;
+          background-color: #222222;
           border-color: #374151;
         }
 
@@ -118,11 +128,11 @@
 
       /* Темная тема - принудительная через класс */
       #initial-loading-screen.dark-theme {
-        background-color: #111827;
+        background-color: #141414;
       }
 
       #initial-loading-screen.dark-theme #initial-loading-card {
-        background-color: #1f2937;
+        background-color: #222222;
         border-color: #374151;
       }
 
@@ -137,6 +147,11 @@
 
       #initial-loading-screen.dark-theme #initial-loading-text {
         color: #d1d5db;
+        min-height: 1.25rem;
+        min-width: 12rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       /* Анимация спиннера */
@@ -207,19 +222,82 @@
         // Применяем тему сразу
         applyUserTheme();
         
+        // Обновляем статус загрузки
+        const loadingText = document.getElementById('initial-loading-text');
+        const statuses = [
+          'Инициализация приложения',
+          'Загрузка компонентов',
+          'Подготовка интерфейса',
+          'Проверка авторизации',
+          'Загрузка данных',
+          'Данные загружены'
+        ];
+        let statusIndex = 0;
+        
+        const updateStatus = () => {
+          if (loadingText && statusIndex < statuses.length - 1) {
+            statusIndex++;
+            loadingText.textContent = statuses[statusIndex];
+          }
+        };
+        
+        // Обновляем статус каждые 400ms
+        const statusInterval = setInterval(updateStatus, 400);
+        
+        // Переменные для отслеживания состояния загрузки
+        let isReactLoaded = false;
+        let isDataLoaded = false;
+        
+        // Время начала загрузки для обеспечения минимальной задержки
+        const startTime = Date.now();
+        const MIN_LOADING_TIME = 1000; // Минимум 1 секунда загрузки для плавности UX
+        
+        // Функция для проверки полной готовности приложения
+        const checkFullyLoaded = () => {
+          if (isReactLoaded && isDataLoaded) {
+            clearInterval(statusInterval);
+            
+            // Показываем финальный статус
+            if (loadingText) {
+              loadingText.textContent = statuses[statuses.length - 1];
+            }
+            
+            // Рассчитываем нужную задержку для плавности
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsedTime);
+            
+            setTimeout(() => {
+              const loadingScreen = document.getElementById('initial-loading-screen');
+              if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                // Полностью удаляем через 300ms (время анимации)
+                setTimeout(() => {
+                  loadingScreen.remove();
+                }, 300);
+              }
+            }, remainingTime + 200);
+          }
+        };
+        
+        // Слушаем событие загрузки данных из React приложения
+        window.addEventListener('appDataLoaded', () => {
+          isDataLoaded = true;
+          if (loadingText) {
+            loadingText.textContent = 'Данные загружены';
+          }
+          checkFullyLoaded();
+        });
+        
         // Ждем загрузки React приложения
         const checkReactLoaded = () => {
           const root = document.getElementById('root');
           if (root && root.children.length > 0) {
-            // React приложение загружено, скрываем экран загрузки
-            const loadingScreen = document.getElementById('initial-loading-screen');
-            if (loadingScreen) {
-              loadingScreen.classList.add('hidden');
-              // Полностью удаляем через 300ms (время анимации)
-              setTimeout(() => {
-                loadingScreen.remove();
-              }, 300);
+            // React приложение загружено
+            isReactLoaded = true;
+            if (loadingText) {
+              loadingText.textContent = 'Загрузка данных';
             }
+            checkFullyLoaded();
           } else {
             // Проверяем снова через 100ms
             setTimeout(checkReactLoaded, 100);

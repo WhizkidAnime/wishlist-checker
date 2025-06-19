@@ -74,8 +74,8 @@ export const getLoadingScreenTheme = (): SystemTheme => {
 export const getSystemThemeClasses = (theme: SystemTheme) => {
   if (theme === 'dark') {
     return {
-      background: 'bg-gray-900',
-      card: 'bg-gray-800',
+      background: 'bg-theme-dark-bg',
+      card: 'bg-theme-dark-card',
       text: 'text-white',
       textSecondary: 'text-gray-300',
       primary: 'text-blue-400',

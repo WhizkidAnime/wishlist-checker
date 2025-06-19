@@ -3,11 +3,11 @@
 /* Поддержка системной темы для экрана загрузки */
 @media (prefers-color-scheme: dark) {
   .system-loading-screen {
-    background-color: rgb(17 24 39); /* bg-gray-900 */
+    background-color: #141414; /* основной фон темной темы */
   }
   
   .system-loading-card {
-    background-color: rgb(31 41 55); /* bg-gray-800 */
+    background-color: #222222; /* фон карточки темной темы */
     border-color: rgb(55 65 81); /* border-gray-700 */
   }
   

@@ -8,6 +8,7 @@ export { SearchAndSort } from './SearchAndSort';
 export { CalculatorPopup } from './CalculatorPopup';
 export { ConfirmModals } from './ConfirmModals';
 export { WishlistContainer } from './WishlistContainer';
+export { ProgressBar } from './ProgressBar';
 
 // UI компоненты
 export { Tooltip } from './ui/Tooltip';
@@ -27,5 +28,4 @@ export { Portal } from './Portal';
 export { AdaptiveControlPanel } from './AdaptiveControlPanel';
 export { default as Carousel } from './Carousel';
 export { ErrorPage } from './ErrorPage';
-export { NotFoundPage } from './NotFoundPage';
-export { ErrorPageDemo } from './ErrorPageDemo'; 
+export { NotFoundPage } from './NotFoundPage'; 

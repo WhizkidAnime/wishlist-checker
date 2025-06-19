@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css'
 
-import { AuthModal, AuthCallback, LandingPage, MainApp, NotFoundPage, ErrorPageDemo } from './components';
+import { AuthModal, AuthCallback, LandingPage, MainApp, NotFoundPage } from './components';
 
 import { useAuth, useSupabaseSync } from './hooks';
 import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
@@ -9,27 +9,7 @@ import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authSuccessDelay, setAuthSuccessDelay] = useState(false);
-
-  // Глобальные функции для тестирования (только в dev режиме)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      (window as any).showErrorPageDemo = () => {
-        window.location.href = '/wishlist-checker/demo/errors';
-      };
-      
-      (window as any).show404 = () => {
-        window.location.href = '/wishlist-checker/nonexistent-page';
-      };
-      
-      console.log('🔧 Dev функции доступны:');
-      console.log('- showErrorPageDemo() - открыть демо страниц ошибок');
-      console.log('- show404() - открыть страницу 404');
-    } else {
-      // В production убираем функции
-      delete (window as any).showErrorPageDemo;
-      delete (window as any).show404;
-    }
-  }, []);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // Аутентификация и синхронизация
   const { user, isAuthenticated, loading } = useAuth();
@@ -53,6 +33,17 @@ function App() {
     }
   }, [isAuthenticated, isAuthModalOpen]);
 
+  // Обработчик загрузки данных
+  const handleDataLoaded = (loaded: boolean) => {
+    setIsDataLoaded(loaded);
+    
+    // Отправляем глобальное событие для синхронизации с загрузочным экраном
+    if (loaded) {
+      const event = new CustomEvent('appDataLoaded');
+      window.dispatchEvent(event);
+    }
+  };
+
   // Проверяем, является ли это auth callback
   const isAuthCallback = window.location.search.includes('code=') || 
                         window.location.pathname.includes('/auth/callback') ||
@@ -64,17 +55,9 @@ function App() {
   const validPaths = ['/', '/wishlist-checker/', '/wishlist-checker/auth/callback'];
   const isValidPath = validPaths.some(path => pathname === path || pathname.startsWith(path));
   
-  // Демо режим только в development
-  const isDemoMode = process.env.NODE_ENV === 'development' && pathname.includes('/demo/errors');
-  
   // Если это auth callback, показываем компонент обработки
   if (isAuthCallback) {
     return <AuthCallback />;
-  }
-  
-  // Если это демо режим, показываем демо
-  if (isDemoMode) {
-    return <ErrorPageDemo />;
   }
   
   // Если путь неизвестен, показываем 404
@@ -115,6 +98,7 @@ function App() {
         <MainApp 
           triggerSync={triggerSync} 
           onAuthModalOpen={() => setIsAuthModalOpen(true)}
+          onDataLoaded={handleDataLoaded}
         />
       ) : (
         <LandingPage 
