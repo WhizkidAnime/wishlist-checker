@@ -9,7 +9,6 @@ import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authSuccessDelay, setAuthSuccessDelay] = useState(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // Аутентификация и синхронизация
   const { user, isAuthenticated, loading } = useAuth();
@@ -35,8 +34,6 @@ function App() {
 
   // Обработчик загрузки данных
   const handleDataLoaded = (loaded: boolean) => {
-    setIsDataLoaded(loaded);
-    
     // Отправляем глобальное событие для синхронизации с загрузочным экраном
     if (loaded) {
       const event = new CustomEvent('appDataLoaded');
