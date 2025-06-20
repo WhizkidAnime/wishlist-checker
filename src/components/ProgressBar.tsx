@@ -1,5 +1,4 @@
-import React, { useEffect, useRef } from 'react';
-import confetti from 'canvas-confetti';
+import React from 'react';
 
 interface ProgressBarProps {
   totalUnbought: number;
@@ -14,9 +13,6 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   currency,
   isMobile = false
 }) => {
-  const prevProgressRef = useRef<number>(0);
-  const confettiTriggeredRef = useRef<boolean>(false);
-  
   const totalSum = totalUnbought + totalBought;
   const progressPercentage = totalSum > 0 ? (totalBought / totalSum) * 100 : 0;
   
@@ -31,42 +27,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     }
   };
 
-  // Эффект конфетти при достижении 100%
-  useEffect(() => {
-    const currentProgress = Math.round(progressPercentage);
-    
-    // Запускаем конфетти только если прогресс достиг 100% и это первый раз
-    if (currentProgress >= 100 && prevProgressRef.current < 100 && !confettiTriggeredRef.current) {
-      confettiTriggeredRef.current = true;
-      
-      // Запускаем несколько залпов конфетти
-      const fireConfetti = () => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      };
-      
-      fireConfetti();
-      setTimeout(fireConfetti, 200);
-      setTimeout(fireConfetti, 400);
-    }
-    
-    // Сбрасываем флаг если прогресс упал ниже 100%
-    if (currentProgress < 100) {
-      confettiTriggeredRef.current = false;
-    }
-    
-    prevProgressRef.current = currentProgress;
-  }, [progressPercentage]);
-
   if (totalSum === 0) {
     return null;
   }
 
   return (
-    <div className="mt-6 sm:mt-8 border-t border-gray-200 dark:border-gray-600 pt-4 sm:pt-6">
+    <div className={`mt-6 sm:mt-8 border-t border-gray-200 dark:border-gray-600 pt-4 sm:pt-6 ${isMobile ? 'pb-6' : ''}`}>
       <div className="w-full">
         {/* Прогресс-бар */}
         <div className="relative">

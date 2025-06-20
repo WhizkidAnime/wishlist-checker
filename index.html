@@ -255,7 +255,6 @@
         
         // Функция для скрытия загрузочного экрана
         const hideLoadingScreen = (reason = 'completed') => {
-          console.log('🎯 Скрываем загрузочный экран:', reason);
           clearInterval(statusInterval);
           
           // Показываем финальный статус
@@ -297,7 +296,6 @@
 
         // Слушаем событие загрузки данных из React приложения
         window.addEventListener('appDataLoaded', () => {
-          console.log('📦 Получено событие appDataLoaded');
           isDataLoaded = true;
           if (loadingText) {
             loadingText.textContent = 'Данные загружены';
@@ -310,7 +308,6 @@
           const root = document.getElementById('root');
           if (root && root.children.length > 0) {
             // React приложение загружено
-            console.log('⚛️ React приложение загружено');
             isReactLoaded = true;
             if (loadingText) {
               loadingText.textContent = 'Загрузка данных';

@@ -108,7 +108,6 @@ export const MainApp: React.FC<MainAppProps> = ({
 
   // Уведомляем о состоянии загрузки данных
   useEffect(() => {
-    console.log('🔄 Состояние загрузки wishlist:', isWishlistLoading, 'Авторизован:', isAuthenticated);
     if (onDataLoaded) {
       // Для авторизованных пользователей ждем окончания загрузки
       // Для неавторизованных - сразу считаем готовым
@@ -396,7 +395,11 @@ export const MainApp: React.FC<MainAppProps> = ({
         <button
           onClick={scrollToTop}
           aria-label="Вернуться к началу"
-          className={`fixed bottom-8 left-5 z-40 p-3 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-all duration-300 ease-in-out ${showScrollButton ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+          className={`fixed z-40 p-3 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-all duration-300 ease-in-out ${
+            isMobile 
+              ? 'bottom-6 right-5' // На мобильных - правый нижний угол
+              : 'bottom-8 left-5'  // На десктопе - левый нижний угол
+          } ${showScrollButton ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />

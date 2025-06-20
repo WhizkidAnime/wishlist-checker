@@ -4,7 +4,7 @@ import { UserProfile } from './UserProfile';
 import { Portal } from './Portal';
 import { useDropdownPosition } from '../hooks/useDropdownPosition';
 import { useAuth } from '../hooks/useAuth';
-import { clearAllUserData, checkUserDataState } from '../utils/dataCleanup';
+// import { clearAllUserData, checkUserDataState } from '../utils/dataCleanup';
 import { ThemeMode, ActualTheme } from '../hooks/useTheme';
 
 interface AdaptiveControlPanelProps {
@@ -32,9 +32,10 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
   isDesktopWide
 }) => {
   const [isBurgerOpen, setIsBurgerOpen] = useState(false);
-  const [isDataManagementOpen, setIsDataManagementOpen] = useState(false);
-  const [dataState, setDataState] = useState<any>(null);
-  const [isClearing, setIsClearing] = useState(false);
+  // Состояния для управления данными - закомментированы
+  // const [isDataManagementOpen, setIsDataManagementOpen] = useState(false);
+  // const [dataState, setDataState] = useState<any>(null);
+  // const [isClearing, setIsClearing] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownPosition = useDropdownPosition(triggerRef, isBurgerOpen);
   const { user, isAuthenticated, signOut } = useAuth();
@@ -79,6 +80,8 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
     }
   };
 
+  // Функции управления данными - закомментированы
+  /*
   const handleDataManagementClick = () => {
     setIsDataManagementOpen(true);
     setIsBurgerOpen(false);
@@ -116,6 +119,7 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
       setIsClearing(false);
     }
   };
+  */
 
   // Мобильная версия - переключатель темы и аватарка в одном контейнере
   if (isMobile) {
@@ -236,7 +240,7 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
                           )}
                         </div>
                         
-                        {/* Кнопка управления данными - только для аутентифицированных */}
+                        {/* Кнопка управления данными - закомментирована
                         {user?.id && (
                           <button
                             onClick={handleDataManagementClick}
@@ -249,6 +253,7 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
                             </svg>
                           </button>
                         )}
+                        */}
                         
                         {/* Кнопка выхода */}
                         <button
@@ -280,7 +285,7 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
           )}
         </div>
 
-        {/* Модальное окно управления данными */}
+        {/* Модальное окно управления данными - закомментировано
         {isDataManagementOpen && (
           <Portal>
             <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
@@ -332,6 +337,7 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
             </div>
           </Portal>
         )}
+        */}
       </>
     );
   }
