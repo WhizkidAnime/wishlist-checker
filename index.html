@@ -101,29 +101,27 @@
         justify-content: center;
       }
 
-      /* Темная тема - системная */
-      @media (prefers-color-scheme: dark) {
-        #initial-loading-screen:not(.dark-theme) {
-          background-color: #141414;
-        }
+      /* Темная тема управляется классом html.dark, чтобы избежать мигания при авто-теме */
+      html.dark #initial-loading-screen:not(.light-theme) {
+        background-color: #141414;
+      }
 
-        #initial-loading-screen:not(.dark-theme) #initial-loading-card {
-          background-color: #222222;
-          border-color: #374151;
-        }
+      html.dark #initial-loading-screen:not(.light-theme) #initial-loading-card {
+        background-color: #222222;
+        border-color: #374151;
+      }
 
-        #initial-loading-screen:not(.dark-theme) #initial-loading-spinner {
-          border-color: #374151;
-          border-top-color: #60a5fa;
-        }
+      html.dark #initial-loading-screen:not(.light-theme) #initial-loading-spinner {
+        border-color: #374151;
+        border-top-color: #60a5fa;
+      }
 
-        #initial-loading-screen:not(.dark-theme) #initial-loading-title {
-          color: #60a5fa;
-        }
+      html.dark #initial-loading-screen:not(.light-theme) #initial-loading-title {
+        color: #60a5fa;
+      }
 
-        #initial-loading-screen:not(.dark-theme) #initial-loading-text {
-          color: #d1d5db;
-        }
+      html.dark #initial-loading-screen:not(.light-theme) #initial-loading-text {
+        color: #d1d5db;
       }
 
       /* Темная тема - принудительная через класс */
@@ -188,34 +186,50 @@
           const savedThemeMode = localStorage.getItem('wishlist-theme-mode');
           const oldTheme = localStorage.getItem('wishlist-theme');
           
-          let shouldUseDarkTheme = false;
+          let explicitMode = null; // 'light' | 'dark' | null (auto)
+          if (savedThemeMode === 'dark' || oldTheme === 'dark') explicitMode = 'dark';
+          else if (savedThemeMode === 'light' || oldTheme === 'light') explicitMode = 'light';
+
+          // Определяем финальную тему
+          const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const useDark = explicitMode === 'dark' || (explicitMode === null && systemPrefersDark);
           
-          if (savedThemeMode === 'dark') {
-            shouldUseDarkTheme = true;
-          } else if (savedThemeMode === 'light') {
-            shouldUseDarkTheme = false;
-          } else if (oldTheme === 'dark') {
-            shouldUseDarkTheme = true;
-          } else if (oldTheme === 'light') {
-            shouldUseDarkTheme = false;
-          } else {
-            // Режим auto или нет сохраненных настроек - используем системную тему
-            shouldUseDarkTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          }
-          
+          // Также помечаем html.dark как можно раньше, чтобы стили загрузочного экрана не мигали
+          document.documentElement.classList.toggle('dark', !!useDark);
+
           // Применяем тему к экрану загрузки
           const loadingScreen = document.getElementById('initial-loading-screen');
           if (loadingScreen) {
-            if (shouldUseDarkTheme) {
-              loadingScreen.classList.add('dark-theme');
-            } else {
-              loadingScreen.classList.remove('dark-theme');
-            }
+            loadingScreen.classList.remove('dark-theme', 'light-theme');
+            if (explicitMode === 'light') loadingScreen.classList.add('light-theme');
+            if (useDark) loadingScreen.classList.add('dark-theme');
+          }
+
+          // Обновляем meta theme-color для системных панелей
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            meta.setAttribute('content', useDark ? '#141414' : '#F9FAFB');
           }
         } catch (error) {
           console.warn('Error applying user theme:', error);
         }
       }
+
+      // Мгновенно применяем тему до DOMContentLoaded, чтобы не было флэша
+      (function immediateThemeApply(){
+        try {
+          const savedThemeMode = localStorage.getItem('wishlist-theme-mode');
+          const oldTheme = localStorage.getItem('wishlist-theme');
+          let explicitMode = null;
+          if (savedThemeMode === 'dark' || oldTheme === 'dark') explicitMode = 'dark';
+          else if (savedThemeMode === 'light' || oldTheme === 'light') explicitMode = 'light';
+          const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const useDark = explicitMode === 'dark' || (explicitMode === null && systemPrefersDark);
+          document.documentElement.classList.toggle('dark', !!useDark);
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', useDark ? '#141414' : '#F9FAFB');
+        } catch {}
+      })();
 
       // Скрытие экрана загрузки после загрузки React приложения
       window.addEventListener('DOMContentLoaded', function() {

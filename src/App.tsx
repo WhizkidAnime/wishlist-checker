@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css'
 
-import { AuthModal, AuthCallback, LandingPage, MainApp, NotFoundPage } from './components';
+import { AuthModal, AuthCallback, LandingPage, MainApp, NotFoundPage, SharedWishlistPage } from './components';
 
 import { useAuth, useSupabaseSync } from './hooks';
 import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
@@ -17,6 +17,16 @@ function App() {
   // Системная тема для экрана загрузки
   const systemTheme = useSystemTheme();
   const systemThemeClasses = getSystemThemeClasses(systemTheme);
+
+  // Во время показа внутреннего экрана загрузки применяем класс html.dark по сохранённой теме,
+  // чтобы CSS-переменные корректно раскрашивали лоадер до монтирования useTheme в MainApp
+  useEffect(() => {
+    const html = document.documentElement;
+    if (loading || authSuccessDelay) {
+      if (systemTheme === 'dark') html.classList.add('dark');
+      else html.classList.remove('dark');
+    }
+  }, [loading, authSuccessDelay, systemTheme]);
 
   // Отслеживаем изменение isAuthenticated для автоматического показа экрана загрузки
   useEffect(() => {
@@ -60,9 +70,15 @@ function App() {
   const validPaths = ['/', '/wishlist-checker/', '/wishlist-checker/auth/callback'];
   const isValidPath = validPaths.some(path => pathname === path || pathname.startsWith(path));
   
+  // Если это общая шаринг-страница (поддержка длинной и короткой ссылок)
+  const isSharedView = window.location.search.includes('share=') || window.location.search.includes('s=');
+
   // Если это auth callback, показываем компонент обработки
   if (isAuthCallback) {
     return <AuthCallback />;
+  }
+  if (isSharedView) {
+    return <SharedWishlistPage />;
   }
   
   // Если путь неизвестен, показываем 404

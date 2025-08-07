@@ -12,6 +12,7 @@ import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
 import { CategoryDeleteModal } from './CategoryDeleteModal';
 import { HelpModal } from './ui/HelpModal';
+import { ShareWishlistModal } from './ShareWishlistModal';
 import { ProgressBar } from './ProgressBar';
 
 import { useWishlist } from '../hooks/useWishlist';
@@ -45,6 +46,7 @@ export const MainApp: React.FC<MainAppProps> = ({
   const [isCategoryDeleteModalOpen, setIsCategoryDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string>('');
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Получаем userId из контекста аутентификации  
   const { user } = useAuth();
@@ -78,7 +80,8 @@ export const MainApp: React.FC<MainAppProps> = ({
     handleDeleteItem,
     handleEditClick,
     handleCancelEdit,
-    isLoading: isWishlistLoading
+    isLoading: isWishlistLoading,
+    hasInitialLoadCompleted
   } = useWishlist(triggerSync, isAuthenticated);
 
   const {
@@ -88,7 +91,8 @@ export const MainApp: React.FC<MainAppProps> = ({
     filterByCategory,
     handleAddCategory,
     handleDeleteCategory,
-    resetCategoryIfNeeded
+    resetCategoryIfNeeded,
+    hasInitialCategoriesLoaded
   } = useCategories(wishlist, triggerSync, isAuthenticated, userId);
 
   // Применяем фильтры: если есть поиск - ищем по всем товарам, иначе фильтруем по категории
@@ -108,13 +112,13 @@ export const MainApp: React.FC<MainAppProps> = ({
 
   // Уведомляем о состоянии загрузки данных
   useEffect(() => {
-    if (onDataLoaded) {
-      // Для авторизованных пользователей ждем окончания загрузки
-      // Для неавторизованных - сразу считаем готовым
-      const dataReady = isAuthenticated ? !isWishlistLoading : true;
-      onDataLoaded(dataReady);
-    }
-  }, [isWishlistLoading, onDataLoaded, isAuthenticated]);
+    if (!onDataLoaded) return;
+    // Для авторизованных: ждём завершения начальной загрузки и отсутствие текущего isLoading
+    const dataReady = isAuthenticated 
+      ? (hasInitialLoadCompleted && hasInitialCategoriesLoaded && !isWishlistLoading)
+      : true;
+    onDataLoaded(dataReady);
+  }, [isAuthenticated, hasInitialLoadCompleted, hasInitialCategoriesLoaded, isWishlistLoading, onDataLoaded]);
 
   const {
     selectedItemIds,
@@ -274,7 +278,7 @@ export const MainApp: React.FC<MainAppProps> = ({
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
           
           {/* Адаптивная панель управления */}
-          <div className={`fixed top-4 right-4 z-50 ${isMobile ? 'hidden' : 'block'}`}>
+          <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
             {adaptiveControlPanel}
           </div>
 
@@ -325,8 +329,16 @@ export const MainApp: React.FC<MainAppProps> = ({
               disabled={false}
             />
             
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 mb-4 gap-4 border-b pb-4 border-gray-200 dark:border-gray-600">
-              <h2 className="text-xl font-semibold text-black dark:text-theme-secondary whitespace-nowrap">Список желаний</h2>
+            <div className="flex items-center justify-between flex-wrap mt-6 mb-4 gap-3 border-b pb-4 border-gray-200 dark:border-gray-600">
+              <h2 className="text-xl font-semibold text-black dark:text-theme-secondary">Список желаний</h2>
+              <div className="flex gap-2 ml-auto shrink-0">
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="px-3 py-1.5 rounded-full text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:opacity-90 transition-colors"
+                >
+                  Поделиться
+                </button>
+              </div>
             </div>
 
             <CategoryTabs
@@ -482,6 +494,16 @@ export const MainApp: React.FC<MainAppProps> = ({
           onConfirm={handleCategoryDeleteConfirm}
           onCancel={handleCategoryDeleteCancel}
         />
+
+        {/* Модалка шаринга */}
+        {isShareModalOpen && (
+          <ShareWishlistModal
+            isOpen={isShareModalOpen}
+            items={wishlist.filter(item => !item.isBought)}
+            authorName={user?.email || undefined}
+            onClose={() => setIsShareModalOpen(false)}
+          />
+        )}
 
         {/* Панель массовых действий */}
         <BulkActionBar

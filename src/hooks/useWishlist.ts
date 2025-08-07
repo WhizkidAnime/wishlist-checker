@@ -15,6 +15,7 @@ export const useWishlist = (
   const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
   const [isLoading, setIsLoading] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
+  const [hasInitialLoadCompleted, setHasInitialLoadCompleted] = useState<boolean>(false);
 
   // Загрузка данных из Supabase
   const loadWishlistFromSupabase = async (userId: string) => {
@@ -47,6 +48,7 @@ export const useWishlist = (
       console.error('Ошибка загрузки данных из Supabase:', error);
     } finally {
       setIsLoading(false);
+      setHasInitialLoadCompleted(true);
     }
   };
 
@@ -59,8 +61,10 @@ export const useWishlist = (
       setSearchQuery('');
       setSortBy('default');
       setIsLoading(false); // Сбрасываем состояние загрузки
+      setHasInitialLoadCompleted(true);
     } else if (isAuthenticated === true && triggerSync) {
       // Загружаем данные при входе
+      setHasInitialLoadCompleted(false);
       // Получаем userId из Supabase auth
       supabase?.auth.getUser().then(({ data: { user } }) => {
         if (user) {
@@ -295,8 +299,10 @@ export const useWishlist = (
       // Блокируем синхронизацию с автоматическим снятием блокировки
       const unblock = syncBlockManager.block(10000);
       
+      // Делаем снимок текущего состояния, чтобы безопасно откатиться при ошибке
+      const prevWishlist = wishlist;
       // Обновляем локальное состояние немедленно для отзывчивости UI
-      const newWishlist = arrayMove(wishlist, currentIndex, newIndex);
+      const newWishlist = arrayMove(prevWishlist, currentIndex, newIndex);
       setWishlist(newWishlist);
       
       // Сохраняем новый порядок в Supabase атомарно через RPC
@@ -319,19 +325,19 @@ export const useWishlist = (
             if (error) {
               console.error('Ошибка при сохранении порядка товаров:', error);
               // В случае ошибки восстанавливаем исходный порядок
-              setWishlist(wishlist);
+              setWishlist(prevWishlist);
             }
           }
         } catch (error) {
           console.error('Ошибка при сохранении порядка товаров:', error);
           // В случае ошибки восстанавливаем исходный порядок
-          setWishlist(wishlist);
+          setWishlist(prevWishlist);
         } finally {
-          // Добавляем задержку перед разблокировкой для предотвращения гонки условий
+          // Увеличенная задержка снимает риск мгновенной синхронизации поверх локального порядка
           setTimeout(() => {
             setIsMoving(false);
             unblock();
-          }, 300);
+          }, 600);
         }
       } else {
         setIsMoving(false);
@@ -348,11 +354,12 @@ export const useWishlist = (
       // Блокируем синхронизацию с автоматическим снятием блокировки
       const unblock = syncBlockManager.block(10000);
       
-      const oldIndex = wishlist.findIndex((item) => item.id === active.id);
-      const newIndex = wishlist.findIndex((item) => item.id === over.id);
+      const prevWishlist = wishlist;
+      const oldIndex = prevWishlist.findIndex((item) => item.id === active.id);
+      const newIndex = prevWishlist.findIndex((item) => item.id === over.id);
       
       // Обновляем локальное состояние немедленно
-      const newWishlist = arrayMove(wishlist, oldIndex, newIndex);
+      const newWishlist = arrayMove(prevWishlist, oldIndex, newIndex);
       setWishlist(newWishlist);
       
       // Сохраняем новый порядок в Supabase атомарно через RPC
@@ -375,19 +382,19 @@ export const useWishlist = (
             if (error) {
               console.error('Ошибка при сохранении порядка товаров:', error);
               // В случае ошибки восстанавливаем исходный порядок
-              setWishlist(wishlist);
+              setWishlist(prevWishlist);
             }
           }
         } catch (error) {
           console.error('Ошибка при сохранении порядка товаров:', error);
           // В случае ошибки восстанавливаем исходный порядок
-          setWishlist(wishlist);
+          setWishlist(prevWishlist);
         } finally {
-          // Добавляем задержку перед разблокировкой для предотвращения гонки условий
+          // Увеличенная задержка снимает риск синхронизации, которая может вернуть старый порядок на мгновение
           setTimeout(() => {
             setIsMoving(false);
             unblock();
-          }, 300);
+          }, 600);
         }
       } else {
         setIsMoving(false);
@@ -451,6 +458,7 @@ export const useWishlist = (
     handleDeleteItem,
     handleEditClick: setEditingItemId,
     handleCancelEdit: () => setEditingItemId(null),
-    isLoading
+    isLoading,
+    hasInitialLoadCompleted
   };
 }; 

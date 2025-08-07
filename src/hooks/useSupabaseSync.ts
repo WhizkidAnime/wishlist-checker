@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
+import { syncBlockManager } from '../utils/syncBlockManager';
 
 // Упрощенное состояние только для внутреннего использования
 interface InternalSyncState {
@@ -25,6 +26,12 @@ export const useSupabaseSync = (userId: string | null) => {
   // Проверка необходимости синхронизации
   const needsSync = useCallback((forcedCheck = false) => {
     if (!userId || !isSupabaseAvailable()) return false;
+
+    // Если глобально заблокирована синхронизация (например, идёт перетаскивание)
+    // — вообще не инициируем сетевые обращения и не генерируем события обновления
+    if (syncBlockManager.isBlocked()) {
+      return false;
+    }
 
     // Для принудительной проверки пропускаем временные ограничения
     if (!forcedCheck) {
@@ -90,6 +97,11 @@ export const useSupabaseSync = (userId: string | null) => {
   const triggerSync = useCallback(async (force = false) => {
     if (!userId || internalState.isProcessing) {
       return { success: false, message: 'Синхронизация недоступна' };
+    }
+
+    // Вторичная защита от гонок: если есть активная блокировка — выходим
+    if (syncBlockManager.isBlocked() && !force) {
+      return { success: true, message: 'Синхронизация отложена (блокировка активна)' };
     }
 
     if (!needsSync(force)) {

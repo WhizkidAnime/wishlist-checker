@@ -16,6 +16,7 @@ export const useCategories = (
   const [activeCategory, setActiveCategoryState] = useState<string>('all');
   const [supabaseCategories, setSupabaseCategories] = useState<string[]>([]);
   const [hasAttemptedRestore, setHasAttemptedRestore] = useState(false);
+  const [hasInitialCategoriesLoaded, setHasInitialCategoriesLoaded] = useState<boolean>(false);
 
   // Обертка для setActiveCategory с сохранением в IndexedDB
   const setActiveCategory = useCallback((category: string) => {
@@ -35,6 +36,7 @@ export const useCategories = (
   const loadCategoriesFromSupabase = useCallback(async () => {
     if (!isAuthenticated || !userId || !isSupabaseAvailable() || !supabase) {
       setSupabaseCategories([]);
+      setHasInitialCategoriesLoaded(true);
       return;
     }
 
@@ -53,6 +55,8 @@ export const useCategories = (
       setSupabaseCategories(categoryNames);
     } catch (error) {
       console.error('Ошибка при загрузке категорий:', error);
+    } finally {
+      setHasInitialCategoriesLoaded(true);
     }
   }, [isAuthenticated, userId]);
 
@@ -65,7 +69,9 @@ export const useCategories = (
       clearActiveCategoryFromDB().catch(error => {
         console.warn('[IndexedDB] Ошибка при очистке категории (выход):', error);
       });
+      setHasInitialCategoriesLoaded(true);
     } else if (isAuthenticated === true && userId) {
+      setHasInitialCategoriesLoaded(false);
       loadCategoriesFromSupabase();
     }
   }, [isAuthenticated, userId, loadCategoriesFromSupabase]);
@@ -207,6 +213,7 @@ export const useCategories = (
     handleAddCategory,
     handleDeleteCategory,
     resetCategoryIfNeeded,
-    refreshCategoriesFromStorage: loadCategoriesFromSupabase
+    refreshCategoriesFromStorage: loadCategoriesFromSupabase,
+    hasInitialCategoriesLoaded
   };
 }; 

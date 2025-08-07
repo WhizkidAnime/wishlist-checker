@@ -74,24 +74,24 @@ export const getLoadingScreenTheme = (): SystemTheme => {
 export const getSystemThemeClasses = (theme: SystemTheme) => {
   if (theme === 'dark') {
     return {
-      background: 'bg-theme-dark-bg',
-      card: 'bg-theme-dark-card',
-      text: 'text-white',
-      textSecondary: 'text-gray-300',
+      background: 'bg-theme-background',
+      card: 'bg-theme-card',
+      text: 'text-theme-primary',
+      textSecondary: 'text-theme-secondary',
       primary: 'text-blue-400',
-      border: 'border-gray-700',
-      spinner: 'border-gray-700 border-t-blue-400'
+      border: 'border-theme-border',
+      spinner: 'border-theme-border border-t-blue-400'
     };
   }
   
   return {
-    background: 'bg-gray-50',
-    card: 'bg-white',
-    text: 'text-gray-900',
-    textSecondary: 'text-gray-600',
+    background: 'bg-theme-background',
+    card: 'bg-theme-card',
+    text: 'text-theme-primary',
+    textSecondary: 'text-theme-secondary',
     primary: 'text-blue-600',
-    border: 'border-gray-200',
-    spinner: 'border-gray-200 border-t-blue-600'
+    border: 'border-theme-border',
+    spinner: 'border-theme-border border-t-blue-600'
   };
 };
 

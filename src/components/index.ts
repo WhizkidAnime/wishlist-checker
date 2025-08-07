@@ -29,3 +29,5 @@ export { AdaptiveControlPanel } from './AdaptiveControlPanel';
 export { default as Carousel } from './Carousel';
 export { ErrorPage } from './ErrorPage';
 export { NotFoundPage } from './NotFoundPage'; 
+export { ShareWishlistModal } from './ShareWishlistModal';
+export { SharedWishlistPage } from './SharedWishlistPage';
