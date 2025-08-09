@@ -5,7 +5,14 @@
 @tailwind components;
 /* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
-
+          
+  /* Базовая типографика для markdown (prose) */
+  .prose h1 { @apply text-3xl sm:text-4xl font-bold; }
+  .prose h2 { @apply text-2xl sm:text-3xl font-semibold; }
+  .prose h3 { @apply text-xl sm:text-2xl font-semibold; }
+  .prose p { @apply leading-relaxed; }
+  html.dark .prose { @apply text-gray-300; }
+  html.dark .prose h1, html.dark .prose h2, html.dark .prose h3 { @apply text-gray-100; }
 /* Базовые CSS переменные для shadcn/ui */
 @layer base {
   :root {

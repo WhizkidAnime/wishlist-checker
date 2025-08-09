@@ -334,7 +334,7 @@ export const MainApp: React.FC<MainAppProps> = ({
               <div className="flex gap-2 ml-auto shrink-0">
                 <button
                   onClick={() => setIsShareModalOpen(true)}
-                  className="px-3 py-1.5 rounded-full text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:opacity-90 transition-colors"
+                  className="px-3 py-1.5 rounded-full text-sm font-semibold bg-theme-button text-theme-button hover:bg-theme-button focus:outline-none transition-colors duration-150 ease-in-out"
                 >
                   Поделиться
                 </button>

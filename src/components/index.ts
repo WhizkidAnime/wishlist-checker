@@ -31,3 +31,4 @@ export { ErrorPage } from './ErrorPage';
 export { NotFoundPage } from './NotFoundPage'; 
 export { ShareWishlistModal } from './ShareWishlistModal';
 export { SharedWishlistPage } from './SharedWishlistPage';
+export { ManageShareLinksModal } from './ManageShareLinksModal';
