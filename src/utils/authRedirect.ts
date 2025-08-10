@@ -19,50 +19,51 @@ const isIOSSafari = (): boolean => {
          !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
 };
 
+const getBasePath = (): string => {
+  try {
+    // Vite подставляет BASE_URL на этапе сборки (например, '/wishlist-checker/')
+    const base = (import.meta as any).env?.BASE_URL as string | undefined;
+    if (base && base.startsWith('/')) {
+      return base.endsWith('/') ? base : `${base}/`;
+    }
+  } catch {}
+  // Fallback: пытаемся вычислить из путей GitHub Pages
+  const pathname = window.location.pathname || '/';
+  // Если сайт размещён как /<repo>/..., берём первую папку как base
+  const parts = pathname.split('/').filter(Boolean);
+  if (parts.length > 0) {
+    return `/${parts[0]}/`;
+  }
+  return '/';
+};
+
 export const getRedirectUrl = (): string => {
-  const { protocol, hostname, port } = window.location;
-  
-  // Для iOS PWA используем специальный подход
+  const { protocol, hostname, port, origin } = window.location;
+  const base = getBasePath();
+
+  // Для iOS PWA используем главный URL приложения
   if (isIOSPWA()) {
-    // Для PWA на iOS используем универсальный URL без auth/callback
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `${protocol}//${hostname}:${port}/wishlist-checker/`;
+      return `${protocol}//${hostname}:${port}${base}`;
     }
-    
-    if (hostname.includes('github.io')) {
-      return 'https://whizkidanime.github.io/wishlist-checker/';
-    }
-    
-    return `${window.location.origin}/wishlist-checker/`;
+    return `${origin}${base}`;
   }
-  
-  // Стандартная логика для остальных случаев
+
+  // Стандартный callback
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}:${port}/wishlist-checker/auth/callback`;
+    return `${protocol}//${hostname}:${port}${base}auth/callback`;
   }
-  
-  if (hostname.includes('github.io')) {
-    return 'https://whizkidanime.github.io/wishlist-checker/auth/callback';
-  }
-  
-  return `${window.location.origin}/wishlist-checker/auth/callback`;
+  return `${origin}${base}auth/callback`;
 };
 
 export const getSiteUrl = (): string => {
-  const { protocol, hostname, port } = window.location;
-  
-  // Если это локальная разработка
+  const { protocol, hostname, port, origin } = window.location;
+  const base = getBasePath();
+
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}:${port}/wishlist-checker/`;
+    return `${protocol}//${hostname}:${port}${base}`;
   }
-  
-  // Если это GitHub Pages
-  if (hostname.includes('github.io')) {
-    return 'https://whizkidanime.github.io/wishlist-checker/';
-  }
-  
-  // Fallback для любых других доменов
-  return `${window.location.origin}/wishlist-checker/`;
+  return `${origin}${base}`;
 };
 
 // Для отладки - покажет все URL в консоли
