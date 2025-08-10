@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { getSiteUrl } from '../utils/authRedirect';
 import { useSystemTheme, getSystemThemeClasses } from '../utils/systemTheme';
 import { ErrorPage } from './ErrorPage';
 
@@ -14,7 +15,7 @@ export const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuth = async () => {
       if (!supabase) {
-        window.location.href = '/wishlist-checker/';
+        window.location.href = getSiteUrl();
         return;
       }
 
@@ -71,7 +72,7 @@ export const AuthCallback: React.FC = () => {
           }
           
           if (shouldRedirect) {
-            window.location.href = '/wishlist-checker/';
+            window.location.href = getSiteUrl();
             return;
           } else if (errorMessage) {
             setError(errorMessage);
@@ -121,14 +122,15 @@ export const AuthCallback: React.FC = () => {
         if (isIOSPWA()) {
           // Для PWA пытаемся использовать history API
           try {
-            window.history.replaceState({}, '', '/wishlist-checker/');
+            const home = getSiteUrl();
+            window.history.replaceState({}, '', home);
             window.location.reload();
           } catch (e) {
-            window.location.href = '/wishlist-checker/';
+            window.location.href = getSiteUrl();
           }
         } else {
           // Стандартное перенаправление
-          window.location.href = '/wishlist-checker/';
+          window.location.href = getSiteUrl();
         }
         
       } catch (error) {
@@ -159,11 +161,11 @@ export const AuthCallback: React.FC = () => {
 
   if (error) {
     return (
-      <ErrorPage
+        <ErrorPage
         errorCode="🔐"
         title="Ошибка авторизации"
         description={error}
-        onReturnHome={() => window.location.href = '/wishlist-checker/'}
+          onReturnHome={() => window.location.href = getSiteUrl()}
         showReturnButton={true}
       />
     );
