@@ -1,8 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Получаем URL и ключи из переменных окружения (без жёстких фолбеков)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Мягкие источники конфигурации на случай, если переменные окружения не подхватились
+const readMeta = (name: string): string | undefined => {
+  try {
+    // Доступно только в браузере
+    if (typeof document === 'undefined') return undefined;
+    const node = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+    return node?.content || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const windowConfig = () => {
+  if (typeof window === 'undefined') return { url: undefined as string | undefined, key: undefined as string | undefined };
+  const anyWin = window as any;
+  return {
+    url: (anyWin.__SUPABASE_URL__ as string | undefined) || readMeta('supabase-url') || localStorage.getItem('SUPABASE_URL') || undefined,
+    key: (anyWin.__SUPABASE_ANON_KEY__ as string | undefined) || readMeta('supabase-anon-key') || localStorage.getItem('SUPABASE_ANON_KEY') || undefined,
+  };
+};
+
+// Получаем URL и ключи из переменных окружения с безопасными фолбэками (не сохраняем ничего в репо)
+const fromWindow = windowConfig();
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || fromWindow.url;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || fromWindow.key;
 
 // Экспортируем URL для использования в местах, где нужно собрать прямой OAuth URL (iOS PWA сценарии)
 export const SUPABASE_URL = supabaseUrl;
