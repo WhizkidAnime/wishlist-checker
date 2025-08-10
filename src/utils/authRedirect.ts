@@ -41,19 +41,12 @@ export const getRedirectUrl = (): string => {
   const { protocol, hostname, port, origin } = window.location;
   const base = getBasePath();
 
-  // Для iOS PWA используем главный URL приложения
-  if (isIOSPWA()) {
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `${protocol}//${hostname}:${port}${base}`;
-    }
-    return `${origin}${base}`;
-  }
-
-  // Стандартный callback
+  // Всегда возвращаем корень приложения (а не /auth/callback)
+  // Это устраняет проблемы с GitHub Pages 404 на вложенных путях
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${hostname}:${port}${base}auth/callback`;
+    return `${protocol}//${hostname}:${port}${base}`;
   }
-  return `${origin}${base}auth/callback`;
+  return `${origin}${base}`;
 };
 
 export const getSiteUrl = (): string => {
