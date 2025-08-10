@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -12,7 +12,7 @@ interface CategoryTabsProps {
   onDeleteCategory: (categoryName: string) => void;
 }
 
-export const CategoryTabs = ({ 
+const CategoryTabsComponent = ({ 
   items, 
   categories,
   activeCategory, 
@@ -28,25 +28,16 @@ export const CategoryTabs = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Обработчик прокрутки колесом мыши для горизонтальной прокрутки
-  const handleWheel = (e: React.WheelEvent) => {
-    if (scrollContainerRef.current) {
-      // Проверяем, можем ли мы предотвратить событие
-      // Не используем preventDefault для пассивных слушателей
-      try {
-        // Только пытаемся предотвратить если не пассивный слушатель
-        if (e.cancelable !== false) {
-          e.preventDefault();
-        }
-        e.stopPropagation();
-      } catch (error) {
-        // Игнорируем ошибки preventDefault в пассивных слушателях
-        console.log('Не удалось предотвратить событие (пассивный слушатель)');
-      }
-      
-      scrollContainerRef.current.scrollLeft += e.deltaY;
-    }
-  };
+  // Горизонтальный скролл: используем нативный wheel с passive:true
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: true });
+    return () => el.removeEventListener('wheel', onWheel as any);
+  }, []);
 
   // Функции для прокрутки влево и вправо
   const scrollLeft = () => {
@@ -76,13 +67,19 @@ export const CategoryTabs = ({
     }
   }, [isAddingCategory]);
 
-  // Подсчитываем количество товаров в каждой категории
-  const getCategoryCount = (category: string) => {
-    if (category === 'all') {
-      // В разделе "Без категории" считаем только товары БЕЗ категории
-      return items.filter(item => !item.category || item.category.trim() === '').length;
+  // Подсчитываем количество товаров в каждой категории (мемоизировано)
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    let nocat = 0;
+    for (const it of items) {
+      const cat = (it.category || '').trim();
+      if (!cat) nocat += 1; else map.set(cat, (map.get(cat) || 0) + 1);
     }
-    return items.filter(item => item.category === category).length;
+    return { map, nocat };
+  }, [items]);
+  const getCategoryCount = (category: string) => {
+    if (category === 'all') return counts.nocat;
+    return counts.map.get(category) || 0;
   };
 
   const handleAddCategory = () => {
@@ -154,7 +151,6 @@ export const CategoryTabs = ({
         <div 
           ref={scrollContainerRef} 
           className={`flex items-center gap-1 overflow-x-auto scrollbar-hide ${isMobile ? 'px-8' : ''}`}
-          onWheel={handleWheel}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
         {/* Вкладка "Без категории" */}
@@ -273,4 +269,6 @@ export const CategoryTabs = ({
       </div>
     </div>
   );
-}; 
+};
+
+export const CategoryTabs = React.memo(CategoryTabsComponent);

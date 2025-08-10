@@ -1,27 +1,104 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useReducer } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
 import { WishlistItem } from '../types/wishlistItem';
 import { supabase } from '../utils/supabaseClient';
 import { syncBlockManager } from '../utils/syncBlockManager';
 
+// Состояние и редьюсер для управления логикой вишлиста
+type SortMode = 'default' | 'type-asc' | 'price-asc' | 'price-desc';
+
+interface WishlistState {
+  wishlist: WishlistItem[];
+  editingItemId: string | number | null;
+  searchQuery: string;
+  sortBy: SortMode;
+  isLoading: boolean;
+  isMoving: boolean;
+  hasInitialLoadCompleted: boolean;
+}
+
+type WishlistAction =
+  | { type: 'SET_WISHLIST'; payload: WishlistItem[] }
+  | { type: 'APPEND_ITEM'; payload: WishlistItem }
+  | { type: 'UPDATE_ITEM'; payload: WishlistItem }
+  | { type: 'REMOVE_ITEM'; payload: { id: string | number } }
+  | { type: 'REORDER'; payload: WishlistItem[] }
+  | { type: 'SET_EDITING'; payload: { id: string | number | null } }
+  | { type: 'CLEAR_EDITING' }
+  | { type: 'SET_SEARCH_QUERY'; payload: string }
+  | { type: 'SET_SORT_BY'; payload: SortMode }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_MOVING'; payload: boolean }
+  | { type: 'SET_INITIAL_LOAD_COMPLETED'; payload: boolean }
+  | { type: 'RESET_ON_SIGN_OUT' };
+
+const initialState: WishlistState = {
+  wishlist: [],
+  editingItemId: null,
+  searchQuery: '',
+  sortBy: 'default',
+  isLoading: false,
+  isMoving: false,
+  hasInitialLoadCompleted: false,
+};
+
+function wishlistReducer(state: WishlistState, action: WishlistAction): WishlistState {
+  switch (action.type) {
+    case 'SET_WISHLIST':
+      return { ...state, wishlist: action.payload };
+    case 'APPEND_ITEM':
+      return { ...state, wishlist: [...state.wishlist, action.payload] };
+    case 'UPDATE_ITEM':
+      return {
+        ...state,
+        wishlist: state.wishlist.map(item => (item.id === action.payload.id ? action.payload : item)),
+      };
+    case 'REMOVE_ITEM':
+      return { ...state, wishlist: state.wishlist.filter(item => item.id !== action.payload.id) };
+    case 'REORDER':
+      return { ...state, wishlist: action.payload };
+    case 'SET_EDITING':
+      return { ...state, editingItemId: action.payload.id };
+    case 'CLEAR_EDITING':
+      return { ...state, editingItemId: null };
+    case 'SET_SEARCH_QUERY':
+      return { ...state, searchQuery: action.payload };
+    case 'SET_SORT_BY':
+      return { ...state, sortBy: action.payload };
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+    case 'SET_MOVING':
+      return { ...state, isMoving: action.payload };
+    case 'SET_INITIAL_LOAD_COMPLETED':
+      return { ...state, hasInitialLoadCompleted: action.payload };
+    case 'RESET_ON_SIGN_OUT':
+      return { ...initialState, hasInitialLoadCompleted: true };
+    default:
+      return state;
+  }
+}
+
 export const useWishlist = (
   triggerSync?: (force?: boolean) => Promise<{ success: boolean; message: string; }>, 
   isAuthenticated?: boolean
 ) => {
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'default' | 'type-asc' | 'price-asc' | 'price-desc'>('default');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMoving, setIsMoving] = useState(false);
-  const [hasInitialLoadCompleted, setHasInitialLoadCompleted] = useState<boolean>(false);
+  const [state, dispatch] = useReducer(wishlistReducer, initialState);
+
+  const generateLocalId = () => {
+    try {
+      if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+        // @ts-ignore
+        return crypto.randomUUID();
+      }
+    } catch {}
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  };
 
   // Загрузка данных из Supabase
   const loadWishlistFromSupabase = async (userId: string) => {
     if (!supabase) return;
-    
-    setIsLoading(true);
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const { data, error } = await supabase
         .from('wishlist_items')
@@ -43,29 +120,21 @@ export const useWishlist = (
         category: item.category || undefined
       }));
 
-      setWishlist(convertedItems);
+      dispatch({ type: 'SET_WISHLIST', payload: convertedItems });
     } catch (error) {
       console.error('Ошибка загрузки данных из Supabase:', error);
     } finally {
-      setIsLoading(false);
-      setHasInitialLoadCompleted(true);
+      dispatch({ type: 'SET_LOADING', payload: false });
+      dispatch({ type: 'SET_INITIAL_LOAD_COMPLETED', payload: true });
     }
   };
 
   // Эффект для загрузки данных при аутентификации
   useEffect(() => {
     if (isAuthenticated === false) {
-      // Очищаем состояние при выходе
-      setWishlist([]);
-      setEditingItemId(null);
-      setSearchQuery('');
-      setSortBy('default');
-      setIsLoading(false); // Сбрасываем состояние загрузки
-      setHasInitialLoadCompleted(true);
+      dispatch({ type: 'RESET_ON_SIGN_OUT' });
     } else if (isAuthenticated === true && triggerSync) {
-      // Загружаем данные при входе
-      setHasInitialLoadCompleted(false);
-      // Получаем userId из Supabase auth
+      dispatch({ type: 'SET_INITIAL_LOAD_COMPLETED', payload: false });
       supabase?.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           loadWishlistFromSupabase(user.id);
@@ -89,7 +158,7 @@ export const useWishlist = (
       }
       
       // Не перезагружаем данные, если сейчас что-то редактируется или перемещается
-      if (editingItemId !== null || isMoving) {
+      if (state.editingItemId !== null || state.isMoving) {
         if (process.env.NODE_ENV === 'development') {
           console.log('Пропускаем синхронизацию: элемент в режиме редактирования или перемещения');
         }
@@ -99,7 +168,7 @@ export const useWishlist = (
       // Дополнительная задержка для предотвращения гонки условий
       setTimeout(() => {
         // Повторная проверка блокировок после задержки
-        if (syncBlockManager.isBlocked() || editingItemId !== null || isMoving) {
+        if (syncBlockManager.isBlocked() || state.editingItemId !== null || state.isMoving) {
           if (process.env.NODE_ENV === 'development') {
             console.log('Пропускаем отложенную синхронизацию: блокировка активна');
           }
@@ -116,11 +185,11 @@ export const useWishlist = (
 
     window.addEventListener('wishlistDataUpdated', handleDataUpdate);
     return () => window.removeEventListener('wishlistDataUpdated', handleDataUpdate);
-  }, [isAuthenticated, editingItemId, isMoving]);
+  }, [isAuthenticated, state.editingItemId, state.isMoving]);
 
   // Базовая функция фильтрации и сортировки (без категорий)
   const getFilteredAndSortedItems = (items: WishlistItem[]) => {
-    const query = searchQuery.toLowerCase().trim();
+    const query = state.searchQuery.toLowerCase().trim();
     
     let filtered = query 
       ? items.filter(item => 
@@ -129,7 +198,7 @@ export const useWishlist = (
         )
       : [...items];
 
-    switch (sortBy) {
+    switch (state.sortBy) {
       case 'price-asc':
         filtered.sort((a, b) => a.price - b.price);
         break;
@@ -162,30 +231,45 @@ export const useWishlist = (
   };
 
   const filteredAndSortedWishlist = useMemo(() => {
-    return getFilteredAndSortedItems(wishlist);
-  }, [wishlist, searchQuery, sortBy]);
+    return getFilteredAndSortedItems(state.wishlist);
+  }, [state.wishlist, state.searchQuery, state.sortBy]);
 
   const totalUnbought = useMemo(() => {
-    return wishlist
+    return state.wishlist
       .filter(item => !item.isBought)
       .reduce((sum, item) => sum + item.price, 0);
-  }, [wishlist]);
+  }, [state.wishlist]);
 
   const totalBought = useMemo(() => {
-    return wishlist
+    return state.wishlist
       .filter(item => item.isBought)
       .reduce((sum, item) => sum + item.price, 0);
-  }, [wishlist]);
+  }, [state.wishlist]);
 
   const handleAddItem = async (newItem: Omit<WishlistItem, 'id' | 'isBought'>) => {
-    if (!isAuthenticated || !supabase) return;
+    // Локальный режим: работаем только со state
+    if (!isAuthenticated || !supabase) {
+      const convertedItem: WishlistItem = {
+        id: generateLocalId(),
+        itemType: newItem.itemType || '',
+        name: newItem.name,
+        link: newItem.link || '',
+        price: Number(newItem.price),
+        currency: newItem.currency,
+        isBought: false,
+        comment: newItem.comment || '',
+        category: newItem.category || undefined
+      };
+      dispatch({ type: 'APPEND_ITEM', payload: convertedItem });
+      return;
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Новые товары добавляются в конец списка
-      const maxSortOrder = wishlist.length;
+      const maxSortOrder = state.wishlist.length;
 
       const supabaseItem = {
         user_id: user.id,
@@ -221,14 +305,18 @@ export const useWishlist = (
         category: data.category || undefined
       };
 
-      setWishlist(prev => [...prev, convertedItem]);
+      dispatch({ type: 'APPEND_ITEM', payload: convertedItem });
     } catch (error) {
       console.error('Ошибка добавления товара:', error);
     }
   };
 
   const handleUpdateItem = async (updatedItem: WishlistItem) => {
-    if (!isAuthenticated || !supabase) return;
+    if (!isAuthenticated || !supabase) {
+      dispatch({ type: 'UPDATE_ITEM', payload: updatedItem });
+      dispatch({ type: 'CLEAR_EDITING' });
+      return;
+    }
 
     try {
       const supabaseUpdate = {
@@ -250,20 +338,27 @@ export const useWishlist = (
       if (error) throw error;
 
       // Обновляем локальное состояние
-      setWishlist(prev => prev.map(item => 
-        item.id === updatedItem.id ? updatedItem : item
-      ));
-      setEditingItemId(null);
+      dispatch({ type: 'UPDATE_ITEM', payload: updatedItem });
+      dispatch({ type: 'CLEAR_EDITING' });
     } catch (error) {
       console.error('Ошибка обновления товара:', error);
     }
   };
 
   const handleToggleBought = async (id: string | number) => {
-    if (!isAuthenticated || !supabase) return;
+    if (!isAuthenticated || !supabase) {
+      const item = state.wishlist.find(item => item.id === id);
+      if (!item) return;
+      const newIsBought = !item.isBought;
+      dispatch({
+        type: 'SET_WISHLIST',
+        payload: state.wishlist.map(it => (it.id === id ? { ...it, isBought: newIsBought } : it)),
+      });
+      return;
+    }
 
     try {
-      const item = wishlist.find(item => item.id === id);
+      const item = state.wishlist.find(item => item.id === id);
       if (!item) return;
 
       const newIsBought = !item.isBought;
@@ -276,34 +371,35 @@ export const useWishlist = (
       if (error) throw error;
 
       // Обновляем локальное состояние
-      setWishlist(prev => prev.map(item => 
-        item.id === id ? { ...item, isBought: newIsBought } : item
-      ));
+      dispatch({
+        type: 'SET_WISHLIST',
+        payload: state.wishlist.map(item => (item.id === id ? { ...item, isBought: newIsBought } : item)),
+      });
     } catch (error) {
       console.error('Ошибка изменения статуса товара:', error);
     }
   };
 
   const handleMoveItem = async (id: string | number, direction: 'up' | 'down') => {
-    const currentIndex = wishlist.findIndex(item => item.id === id);
+    const currentIndex = state.wishlist.findIndex(item => item.id === id);
     
     if (currentIndex === -1) return;
     
     const newIndex = direction === 'up' 
       ? Math.max(0, currentIndex - 1)
-      : Math.min(wishlist.length - 1, currentIndex + 1);
+      : Math.min(state.wishlist.length - 1, currentIndex + 1);
     
     if (currentIndex !== newIndex) {
-      setIsMoving(true); // Блокируем синхронизацию
+      dispatch({ type: 'SET_MOVING', payload: true }); // Блокируем синхронизацию
       
       // Блокируем синхронизацию с автоматическим снятием блокировки
       const unblock = syncBlockManager.block(10000);
       
       // Делаем снимок текущего состояния, чтобы безопасно откатиться при ошибке
-      const prevWishlist = wishlist;
+      const prevWishlist = state.wishlist;
       // Обновляем локальное состояние немедленно для отзывчивости UI
       const newWishlist = arrayMove(prevWishlist, currentIndex, newIndex);
-      setWishlist(newWishlist);
+      dispatch({ type: 'REORDER', payload: newWishlist });
       
       // Сохраняем новый порядок в Supabase атомарно через RPC
       if (isAuthenticated && supabase) {
@@ -325,22 +421,22 @@ export const useWishlist = (
             if (error) {
               console.error('Ошибка при сохранении порядка товаров:', error);
               // В случае ошибки восстанавливаем исходный порядок
-              setWishlist(prevWishlist);
+              dispatch({ type: 'SET_WISHLIST', payload: prevWishlist });
             }
           }
         } catch (error) {
           console.error('Ошибка при сохранении порядка товаров:', error);
           // В случае ошибки восстанавливаем исходный порядок
-          setWishlist(prevWishlist);
+          dispatch({ type: 'SET_WISHLIST', payload: prevWishlist });
         } finally {
           // Увеличенная задержка снимает риск мгновенной синхронизации поверх локального порядка
           setTimeout(() => {
-            setIsMoving(false);
+            dispatch({ type: 'SET_MOVING', payload: false });
             unblock();
           }, 600);
         }
       } else {
-        setIsMoving(false);
+        dispatch({ type: 'SET_MOVING', payload: false });
         unblock();
       }
     }
@@ -349,18 +445,18 @@ export const useWishlist = (
   const handleDragEnd = async (event: DragEndEvent) => {
     const {active, over} = event;
     if (over && active.id !== over.id) {
-      setIsMoving(true); // Блокируем синхронизацию
+      dispatch({ type: 'SET_MOVING', payload: true }); // Блокируем синхронизацию
       
       // Блокируем синхронизацию с автоматическим снятием блокировки
       const unblock = syncBlockManager.block(10000);
       
-      const prevWishlist = wishlist;
+      const prevWishlist = state.wishlist;
       const oldIndex = prevWishlist.findIndex((item) => item.id === active.id);
       const newIndex = prevWishlist.findIndex((item) => item.id === over.id);
       
       // Обновляем локальное состояние немедленно
       const newWishlist = arrayMove(prevWishlist, oldIndex, newIndex);
-      setWishlist(newWishlist);
+      dispatch({ type: 'REORDER', payload: newWishlist });
       
       // Сохраняем новый порядок в Supabase атомарно через RPC
       if (isAuthenticated && supabase) {
@@ -382,22 +478,22 @@ export const useWishlist = (
             if (error) {
               console.error('Ошибка при сохранении порядка товаров:', error);
               // В случае ошибки восстанавливаем исходный порядок
-              setWishlist(prevWishlist);
+              dispatch({ type: 'SET_WISHLIST', payload: prevWishlist });
             }
           }
         } catch (error) {
           console.error('Ошибка при сохранении порядка товаров:', error);
           // В случае ошибки восстанавливаем исходный порядок
-          setWishlist(prevWishlist);
+          dispatch({ type: 'SET_WISHLIST', payload: prevWishlist });
         } finally {
           // Увеличенная задержка снимает риск синхронизации, которая может вернуть старый порядок на мгновение
           setTimeout(() => {
-            setIsMoving(false);
+            dispatch({ type: 'SET_MOVING', payload: false });
             unblock();
           }, 600);
         }
       } else {
-        setIsMoving(false);
+        dispatch({ type: 'SET_MOVING', payload: false });
         unblock();
       }
     }
@@ -405,7 +501,12 @@ export const useWishlist = (
 
   const handleDeleteItem = async (id: string | number): Promise<void> => {
     if (!isAuthenticated || !supabase) {
-      throw new Error('Удаление доступно только для аутентифицированных пользователей');
+      // Локальный режим — просто удаляем из state
+      dispatch({ type: 'REMOVE_ITEM', payload: { id } });
+      if (state.editingItemId === id) {
+        dispatch({ type: 'CLEAR_EDITING' });
+      }
+      return;
     }
 
     try {
@@ -413,11 +514,11 @@ export const useWishlist = (
       if (!user) throw new Error('Пользователь не найден');
 
       // Сразу удаляем из локального состояния для немедленного обновления UI
-      setWishlist(prevWishlist => prevWishlist.filter(item => item.id !== id));
+      dispatch({ type: 'REMOVE_ITEM', payload: { id } });
       
       // Отменяем редактирование если удаляется редактируемый элемент
-      if (editingItemId === id) {
-        setEditingItemId(null);
+      if (state.editingItemId === id) {
+        dispatch({ type: 'CLEAR_EDITING' });
       }
 
       // Удаляем из Supabase
@@ -440,12 +541,12 @@ export const useWishlist = (
   };
 
   return {
-    wishlist,
-    editingItemId,
-    searchQuery,
-    setSearchQuery,
-    sortBy,
-    setSortBy,
+    wishlist: state.wishlist,
+    editingItemId: state.editingItemId,
+    searchQuery: state.searchQuery,
+    setSearchQuery: (q: string) => dispatch({ type: 'SET_SEARCH_QUERY', payload: q }),
+    sortBy: state.sortBy,
+    setSortBy: (s: SortMode) => dispatch({ type: 'SET_SORT_BY', payload: s }),
     filteredAndSortedWishlist,
     getFilteredAndSortedItems,
     totalUnbought,
@@ -456,9 +557,9 @@ export const useWishlist = (
     handleMoveItem,
     handleDragEnd,
     handleDeleteItem,
-    handleEditClick: setEditingItemId,
-    handleCancelEdit: () => setEditingItemId(null),
-    isLoading,
-    hasInitialLoadCompleted
+    handleEditClick: (id: string | number | null) => dispatch({ type: 'SET_EDITING', payload: { id } }),
+    handleCancelEdit: () => dispatch({ type: 'CLEAR_EDITING' }),
+    isLoading: state.isLoading,
+    hasInitialLoadCompleted: state.hasInitialLoadCompleted,
   };
 }; 

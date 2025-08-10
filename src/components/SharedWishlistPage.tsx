@@ -1,9 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { loadSharedPayloadFromQuery, SharePayloadV1, SharePayloadV1Item } from '../utils/share';
 import { useTheme } from '../hooks/useTheme';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
+import { safeFormatUrl } from '../utils/url';
+
+// Ленивые импорты только если реально нужен markdown
+const ReactMarkdown = lazy(() => import('react-markdown'));
+// remark-gfm не является React-компонентом, но мы подгружаем модуль лениво
+let gfmModule: any = null;
+const loadGfm = async () => {
+  if (!gfmModule) {
+    gfmModule = (await import('remark-gfm')).default;
+  }
+  return gfmModule;
+};
 
 export const SharedWishlistPage: React.FC = () => {
   const { getThemeConfig } = useTheme();
@@ -11,6 +20,8 @@ export const SharedWishlistPage: React.FC = () => {
   const [data, setData] = useState<SharePayloadV1 | null>(null);
   const [loaded, setLoaded] = useState<boolean>(false);
   const authorLabel = data?.author || data?.authorEmail || '';
+
+  // Нормализация перенесена в utils/url
 
   useEffect(() => {
     let mounted = true;
@@ -43,6 +54,12 @@ export const SharedWishlistPage: React.FC = () => {
       });
     return Array.from(map.entries()).map(([cat, items]) => ({ category: cat, items: toSorted(items) }));
   }, [itemsForGroups]);
+  // Загрузка remark-gfm по требованию (если есть note)
+  useEffect(() => {
+    if (data?.note) {
+      loadGfm();
+    }
+  }, [data?.note]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggle = (cat: string) => setCollapsed(prev => ({ ...prev, [cat]: !prev[cat] }));
@@ -70,7 +87,19 @@ export const SharedWishlistPage: React.FC = () => {
           )}
           {data?.note && (
             <div className="mt-3 text-sm text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.note}</ReactMarkdown>
+              <Suspense fallback={<div className="text-theme-text-secondary">Загрузка заметки…</div>}>
+                {/* По умолчанию ReactMarkdown экранирует HTML — без rehypeRaw */}
+                <ReactMarkdown
+                  // remarkPlugins заполним после загрузки модуля
+                  remarkPlugins={[]}
+                  urlTransform={(url: any) => {
+                    const safe = safeFormatUrl(typeof url === 'string' ? url : String(url));
+                    return safe ?? '';
+                  }}
+                >
+                  {data.note}
+                </ReactMarkdown>
+              </Suspense>
             </div>
           )}
         </div>
@@ -95,11 +124,15 @@ export const SharedWishlistPage: React.FC = () => {
                     {group.items.map((it, idx) => (
                       <div key={idx} className="rounded-2xl border border-gray-200 dark:border-gray-600 p-4">
                         <div className="font-medium text-gray-800 dark:text-gray-200 break-words">
-                          {data?.options?.includeLinks !== false && it.link ? (
-                            <a className="underline hover:text-blue-600 dark:hover:text-blue-400" href={it.link} target="_blank" rel="noopener noreferrer">{it.name}</a>
-                          ) : (
-                            it.name
-                          )}
+                          {(() => {
+                            if (data?.options?.includeLinks === false) return it.name;
+                            const safe = safeFormatUrl(it.link);
+                            return safe ? (
+                              <a className="underline hover:text-blue-600 dark:hover:text-blue-400" href={safe} target="_blank" rel="noopener noreferrer">{it.name}</a>
+                            ) : (
+                              it.name
+                            );
+                          })()}
                         </div>
                         {data?.options?.includeItemType !== false && it.itemType && (
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{it.itemType}</div>

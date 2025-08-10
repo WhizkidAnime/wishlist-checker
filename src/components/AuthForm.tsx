@@ -248,6 +248,73 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
     }
   };
 
+  // Внутренние подкомпоненты для снижения когнитивной сложности
+  const PasswordRequirements: React.FC = () => (
+    <div className="mt-3 p-3 bg-theme-background-secondary rounded-xl border border-theme-border">
+      <div className="text-xs font-medium text-theme-text mb-2">Требования к паролю:</div>
+      <div className="space-y-1.5">
+        {passwordValidation.map((req) => (
+          <div
+            key={req.id}
+            className={`flex items-center gap-2 text-xs transition-colors duration-300 ${
+              req.isValid ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+            }`}
+          >
+            <div
+              className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+                req.isValid ? 'bg-green-500' : 'bg-red-400'
+              }`}
+            />
+            <span className="transition-colors duration-300">{req.text}</span>
+            <div
+              className={`ml-auto transition-all duration-300 ${
+                req.isValid ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+              }`}
+            >
+              <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const ConfirmPasswordIndicator: React.FC = () => (
+    <>
+      {confirmPassword && (
+        <div
+          className={`flex items-center gap-2 text-xs mt-2 transition-colors duration-300 ${
+            password === confirmPassword ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+          }`}
+        >
+          <div
+            className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+              password === confirmPassword ? 'bg-green-500' : 'bg-red-400'
+            }`}
+          />
+          <span>{password === confirmPassword ? 'Пароли совпадают' : 'Пароли не совпадают'}</span>
+          {password === confirmPassword && (
+            <div className="ml-auto transition-all duration-300 opacity-100 scale-100">
+              <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="w-full max-h-[90vh] flex flex-col">
       {/* Заголовок с крестиком */}
@@ -365,39 +432,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
               />
 
               {/* Живые требования к паролю для регистрации */}
-              {mode === 'signup' && (
-                <div className="mt-3 p-3 bg-theme-background-secondary rounded-xl border border-theme-border">
-                  <div className="text-xs font-medium text-theme-text mb-2">Требования к паролю:</div>
-                  <div className="space-y-1.5">
-                    {passwordValidation.map((req) => (
-                      <div 
-                        key={req.id}
-                        className={`flex items-center gap-2 text-xs transition-colors duration-300 ${
-                          req.isValid 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : 'text-red-500 dark:text-red-400'
-                        }`}
-                      >
-                        <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                          req.isValid 
-                            ? 'bg-green-500' 
-                            : 'bg-red-400'
-                        }`} />
-                        <span className="transition-colors duration-300">
-                          {req.text}
-                        </span>
-                        <div className={`ml-auto transition-all duration-300 ${
-                          req.isValid ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                        }`}>
-                          <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {mode === 'signup' && (<PasswordRequirements />)}
             </div>
           )}
 
@@ -422,29 +457,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
               />
               
               {/* Индикатор совпадения паролей */}
-              {confirmPassword && (
-                <div className={`flex items-center gap-2 text-xs mt-2 transition-colors duration-300 ${
-                  password === confirmPassword 
-                    ? 'text-green-600 dark:text-green-400' 
-                    : 'text-red-500 dark:text-red-400'
-                }`}>
-                  <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                    password === confirmPassword 
-                      ? 'bg-green-500' 
-                      : 'bg-red-400'
-                  }`} />
-                  <span>
-                    {password === confirmPassword ? 'Пароли совпадают' : 'Пароли не совпадают'}
-                  </span>
-                  {password === confirmPassword && (
-                    <div className="ml-auto transition-all duration-300 opacity-100 scale-100">
-                      <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              )}
+              <ConfirmPasswordIndicator />
             </div>
           )}
 

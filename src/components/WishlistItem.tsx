@@ -1,19 +1,13 @@
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { WishlistItem as WishlistItemType } from '../types/wishlistItem';
+import { safeFormatUrl } from '../utils/url';
 import { EditItemForm } from './EditItemForm';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 
-// Функция для форматирования URL (добавляет протокол, если отсутствует)
-const formatUrl = (url: string): string => {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-  return `https://${url}`;
-};
+// Используем безопасную нормализацию ссылок
 
 interface WishlistItemProps {
   item: WishlistItemType;
@@ -40,6 +34,84 @@ interface WishlistItemProps {
   totalItems: number;
   comment?: string;
   existingCategories?: string[];
+}
+
+// Внутренние подкомпоненты для снижения когнитивной сложности
+export function ToggleBoughtBox({ isBought, onClick }: { isBought: boolean; onClick: () => void }) {
+  return (
+    <div
+      className={`h-5 w-5 border rounded flex items-center justify-center cursor-pointer focus:outline-none touch-manipulation transition-colors ${
+        isBought
+          ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700'
+          : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-700'
+      }`}
+      onClick={onClick}
+      style={{ touchAction: 'manipulation' }}
+      tabIndex={0}
+      role="checkbox"
+      aria-checked={isBought}
+      aria-label={isBought ? 'Отметить как не купленное' : 'Отметить как купленное'}
+    >
+      {isBought && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-3 w-3 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+        </svg>
+      )}
+    </div>
+  );
+}
+
+export function BulkSelectButton({
+  selected,
+  onClick,
+  className = '',
+}: {
+  selected: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full min-w-[36px] min-h-[36px] flex items-center justify-center transition duration-150 ease-in-out touch-manipulation ${
+        selected
+          ? 'text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600'
+          : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+      } ${className}`}
+      style={{ touchAction: 'manipulation' }}
+      aria-label={selected ? 'Убрать из выбора' : 'Выбрать для массовых операций'}
+    >
+      {selected ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+export function DragHandleButton({ listeners }: { listeners?: any }) {
+  return (
+    <button
+      {...listeners}
+      className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 cursor-grab active:cursor-grabbing focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 rounded"
+      aria-label="Перетащить элемент"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  );
 }
 
 /**
@@ -130,11 +202,14 @@ export const WishlistItem = ({
             </div>
             <div className="flex-grow min-w-0">
               <div className="font-medium text-gray-800 dark:text-gray-200 break-words">
-                {item.link ? (
-                  <a href={formatUrl(item.link)} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-300 underline hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors duration-150">{item.name}</a>
-                ) : (
-                  <span>{item.name}</span>
-                )}
+                {(() => {
+                  const safe = safeFormatUrl(item.link);
+                  return safe ? (
+                    <a href={safe} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-300 underline hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors duration-150">{item.name}</a>
+                  ) : (
+                    <span>{item.name}</span>
+                  );
+                })()}
               </div>
               {item.itemType && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
@@ -300,18 +375,21 @@ export const WishlistItem = ({
         
         <div className="flex-grow min-w-0 mr-4">
           <div className="font-medium text-gray-800 dark:text-gray-200">
-            {item.link ? (
-              <a 
-                href={formatUrl(item.link)} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-gray-600 dark:text-gray-300 underline hover:text-blue-600 dark:hover:text-blue-400 break-words transition-colors duration-150"
-              >
-                {item.name}
-              </a>
-            ) : (
-              <span className="break-words">{item.name}</span>
-            )}
+            {(() => {
+              const safe = safeFormatUrl(item.link);
+              return safe ? (
+                <a 
+                  href={safe}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-600 dark:text-gray-300 underline hover:text-blue-600 dark:hover:text-blue-400 break-words transition-colors duration-150"
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <span className="break-words">{item.name}</span>
+              );
+            })()}
           </div>
           <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 sm:text-gray-600 dark:sm:text-gray-400 mt-1 sm:mt-0 truncate">
             {item.itemType}
@@ -420,3 +498,5 @@ export const WishlistItem = ({
     </div>
   );
 };
+
+export default memo(WishlistItem);

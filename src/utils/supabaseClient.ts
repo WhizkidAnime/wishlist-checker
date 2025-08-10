@@ -1,8 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Получаем URL и ключи из переменных окружения
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://umvghchvnsuqnxrvzhct.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtdmdoY2h2bnN1cW54cnZ6aGN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzEwNTgsImV4cCI6MjA2NDA0NzA1OH0.ERrygSnyyzUBdl4d_DuLw1bNL8qI2n-zUi3Yn6qRvxE';
+// Получаем URL и ключи из переменных окружения (без жёстких фолбеков)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Экспортируем URL для использования в местах, где нужно собрать прямой OAuth URL (iOS PWA сценарии)
+export const SUPABASE_URL = supabaseUrl;
 
 // Проверяем, что переменные окружения установлены
 if (!supabaseUrl || !supabaseAnonKey) {

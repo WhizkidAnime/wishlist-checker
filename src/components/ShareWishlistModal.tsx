@@ -15,6 +15,7 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
   const [selected, setSelected] = useState<Record<string | number, boolean>>({});
   const [generatedUrl, setGeneratedUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState<string>('');
   const [options, setOptions] = useState<ShareDisplayOptionsV1>({
     includePrices: true,
@@ -57,8 +58,10 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
   };
 
   const handleCreateLink = async () => {
+    if (creating) return;
+    setCreating(true);
     const displayName = (user?.user_metadata as any)?.full_name || (user?.user_metadata as any)?.name || authorName || undefined;
-    const email = user?.email || undefined;
+    // Больше не включаем email в публичный payload
     const expiresAt = (() => {
       const days = parseInt(daysToLive, 10);
       if (!isNaN(days) && days > 0 && days <= 365) {
@@ -69,7 +72,7 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
       return null;
     })();
 
-    const url = await createShareUrlSmart(selectedItems, displayName, email, {
+    const url = await createShareUrlSmart(selectedItems, displayName, user?.email || undefined, {
       title: title.trim() || undefined,
       options,
       expiresAt,
@@ -84,6 +87,7 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
     } catch (_) {
       // ignore
     }
+    setCreating(false);
   };
 
   const handleBackdropMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
@@ -126,11 +130,12 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Например: подарки к ДР"
             className="w-full h-10 text-sm px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+            maxLength={200}
           />
         </div>
 
-        {/* Мини-настройки отображения */}
-        <div className="mb-3 grid grid-cols-2 gap-2">
+        {/* Мини-настройки отображения + срок жизни */}
+        <div className="mb-3 grid grid-cols-2 sm:grid-cols-3 gap-2 items-start">
           <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
             <input type="checkbox" checked={!!options.includePrices} onChange={(e) => setOptions(o => ({ ...o, includePrices: e.target.checked }))} style={{ accentColor: 'var(--color-primary)' }} />
             Показывать цены
@@ -147,30 +152,32 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
             <input type="checkbox" checked={!!options.includeComments} onChange={(e) => setOptions(o => ({ ...o, includeComments: e.target.checked }))} style={{ accentColor: 'var(--color-primary)' }} />
             Комментарии
           </label>
+          <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
+            <span className="text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">Срок жизни ссылки</span>
+            <input
+              type="number"
+              min={1}
+              max={365}
+              step={1}
+              value={daysToLive}
+              onChange={(e) => setDaysToLive(e.target.value)}
+              className="h-9 w-24 text-sm px-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+            />
+            <span className="text-sm text-gray-500 dark:text-gray-400">дн.</span>
+          </div>
         </div>
 
-        {/* Срок жизни ссылки и описание */}
-        <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Срок жизни ссылки (дней)</label>
-            <input
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={daysToLive}
-              onChange={(e) => setDaysToLive(e.target.value.replace(/[^0-9]/g, ''))}
-              className="w-full h-10 text-sm px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание (Markdown)</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Например: пожелания по цвету/размеру, общая информация и т.д."
-              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 min-h-28"
-              rows={5}
-            />
-          </div>
+        {/* Описание на всю ширину */}
+        <div className="mb-3">
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Описание</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Например: пожелания по цвету/размеру, общая информация и т.д."
+            className="w-full text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 min-h-28"
+            rows={5}
+            maxLength={4000}
+          />
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto border rounded-xl border-gray-200 dark:border-gray-600">
@@ -184,7 +191,7 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
                     onClick={() => toggleGroup(group.category)}
                     className="w-full flex items-center justify-between px-3 py-2"
                   >
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{group.category}</span>
+                    <span className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{group.category}</span>
                     <svg className={`h-4 w-4 text-gray-500 transition-transform ${collapsed[group.category] ? '-rotate-90' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd"/></svg>
                   </button>
                   {!collapsed[group.category] && (
@@ -251,10 +258,10 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
             </button>
             <button
               onClick={handleCreateLink}
-              disabled={selectedItems.length === 0}
+              disabled={selectedItems.length === 0 || creating}
               className="h-10 px-4 rounded-full text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 disabled:opacity-50"
             >
-              Создать ссылку
+              {creating ? 'Создание...' : 'Создать ссылку'}
             </button>
           </div>
         </div>

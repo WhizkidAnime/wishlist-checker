@@ -229,38 +229,48 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
         {isMobile ? (
           /* Мобильная карусель с framer-motion */
           <div className="mb-8 flex justify-center">
-            <Carousel
-              items={features}
-              baseWidth={Math.min(320, window.innerWidth - 40)}
-              autoplay={true}
-              autoplayDelay={4000}
-              pauseOnHover={true}
-              loop={true}
-              round={false}
-              themeConfig={{
-                background: themeConfig.cardBackground || themeConfig.background,
-                text: themeConfig.text,
-                border: 'border-gray-200 dark:border-gray-700'
-              }}
-            />
+            {(() => {
+              const width = typeof window !== 'undefined' ? Math.min(320, window.innerWidth - 40) : 320;
+              return (
+                <Carousel
+                  items={features}
+                  baseWidth={width}
+                  autoplay={true}
+                  autoplayDelay={4000}
+                  pauseOnHover={true}
+                  loop={true}
+                  round={false}
+                  themeConfig={{
+                    background: themeConfig.cardBackground || themeConfig.background,
+                    text: themeConfig.text,
+                    border: 'border-gray-200 dark:border-gray-700'
+                  }}
+                />
+              );
+            })()}
           </div>
         ) : (
           /* Десктопная карусель */
           <div className="mb-8 sm:mb-12 flex justify-center">
-            <Carousel
-              items={features}
-              baseWidth={Math.min(500, window.innerWidth - 100)}
-              autoplay={true}
-              autoplayDelay={5000}
-              pauseOnHover={true}
-              loop={true}
-              round={false}
-              themeConfig={{
-                background: themeConfig.cardBackground || themeConfig.background,
-                text: themeConfig.text,
-                border: 'border-gray-200 dark:border-gray-700'
-              }}
-            />
+            {(() => {
+              const width = typeof window !== 'undefined' ? Math.min(500, window.innerWidth - 100) : 500;
+              return (
+                <Carousel
+                  items={features}
+                  baseWidth={width}
+                  autoplay={true}
+                  autoplayDelay={5000}
+                  pauseOnHover={true}
+                  loop={true}
+                  round={false}
+                  themeConfig={{
+                    background: themeConfig.cardBackground || themeConfig.background,
+                    text: themeConfig.text,
+                    border: 'border-gray-200 dark:border-gray-700'
+                  }}
+                />
+              );
+            })()}
           </div>
         )}
 

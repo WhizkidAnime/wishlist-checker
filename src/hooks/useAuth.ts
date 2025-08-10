@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { supabase, isSupabaseAvailable } from '../utils/supabaseClient';
+import { supabase, isSupabaseAvailable, SUPABASE_URL } from '../utils/supabaseClient';
 import { getRedirectUrl, debugAuthUrls } from '../utils/authRedirect';
 import { logger } from '../utils/logger';
 import { 
@@ -220,8 +220,9 @@ export const useAuth = () => {
     try {
       if (oauthMethod === 'external' && isIOSPWA()) {
         // Для iOS PWA открываем в внешнем браузере
-        const authUrl = `https://umvghchvnsuqnxrvzhct.supabase.co/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(getRedirectUrl())}&prompt=select_account`;
-        window.open(authUrl, '_blank');
+        const base = SUPABASE_URL || 'https://umvghchvnsuqnxrvzhct.supabase.co';
+        const authUrl = `${base}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(getRedirectUrl())}&prompt=select_account`;
+        window.open(authUrl, '_blank', 'noopener,noreferrer');
         return;
       }
 

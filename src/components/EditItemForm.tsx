@@ -2,6 +2,7 @@ import { useState, FormEvent, useEffect, ChangeEvent, useRef } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
+import { isValidHttpUrl } from '../utils/url';
 
 interface EditItemFormProps {
   item: WishlistItem;
@@ -97,7 +98,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
           return newErrors;
         });
       }
-    } else if (fieldName === 'link' && value && !isValidUrl(value)) {
+    } else if (fieldName === 'link' && value && !isValidHttpUrl(value)) {
       setErrors(prev => ({ ...prev, [fieldName]: 'Некорректный URL' }));
     } else {
       // Убираем ошибку, если поле стало валидным
@@ -110,10 +111,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
     }
   };
   
-  // Простая функция валидации URL
-  const isValidUrl = (urlString: string): boolean => {
-    try { new URL(urlString); return true; } catch (_) { return false; } 
-  };
+  // Валидация вынесена в utils/url
 
   // Финальная валидация перед отправкой
   const validateSubmit = (): { isValid: boolean; calculatedPrice: number | null } => {
@@ -131,7 +129,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
         finalErrors.price = 'Цена не может быть отрицательной';
       }
     }
-    if (formData.link && !isValidUrl(formData.link)) finalErrors.link = 'Некорректный URL';
+    if (formData.link && !isValidHttpUrl(formData.link)) finalErrors.link = 'Некорректный URL';
 
     setErrors(finalErrors);
     return { isValid: Object.keys(finalErrors).length === 0, calculatedPrice };
@@ -182,6 +180,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               onChange={handleChange}
               className={`w-full px-3 py-2 border ${errors.itemType ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.itemType ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm input-theme`}
               autoComplete="off"
+              maxLength={200}
             />
             {errors.itemType && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.itemType}</p>}
           </div>
@@ -200,6 +199,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               required
               className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm input-theme`}
               autoComplete="off"
+              maxLength={300}
             />
             {errors.name && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>}
           </div>
@@ -221,6 +221,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 placeholder="45500 или 45000+500"
                 className="w-full p-2 text-sm border-0 focus:outline-none flex-1 placeholder:text-xs input-theme"
                 autoComplete="off"
+                maxLength={32}
               />
               <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-700 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
                 <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
@@ -245,6 +246,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
                 className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs input-theme"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
+                maxLength={200}
               />
               {/* Контейнер для иконок */}
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
@@ -334,6 +336,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               onChange={handleChange}
               className={`w-full px-3 py-2 border ${errors.link ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:outline-none focus:ring-1 ${errors.link ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'} text-sm input-theme`}
               autoComplete="off"
+              maxLength={2000}
             />
             {errors.link && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.link}</p>}
           </div>
@@ -351,6 +354,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm input-theme resize-y"
               autoComplete="off"
+              maxLength={4000}
             />
           </div>
         </div>

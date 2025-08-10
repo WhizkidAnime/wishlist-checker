@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import './App.css'
 
-import { AuthModal, AuthCallback, LandingPage, MainApp, NotFoundPage, SharedWishlistPage } from './components';
+// Ленивые импорты страниц/модалок для снижения стартового бандла
+const AuthCallback = lazy(() => import('./components/AuthCallback').then(m => ({ default: m.AuthCallback })));
+const LandingPage = lazy(() => import('./components/LandingPage').then(m => ({ default: m.LandingPage })));
+const MainApp = lazy(() => import('./components/MainApp').then(m => ({ default: m.MainApp })));
+const NotFoundPage = lazy(() => import('./components/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const SharedWishlistPage = lazy(() => import('./components/SharedWishlistPage').then(m => ({ default: m.SharedWishlistPage })));
+const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 
 import { useAuth, useSupabaseSync } from './hooks';
 import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
@@ -75,10 +81,18 @@ function App() {
 
   // Если это auth callback, показываем компонент обработки
   if (isAuthCallback) {
-    return <AuthCallback />;
+    return (
+      <Suspense fallback={null}>
+        <AuthCallback />
+      </Suspense>
+    );
   }
   if (isSharedView) {
-    return <SharedWishlistPage />;
+    return (
+      <Suspense fallback={null}>
+        <SharedWishlistPage />
+      </Suspense>
+    );
   }
   
   // Если путь неизвестен, показываем 404
@@ -116,23 +130,31 @@ function App() {
           </div>
         </div>
       ) : shouldShowMainApp ? (
-        <MainApp 
-          triggerSync={triggerSync} 
-          onAuthModalOpen={() => setIsAuthModalOpen(true)}
-          onDataLoaded={handleDataLoaded}
-        />
+        <Suspense fallback={null}>
+          <MainApp 
+            triggerSync={triggerSync} 
+            onAuthModalOpen={() => setIsAuthModalOpen(true)}
+            onDataLoaded={handleDataLoaded}
+          />
+        </Suspense>
       ) : (
-        <LandingPage 
-          onAuthModalOpen={() => setIsAuthModalOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <LandingPage 
+            onAuthModalOpen={() => setIsAuthModalOpen(true)}
+          />
+        </Suspense>
       )}
 
       {/* Модальное окно аутентификации */}
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        onSuccess={handleAuthSuccess}
-      />
+      {isAuthModalOpen && (
+        <Suspense fallback={null}>
+          <AuthModal 
+            isOpen={isAuthModalOpen} 
+            onClose={() => setIsAuthModalOpen(false)} 
+            onSuccess={handleAuthSuccess}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

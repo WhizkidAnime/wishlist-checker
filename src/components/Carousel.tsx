@@ -130,6 +130,8 @@ export default function Carousel({
         },
       };
 
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   return (
     <div
       ref={containerRef}
@@ -145,7 +147,7 @@ export default function Carousel({
     >
       <motion.div
         className="flex"
-        drag="x"
+        drag={prefersReduced ? false : "x"}
         {...dragProps}
         style={{
           width: itemWidth,
@@ -156,7 +158,7 @@ export default function Carousel({
         }}
         onDragEnd={handleDragEnd}
         animate={{ x: -(currentIndex * trackItemOffset) }}
-        transition={effectiveTransition}
+        transition={prefersReduced ? { duration: 0 } : effectiveTransition}
         onAnimationComplete={handleAnimationComplete}
       >
         {carouselItems.map((item, index) => {
@@ -166,7 +168,7 @@ export default function Carousel({
             -(index - 1) * trackItemOffset,
           ];
           const outputRange = [90, 0, -90];
-          const rotateY = useTransform(x, range, outputRange, { clamp: false });
+          const rotateY = prefersReduced ? undefined : useTransform(x, range, outputRange, { clamp: false });
           
           return (
             <motion.div
@@ -180,7 +182,7 @@ export default function Carousel({
                 width: itemWidth,
                 height: round ? itemWidth : "auto",
                 minHeight: round ? itemWidth : "200px",
-                rotateY: rotateY,
+                ...(rotateY ? { rotateY } : {}),
                 ...(round && { borderRadius: "50%" }),
               }}
               transition={effectiveTransition}

@@ -8,7 +8,15 @@ export default defineConfig({
   base: '/wishlist-checker/',
   build: {
     rollupOptions: {
-      input: './index.html'
+      input: './index.html',
+      output: {
+        manualChunks: {
+          dnd: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          motion: ['framer-motion'],
+          markdown: ['react-markdown', 'remark-gfm'],
+          supabase: ['@supabase/supabase-js']
+        }
+      }
     }
   },
   // @ts-ignore - vitest configuration

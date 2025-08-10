@@ -2,6 +2,7 @@ import { useState, FormEvent, useRef, useEffect } from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { safeCalculate } from '../utils/priceCalculator';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
+import { isValidHttpUrl } from '../utils/url';
 
 interface AddItemFormProps {
   onAddItem: (item: Omit<WishlistItem, 'id' | 'isBought'>) => void;
@@ -13,6 +14,7 @@ interface FormErrors {
   itemType?: string;
   name?: string;
   price?: string;
+  link?: string;
 }
 
 /**
@@ -65,6 +67,9 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
       }
     }
     
+    // Простаая проверка URL при наличии значения
+    if (link.trim() && !isValidHttpUrl(link.trim())) newErrors.link = 'Некорректный URL';
+
     setErrors(newErrors);
     return { isValid: Object.keys(newErrors).length === 0, calculatedPrice };
   };
@@ -140,6 +145,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 input-theme ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
+              maxLength={200}
             />
             {errors.itemType && <p className="mt-1 text-xs text-red-600">{errors.itemType}</p>}
           </div>
@@ -157,6 +163,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 input-theme ${errors.name ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
               required
               autoComplete="off"
+              maxLength={300}
             />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
           </div>
@@ -177,6 +184,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
                 placeholder="45500 или 45000+500"
                 required
                 autoComplete="off"
+                maxLength={32}
               />
               <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-700 border-l border-gray-200 dark:border-gray-600 transition-colors duration-200" style={{ width: '35px', flexShrink: 0 }}>
                 <span className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">RUB</span>
@@ -200,6 +208,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
                 className="w-full px-3 py-2 pr-16 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder:text-xs input-theme"
                 placeholder="Выберите или создайте"
                 autoComplete="off"
+                maxLength={200}
               />
               {/* Контейнер для иконок */}
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
@@ -286,7 +295,9 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               onChange={(e) => handleInputChange('link', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 input-theme"
               autoComplete="off"
+              maxLength={2000}
             />
+            {errors.link && <p className="mt-1 text-xs text-red-600">{errors.link}</p>}
           </div>
 
           {/* Комментарий (опционально) */}
@@ -301,6 +312,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               rows={2}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-y input-theme"
               autoComplete="off"
+              maxLength={4000}
             />
           </div>
         </div>

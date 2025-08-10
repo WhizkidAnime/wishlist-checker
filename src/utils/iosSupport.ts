@@ -63,7 +63,7 @@ export const getRecommendedOAuthMethod = (): 'popup' | 'redirect' | 'external' =
 export const openOAuthInExternalBrowser = (authUrl: string): void => {
   if (isIOSPWA()) {
     // Для iOS PWA открываем в Safari
-    window.open(authUrl, '_blank');
+    window.open(authUrl, '_blank', 'noopener,noreferrer');
   } else {
     // Для остальных случаев используем обычное перенаправление
     window.location.href = authUrl;

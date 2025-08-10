@@ -1,6 +1,7 @@
 import { WishlistItem } from '../types/wishlistItem';
 import { getSiteUrl } from './authRedirect';
 import { supabase, isSupabaseAvailable } from './supabaseClient';
+import { safeFormatUrl } from './url';
 
 interface SharePayloadV1Item {
   name: string;
@@ -30,25 +31,33 @@ interface SharePayloadV1 {
 }
 
 const encodeUnicodeToBase64 = (str: string): string => {
-  return btoa(unescape(encodeURIComponent(str)));
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
 };
 
 const decodeUnicodeFromBase64 = (b64: string): string => {
-  return decodeURIComponent(escape(atob(b64)));
+  const binary = atob(b64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
 };
 
 export const createShareUrl = (
   items: WishlistItem[],
   author?: string,
-  authorEmail?: string,
+  _authorEmail?: string,
   title?: string,
   options?: ShareDisplayOptionsV1,
   note?: string
 ): string => {
+  // Не включаем email в публичный payload
   const payload: SharePayloadV1 = {
     v: 1,
     author,
-    authorEmail,
+    authorEmail: undefined,
     title,
     options,
     note,
@@ -75,23 +84,108 @@ export const parseShareFromLocation = (): SharePayloadV1 | null => {
     const params = new URLSearchParams(window.location.search);
     const share = params.get('share');
     if (!share) return null;
-    const decoded = decodeUnicodeFromBase64(decodeURIComponent(share));
-    const parsed = JSON.parse(decoded) as SharePayloadV1;
-    if (parsed && parsed.v === 1 && Array.isArray(parsed.items)) {
-      return parsed;
+    // Ограничение размера для защиты от чрезмерных payload
+    const raw = decodeURIComponent(share);
+    if (raw.length > 100000) { // ~100 KB закодированной строки
+      return null;
     }
+    const decoded = decodeUnicodeFromBase64(raw);
+    const parsedRaw = JSON.parse(decoded) as unknown;
+    const parsed = validateAndSanitizeSharePayload(parsedRaw);
+    if (parsed) return parsed;
     return null;
   } catch (e) {
     return null;
   }
 };
 
-// Генерация короткого id (base62)
+// Защита от прототип-поллюции и валидация: копируем только ожидаемые поля
+const MAX_STR = 1000;
+const MAX_ITEMS = 1000;
+function clampString(input: any, max = MAX_STR): string | undefined {
+  if (typeof input !== 'string') return undefined;
+  const s = input.slice(0, max).trim();
+  return s || undefined;
+}
+
+function toNumber(n: any): number | null {
+  if (typeof n === 'number' && isFinite(n)) return n;
+  const v = Number(n);
+  return isFinite(v) ? v : null;
+}
+
+function sanitizeItem(raw: any): SharePayloadV1Item | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const name = clampString((raw as any).name, 300);
+  if (!name) return null;
+  const priceNum = toNumber((raw as any).price);
+  if (priceNum === null || priceNum < 0) return null;
+  const currency = clampString((raw as any).currency, 10) || 'RUB';
+  const link = clampString((raw as any).link, 2000);
+  const safeLink = link ? safeFormatUrl(link) : null;
+  // Если ссылка была задана, но после проверки оказалась небезопасной — отклоняем элемент
+  if (link && !safeLink) return null;
+  const itemType = clampString((raw as any).itemType, 200);
+  const comment = clampString((raw as any).comment, 2000);
+  const category = clampString((raw as any).category, 200);
+  return {
+    name,
+    price: priceNum,
+    currency,
+    link: safeLink || undefined,
+    itemType: itemType || undefined,
+    comment: comment || undefined,
+    category: category || undefined,
+  };
+}
+
+export function validateAndSanitizeSharePayload(raw: any): SharePayloadV1 | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const v = (raw as any).v;
+  if (v !== 1) return null;
+  const itemsArr = Array.isArray((raw as any).items) ? (raw as any).items : [];
+  if (itemsArr.length > MAX_ITEMS) return null;
+  const items: SharePayloadV1Item[] = [];
+  for (let i = 0; i < itemsArr.length; i++) {
+    const sanitized = sanitizeItem(itemsArr[i]);
+    if (sanitized) items.push(sanitized);
+  }
+  const author = clampString((raw as any).author, 200);
+  const authorEmail = clampString((raw as any).authorEmail, 254);
+  const title = clampString((raw as any).title, 200);
+  const note = clampString((raw as any).note, 4000);
+  const optionsRaw = (raw as any).options || {};
+  const options = {
+    includePrices: Boolean(optionsRaw?.includePrices ?? true),
+    includeLinks: Boolean(optionsRaw?.includeLinks ?? true),
+    includeComments: Boolean(optionsRaw?.includeComments ?? false),
+    includeItemType: Boolean(optionsRaw?.includeItemType ?? true),
+  } as ShareDisplayOptionsV1;
+  const out: SharePayloadV1 = {
+    v: 1,
+    author,
+    authorEmail,
+    title,
+    options,
+    note,
+    items,
+  };
+  return out;
+}
+
+// Генерация короткого id (base62) на основе криптографической случайности
 const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const generateShortId = (len = 10): string => {
+  const bytes = new Uint8Array(len);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    // Фолбек: псевдослучайный генератор — реже, но сохраняем работоспособность
+    for (let i = 0; i < len; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
   let out = '';
   for (let i = 0; i < len; i++) {
-    out += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+    out += ALPHABET[bytes[i] % ALPHABET.length];
   }
   return out;
 };
@@ -110,7 +204,7 @@ export const createShareUrlSmart = async (
     const payload: SharePayloadV1 = {
       v: 1,
       author,
-      authorEmail,
+      authorEmail: authorEmail || undefined,
       title: opts?.title,
       options: opts?.options,
       note: opts?.note,

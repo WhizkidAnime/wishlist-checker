@@ -42,13 +42,17 @@ export const CalculatorPopup: React.FC<CalculatorPopupProps> = ({
         </button>
       </DesktopOnlyTooltip>
       <h3 className="font-semibold text-indigo-800 dark:text-indigo-300 mb-2 pr-8">Выбрано для расчета: {selectedCount}</h3>
-      <ul className="max-h-40 overflow-y-auto mb-2 pr-2 space-y-1"> 
+      <div className="max-h-40 overflow-y-auto mb-2 pr-2"> 
         {selectedItems.map(item => (
-          <DesktopOnlyTooltip content={item.name} key={item.id} position="left">
-            <li className="text-indigo-700 dark:text-indigo-300 text-xs truncate">{item.name}</li>
-          </DesktopOnlyTooltip>
+          <div 
+            key={item.id} 
+            className="text-indigo-700 dark:text-indigo-300 text-xs block mb-1 py-0.5 border-b border-transparent"
+            style={{ display: 'block', marginBottom: '4px' }}
+          >
+            {item.name}
+          </div>
         ))}
-      </ul>
+      </div>
       <div className="text-sm text-indigo-800 dark:text-indigo-300 mt-1 font-medium">
         Сумма: <span className="font-semibold text-indigo-900 dark:text-indigo-200">{selectedTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {displayCurrency}</span>
       </div>

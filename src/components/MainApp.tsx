@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 import { AddItemForm } from './AddItemForm';
-import { WishlistItem } from './WishlistItem';
+import WishlistItem from './WishlistItem';
 import { SearchAndSort } from './SearchAndSort';
 import { CalculatorPopup } from './CalculatorPopup';
 import { CategoryTabs } from './CategoryTabs';
@@ -26,6 +27,351 @@ import { useCategories } from '../hooks/useCategories';
 import { useTheme } from '../hooks/useTheme';
 import { useBulkActions } from '../hooks/useBulkActions';
 import { useAuth } from '../hooks/useAuth';
+
+// Внутренние подкомпоненты для уменьшения когнитивной сложности разметки
+interface HeaderProps {
+  onOpenHelp: () => void;
+  adaptiveControlPanel: React.ReactNode;
+}
+
+function Header({ onOpenHelp, adaptiveControlPanel }: HeaderProps) {
+  return (
+    <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-30">
+      {/* Мобильная версия - простая панель управления сверху */}
+      <div className="sm:hidden">
+        <div className="flex justify-between items-center mb-4">
+          {/* Кнопка справки слева */}
+          <button
+            onClick={onOpenHelp}
+            className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-shrink-0"
+            aria-label="Справка по приложению"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+
+          {/* Заголовок по центру в две строки */}
+          <div className="flex-1 text-center mx-3">
+            <h1 className="text-2xl font-bold text-theme-text leading-tight">
+              <div>Wishlist</div>
+              <div>checker</div>
+            </h1>
+          </div>
+
+          {/* Адаптивная панель управления справа */}
+          <div className="flex-shrink-0">
+            {adaptiveControlPanel}
+          </div>
+        </div>
+      </div>
+
+      {/* Десктопная версия - заголовок */}
+      <div className="hidden sm:block text-center">
+        <h1 className="text-4xl font-bold text-theme-text">Wishlist checker</h1>
+      </div>
+    </div>
+  );
+}
+
+interface ListCardProps {
+  themeCardClass: string;
+  categories: string[];
+  activeCategory: string;
+  setActiveCategory: (c: string) => void;
+  onAddCategory: (name: string) => Promise<void> | void;
+  onDeleteCategory: (name: string) => void;
+  onAddItem: Parameters<typeof AddItemForm>[0]['onAddItem'];
+  wishlist: ReturnType<typeof useWishlist>['wishlist'];
+  displayedWishlist: ReturnType<typeof useWishlist>['wishlist'];
+  searchQuery: string;
+  setSearchQuery: (v: string) => void;
+  sortBy: 'default' | 'type-asc' | 'price-asc' | 'price-desc';
+  setSortBy: (v: 'default' | 'type-asc' | 'price-asc' | 'price-desc') => void;
+  showSortDropdown: boolean;
+  setShowSortDropdown: (v: boolean) => void;
+  isMobile: boolean;
+  onShareOpen: () => void;
+  editingItemId: ReturnType<typeof useWishlist>['editingItemId'];
+  onToggleBought: (id: string | number) => void;
+  onDeleteItemClick: (id: string | number) => void;
+  onUpdateItem: ReturnType<typeof useWishlist>['handleUpdateItem'];
+  onEditClick: ReturnType<typeof useWishlist>['handleEditClick'];
+  onCancelEdit: ReturnType<typeof useWishlist>['handleCancelEdit'];
+  displayCurrency: string;
+  exchangeRates: Record<string, number>;
+  selectedItemIds: (string | number)[];
+  onToggleSelected: (id: string | number) => void;
+  bulkSelectedItemIds: (string | number)[];
+  onToggleBulkSelected: (id: string | number) => void;
+  onMoveItem: (id: string | number, direction: 'up' | 'down') => Promise<void> | void;
+  displayedTotalUnbought: number;
+  displayedTotalBought: number;
+}
+
+function ListCard(props: ListCardProps) {
+  const {
+    themeCardClass,
+    categories,
+    activeCategory,
+    setActiveCategory,
+    onAddCategory,
+    onDeleteCategory,
+    onAddItem,
+    wishlist,
+    displayedWishlist,
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    showSortDropdown,
+    setShowSortDropdown,
+    isMobile,
+    onShareOpen,
+    editingItemId,
+    onToggleBought,
+    onDeleteItemClick,
+    onUpdateItem,
+    onEditClick,
+    onCancelEdit,
+    displayCurrency,
+    exchangeRates,
+    selectedItemIds,
+    onToggleSelected,
+    bulkSelectedItemIds,
+    onToggleBulkSelected,
+    onMoveItem,
+    displayedTotalUnbought,
+    displayedTotalBought,
+  } = props;
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const enableVirtual = !isMobile && displayedWishlist.length > 40;
+  const rowVirtualizer = enableVirtual
+    ? useVirtualizer({
+        count: displayedWishlist.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 64,
+        overscan: 8,
+      })
+    : null;
+
+  return (
+    <div className={`w-full max-w-4xl ${themeCardClass} rounded-3xl shadow-lg p-4 sm:p-8 relative z-10 transition-colors duration-200`}>
+      <AddItemForm onAddItem={onAddItem} existingCategories={categories} disabled={false} />
+
+      <div className="flex items-center justify-between flex-wrap mt-6 mb-4 gap-3 border-b pb-4 border-gray-200 dark:border-gray-600">
+        <h2 className="text-xl font-semibold text-black dark:text-theme-secondary">Список желаний</h2>
+        <div className="flex gap-2 ml-auto shrink-0">
+          <button
+            onClick={onShareOpen}
+            className="px-3 py-1.5 rounded-full text-sm font-semibold bg-theme-button text-theme-button hover:bg-theme-button focus:outline-none transition-colors duration-150 ease-in-out"
+          >
+            Поделиться
+          </button>
+        </div>
+      </div>
+
+      <CategoryTabs
+        items={wishlist}
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        onAddCategory={onAddCategory}
+        onDeleteCategory={onDeleteCategory}
+      />
+
+      <SearchAndSort
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        showSortDropdown={showSortDropdown}
+        setShowSortDropdown={setShowSortDropdown}
+        isMobile={isMobile}
+        itemsCount={displayedWishlist.length}
+      />
+
+      {displayedWishlist.length > 0 ? (
+        enableVirtual ? (
+          <div className="border-t border-gray-200 dark:border-gray-600">
+            <div ref={parentRef} className="relative overflow-auto" style={{ maxHeight: '60vh' }}>
+              <div style={{ height: `${rowVirtualizer!.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                {rowVirtualizer!.getVirtualItems().map((virtualRow) => {
+                  const index = virtualRow.index;
+                  const item = displayedWishlist[index];
+                  return (
+                    <div
+                      key={item.id}
+                      data-index={index}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                    >
+                      <WishlistItem
+                        item={item}
+                        onToggleBought={onToggleBought}
+                        onDeleteItem={() => onDeleteItemClick(item.id)}
+                        onUpdateItem={onUpdateItem}
+                        isEditing={editingItemId === item.id}
+                        onEditClick={onEditClick}
+                        onCancelEdit={onCancelEdit}
+                        displayCurrency={displayCurrency}
+                        exchangeRates={exchangeRates}
+                        isSelected={selectedItemIds.includes(item.id)}
+                        onToggleSelected={onToggleSelected}
+                        isBulkSelected={bulkSelectedItemIds.includes(item.id)}
+                        onToggleBulkSelected={onToggleBulkSelected}
+                        isMobile={isMobile}
+                        onMoveItem={onMoveItem}
+                        index={index}
+                        totalItems={displayedWishlist.length}
+                        comment={item.comment}
+                        existingCategories={categories}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-0 border-t border-gray-200 dark:border-gray-600">
+            {displayedWishlist.map((item, index) => (
+              <WishlistItem
+                key={item.id}
+                item={item}
+                onToggleBought={onToggleBought}
+                onDeleteItem={() => onDeleteItemClick(item.id)}
+                onUpdateItem={onUpdateItem}
+                isEditing={editingItemId === item.id}
+                onEditClick={onEditClick}
+                onCancelEdit={onCancelEdit}
+                displayCurrency={displayCurrency}
+                exchangeRates={exchangeRates}
+                isSelected={selectedItemIds.includes(item.id)}
+                onToggleSelected={onToggleSelected}
+                isBulkSelected={bulkSelectedItemIds.includes(item.id)}
+                onToggleBulkSelected={onToggleBulkSelected}
+                isMobile={isMobile}
+                onMoveItem={onMoveItem}
+                index={index}
+                totalItems={displayedWishlist.length}
+                comment={item.comment}
+                existingCategories={categories}
+              />
+            ))}
+          </div>
+        )
+      ) : (
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8 border-t border-gray-200 dark:border-gray-600">
+          {searchQuery ? 'Ничего не найдено' : 'Список желаний пуст. Добавьте что-нибудь!'}
+        </div>
+      )}
+
+      <ProgressBar
+        totalUnbought={displayedTotalUnbought}
+        totalBought={displayedTotalBought}
+        currency={displayCurrency}
+        isMobile={isMobile}
+      />
+    </div>
+  );
+}
+
+interface ScrollToTopButtonProps {
+  isMobile: boolean;
+  show: boolean;
+  onClick: () => void;
+}
+
+function ScrollToTopButton({ isMobile, show, onClick }: ScrollToTopButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Вернуться к началу"
+      className={`fixed z-40 p-3 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-all duration-300 ease-in-out ${
+        isMobile ? 'bottom-6 right-5' : 'bottom-8 left-5'
+      } ${show ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+      </svg>
+    </button>
+  );
+}
+
+interface CalculatorOverlayProps {
+  visible: boolean;
+  position: { top: number; left: number; width: number } | null;
+  selectedCount: number;
+  selectedItems: ReturnType<typeof useSelection>['selectedItems'];
+  selectedTotal: number;
+  displayCurrency: string;
+  onClear: () => void;
+}
+
+function CalculatorOverlay({ visible, position, selectedCount, selectedItems, selectedTotal, displayCurrency, onClear }: CalculatorOverlayProps) {
+  if (!visible || !position) return null;
+  return (
+    <CalculatorPopup
+      selectedCount={selectedCount}
+      selectedItems={selectedItems}
+      selectedTotal={selectedTotal}
+      displayCurrency={displayCurrency}
+      position={position}
+      onClear={onClear}
+    />
+  );
+}
+
+interface ConfirmDeleteModalProps {
+  open: boolean;
+  itemName?: string;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+function ConfirmDeleteModal({ open, itemName, isDeleting, onCancel, onConfirm }: ConfirmDeleteModalProps) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+      <div className="rounded-xl shadow-xl w-full max-w-md p-6 mx-auto" style={{ backgroundColor: 'var(--color-card-background)' }}>
+        <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите удаление</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+          Вы уверены, что хотите удалить "{itemName}"? Это действие необратимо.
+        </p>
+        <div className="flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Отмена
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="px-4 py-1.5 border border-transparent rounded-full text-sm font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            {isDeleting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938л3-2.647z"></path>
+                </svg>
+                Удаление...
+              </>
+            ) : (
+              'Удалить'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface MainAppProps {
   triggerSync: (force?: boolean) => Promise<{ success: boolean; message: string; }>;
@@ -268,213 +614,202 @@ export const MainApp: React.FC<MainAppProps> = ({
     />
   ), [themeMode, systemTheme, setTheme, supportsAutoTheme, onAuthModalOpen, isMobile, isDesktopWide]);
 
-  return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext 
-        items={sortBy === 'default' ? displayedWishlist.map(item => item.id) : []} 
-        strategy={verticalListSortingStrategy} 
-        disabled={sortBy !== 'default'}
-      >
-        <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
-          
-          {/* Адаптивная панель управления */}
-          <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
-            {adaptiveControlPanel}
-          </div>
+  // Стабилизуем обработчики, чтобы не триггерить children
+  const handleShareOpen = useCallback(() => setIsShareModalOpen(true), []);
+  const handleShowSortDropdown = useCallback((v: boolean) => setShowSortDropdown(v), []);
+  const handleSetSortBy = useCallback((v: typeof sortBy) => setSortBy(v), [setSortBy]);
+  const handleSetSearchQuery = useCallback((v: string) => setSearchQuery(v), [setSearchQuery]);
 
-          {/* Заголовок */}
-          <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-30">
-            {/* Мобильная версия - простая панель управления сверху */}
-            <div className="sm:hidden">
-              <div className="flex justify-between items-center mb-4">
-                {/* Кнопка справки слева */}
-                <button
-                  onClick={() => setIsHelpModalOpen(true)}
-                  className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-shrink-0"
-                  aria-label="Справка по приложению"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-                
-                {/* Заголовок по центру в две строки */}
-                <div className="flex-1 text-center mx-3">
-                  <h1 className="text-2xl font-bold text-theme-text leading-tight">
-                    <div>Wishlist</div>
-                    <div>checker</div>
-                  </h1>
-                </div>
-                
-                {/* Адаптивная панель управления справа */}
-                <div className="flex-shrink-0">
-                  {adaptiveControlPanel}
-                </div>
-              </div>
+  const stableExchangeRates = useMemo(() => exchangeRates || {}, [exchangeRates]);
+
+  if (sortBy === 'default') {
+    return (
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext 
+          items={displayedWishlist.map(item => item.id)} 
+          strategy={verticalListSortingStrategy}
+        >
+          <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
+            {/* Адаптивная панель управления */}
+            <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
+              {adaptiveControlPanel}
             </div>
-            
-            {/* Десктопная версия - заголовок */}
-            <div className="hidden sm:block text-center">
-              <h1 className="text-4xl font-bold text-theme-text">
-                Wishlist checker
-              </h1>
-            </div>
-          </div>
-          
-          <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-8 relative z-10 transition-colors duration-200`}>
-            
-            <AddItemForm 
-              onAddItem={handleAddItem} 
-              existingCategories={categories}
-              disabled={false}
+            {/* Заголовок */}
+            <Header
+              onOpenHelp={() => setIsHelpModalOpen(true)}
+              adaptiveControlPanel={adaptiveControlPanel}
             />
-            
-            <div className="flex items-center justify-between flex-wrap mt-6 mb-4 gap-3 border-b pb-4 border-gray-200 dark:border-gray-600">
-              <h2 className="text-xl font-semibold text-black dark:text-theme-secondary">Список желаний</h2>
-              <div className="flex gap-2 ml-auto shrink-0">
-                <button
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="px-3 py-1.5 rounded-full text-sm font-semibold bg-theme-button text-theme-button hover:bg-theme-button focus:outline-none transition-colors duration-150 ease-in-out"
-                >
-                  Поделиться
-                </button>
-              </div>
-            </div>
-
-            <CategoryTabs
-              items={wishlist}
+            {/* Основной контент-карта */}
+            <ListCard
+              themeCardClass={themeConfig.cardBackground}
               categories={categories}
               activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
+              setActiveCategory={setActiveCategory}
               onAddCategory={handleAddCategory}
               onDeleteCategory={handleCategoryDeleteClick}
-            />
-            
-            <SearchAndSort
+              onAddItem={handleAddItem}
+              wishlist={wishlist}
+              displayedWishlist={displayedWishlist}
               searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+              setSearchQuery={handleSetSearchQuery}
               sortBy={sortBy}
-              setSortBy={setSortBy}
+              setSortBy={handleSetSortBy}
               showSortDropdown={showSortDropdown}
-              setShowSortDropdown={setShowSortDropdown}
+              setShowSortDropdown={handleShowSortDropdown}
               isMobile={isMobile}
-              itemsCount={displayedWishlist.length}
-            />
-
-            {displayedWishlist.length > 0 ? (
-              <div className="space-y-0 border-t border-gray-200">
-                {displayedWishlist.map((item, index) => (
-                  <WishlistItem
-                    key={item.id}
-                    item={item}
-                    onToggleBought={handleToggleBought}
-                    onDeleteItem={handleDeleteItemClick}
-                    onUpdateItem={handleUpdateItem}
-                    isEditing={editingItemId === item.id}
-                    onEditClick={handleEditClick}
-                    onCancelEdit={handleCancelEdit}
-                    displayCurrency={displayCurrency}
-                    exchangeRates={exchangeRates || {}}
-                    isSelected={selectedItemIds.includes(item.id)}
-                    onToggleSelected={handleToggleSelected}
-                    isBulkSelected={bulkSelectedItemIds.includes(item.id)}
-                    onToggleBulkSelected={handleToggleBulkSelected}
-                    isMobile={isMobile}
-                    onMoveItem={handleMoveItem}
-                    index={index}
-                    totalItems={displayedWishlist.length}
-                    comment={item.comment}
-                    existingCategories={categories}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-8 border-t border-gray-200 dark:border-gray-600">
-                {searchQuery ? 'Ничего не найдено' : 'Список желаний пуст. Добавьте что-нибудь!'}
-              </div>
-            )}
-
-            <ProgressBar
-              totalUnbought={displayedTotalUnbought}
-              totalBought={displayedTotalBought}
-              currency={displayCurrency}
-              isMobile={isMobile}
+              onShareOpen={handleShareOpen}
+              editingItemId={editingItemId}
+              onToggleBought={handleToggleBought}
+              onDeleteItemClick={handleDeleteItemClick}
+              onUpdateItem={handleUpdateItem}
+              onEditClick={handleEditClick}
+              onCancelEdit={handleCancelEdit}
+              displayCurrency={displayCurrency}
+              exchangeRates={stableExchangeRates}
+              selectedItemIds={selectedItemIds}
+              onToggleSelected={handleToggleSelected}
+              bulkSelectedItemIds={bulkSelectedItemIds}
+              onToggleBulkSelected={handleToggleBulkSelected}
+              onMoveItem={handleMoveItem}
+              displayedTotalUnbought={displayedTotalUnbought}
+              displayedTotalBought={displayedTotalBought}
             />
           </div>
-        </div>
-        
-        {/* Кнопка "Наверх" */}
-        <button
-          onClick={scrollToTop}
-          aria-label="Вернуться к началу"
-          className={`fixed z-40 p-3 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-all duration-300 ease-in-out ${
-            isMobile 
-              ? 'bottom-6 right-5' // На мобильных - правый нижний угол
-              : 'bottom-8 left-5'  // На десктопе - левый нижний угол
-          } ${showScrollButton ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-          </svg>
-        </button>
-
-        {/* Калькулятор */}
-        {calculatorPosition && selectedCount > 0 && (
-          <CalculatorPopup
+          {/* Кнопка "Наверх" */}
+          <ScrollToTopButton isMobile={isMobile} show={showScrollButton} onClick={scrollToTop} />
+          {/* Калькулятор */}
+          <CalculatorOverlay
+            visible={selectedCount > 0}
+            position={calculatorPosition}
             selectedCount={selectedCount}
             selectedItems={selectedItems}
             selectedTotal={selectedTotal}
             displayCurrency={displayCurrency}
-            position={calculatorPosition}
             onClear={clearCalculator}
           />
-        )}
+          {/* Модальные окна */}
+          <ConfirmDeleteModal
+            open={isDeleteModalOpen}
+            itemName={itemToDelete?.name}
+            isDeleting={isDeleting}
+            onCancel={handleDeleteCancel}
+            onConfirm={handleDeleteConfirm}
+          />
+          {/* Модальное окно для массового удаления */}
+          {isBulkDeleteModalOpen && (
+            <BulkDeleteModal
+              isOpen={isBulkDeleteModalOpen}
+              selectedItems={bulkSelectedItems}
+              isDeleting={isBulkDeleting}
+              onConfirm={handleBulkDeleteConfirm}
+              onCancel={handleBulkDeleteCancel}
+            />
+          )}
+          {/* Модальное окно удаления категории */}
+          <CategoryDeleteModal
+            isOpen={isCategoryDeleteModalOpen}
+            categoryName={categoryToDelete}
+            itemsCount={categoryToDelete ? wishlist.filter(item => item.category === categoryToDelete).length : 0}
+            isDeleting={isDeletingCategory}
+            onConfirm={handleCategoryDeleteConfirm}
+            onCancel={handleCategoryDeleteCancel}
+          />
+          {/* Модалка шаринга */}
+          {isShareModalOpen && (
+            <ShareWishlistModal
+              isOpen={isShareModalOpen}
+              items={wishlist.filter(item => !item.isBought)}
+              authorName={user?.email || undefined}
+              onClose={() => {
+                setIsShareModalOpen(false);
+                // После закрытия модалки — перезагрузим список ссылок, если открыт список менеджера (через событие)
+                window.dispatchEvent(new CustomEvent('shareLinksUpdated'));
+              }}
+            />
+          )}
+          {/* Панель массовых действий */}
+          <BulkActionBar
+            selectedItems={bulkSelectedItems}
+            categories={categories}
+            isDeleting={isBulkDeleting}
+            isMoving={isBulkMoving}
+            onDelete={handleBulkDelete}
+            onMoveToCategory={handleBulkMoveToCategory}
+            onClearSelection={clearBulkSelection}
+            isMobile={isMobile}
+          />
+          {/* Модальное окно справки */}
+          <HelpModal
+            isOpen={isHelpModalOpen}
+            onClose={() => setIsHelpModalOpen(false)}
+          />
+        </SortableContext>
+      </DndContext>
+    );
+  }
 
-        {/* Модальные окна */}
-        {/* Модальное окно подтверждения удаления */}
-        {isDeleteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-            <div 
-              className="rounded-xl shadow-xl w-full max-w-md p-6 mx-auto"
-              style={{ backgroundColor: 'var(--color-card-background)' }}
-            >
-              <h3 className="text-lg font-semibold text-black dark:text-theme-secondary mb-2">Подтвердите удаление</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-                Вы уверены, что хотите удалить "{itemToDelete?.name}"? Это действие необратимо.
-              </p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={handleDeleteCancel}
-                  disabled={isDeleting}
-                  className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Отмена
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteConfirm}
-                  disabled={isDeleting}
-                  className="px-4 py-1.5 border border-transparent rounded-full text-sm font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {isDeleting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Удаление...
-                    </>
-                  ) : (
-                    'Удалить'
-                  )}
-                </button>
-              </div>
-            </div>
+  return (
+      <>
+        <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
+          <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
+            {adaptiveControlPanel}
           </div>
-        )}
-
-        {/* Модальное окно для массового удаления */}
+          <Header
+            onOpenHelp={() => setIsHelpModalOpen(true)}
+            adaptiveControlPanel={adaptiveControlPanel}
+          />
+          <ListCard
+            themeCardClass={themeConfig.cardBackground}
+            categories={categories}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            onAddCategory={handleAddCategory}
+            onDeleteCategory={handleCategoryDeleteClick}
+            onAddItem={handleAddItem}
+            wishlist={wishlist}
+            displayedWishlist={displayedWishlist}
+            searchQuery={searchQuery}
+            setSearchQuery={handleSetSearchQuery}
+            sortBy={sortBy}
+            setSortBy={handleSetSortBy}
+            showSortDropdown={showSortDropdown}
+            setShowSortDropdown={handleShowSortDropdown}
+            isMobile={isMobile}
+            onShareOpen={handleShareOpen}
+            editingItemId={editingItemId}
+            onToggleBought={handleToggleBought}
+            onDeleteItemClick={handleDeleteItemClick}
+            onUpdateItem={handleUpdateItem}
+            onEditClick={handleEditClick}
+            onCancelEdit={handleCancelEdit}
+            displayCurrency={displayCurrency}
+            exchangeRates={stableExchangeRates}
+            selectedItemIds={selectedItemIds}
+            onToggleSelected={handleToggleSelected}
+            bulkSelectedItemIds={bulkSelectedItemIds}
+            onToggleBulkSelected={handleToggleBulkSelected}
+            onMoveItem={handleMoveItem}
+            displayedTotalUnbought={displayedTotalUnbought}
+            displayedTotalBought={displayedTotalBought}
+          />
+        </div>
+        <ScrollToTopButton isMobile={isMobile} show={showScrollButton} onClick={scrollToTop} />
+        <CalculatorOverlay
+          visible={selectedCount > 0}
+          position={calculatorPosition}
+          selectedCount={selectedCount}
+          selectedItems={selectedItems}
+          selectedTotal={selectedTotal}
+          displayCurrency={displayCurrency}
+          onClear={clearCalculator}
+        />
+        <ConfirmDeleteModal
+          open={isDeleteModalOpen}
+          itemName={itemToDelete?.name}
+          isDeleting={isDeleting}
+          onCancel={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+        />
         {isBulkDeleteModalOpen && (
           <BulkDeleteModal
             isOpen={isBulkDeleteModalOpen}
@@ -484,8 +819,6 @@ export const MainApp: React.FC<MainAppProps> = ({
             onCancel={handleBulkDeleteCancel}
           />
         )}
-
-        {/* Модальное окно удаления категории */}
         <CategoryDeleteModal
           isOpen={isCategoryDeleteModalOpen}
           categoryName={categoryToDelete}
@@ -494,18 +827,17 @@ export const MainApp: React.FC<MainAppProps> = ({
           onConfirm={handleCategoryDeleteConfirm}
           onCancel={handleCategoryDeleteCancel}
         />
-
-        {/* Модалка шаринга */}
         {isShareModalOpen && (
           <ShareWishlistModal
             isOpen={isShareModalOpen}
             items={wishlist.filter(item => !item.isBought)}
             authorName={user?.email || undefined}
-            onClose={() => setIsShareModalOpen(false)}
+            onClose={() => {
+              setIsShareModalOpen(false);
+              window.dispatchEvent(new CustomEvent('shareLinksUpdated'));
+            }}
           />
         )}
-
-        {/* Панель массовых действий */}
         <BulkActionBar
           selectedItems={bulkSelectedItems}
           categories={categories}
@@ -516,13 +848,10 @@ export const MainApp: React.FC<MainAppProps> = ({
           onClearSelection={clearBulkSelection}
           isMobile={isMobile}
         />
-
-        {/* Модальное окно справки */}
         <HelpModal
           isOpen={isHelpModalOpen}
           onClose={() => setIsHelpModalOpen(false)}
         />
-      </SortableContext>
-    </DndContext>
+      </>
   );
 }; 

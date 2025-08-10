@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 import { cn } from '../utils/cn';
 
@@ -30,7 +30,7 @@ function getItemsCountText(count: number): string {
   return result;
 }
 
-export const SearchAndSort: React.FC<SearchAndSortProps> = ({
+const SearchAndSortComponent: React.FC<SearchAndSortProps> = ({
   searchQuery,
   setSearchQuery,
   sortBy,
@@ -41,6 +41,7 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
   isMobile
 }) => {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const [localQuery, setLocalQuery] = useState(searchQuery);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -57,6 +58,18 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
       document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, [showSortDropdown, setShowSortDropdown]);
+
+  // Дребезг: наружу отправляем с задержкой
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      if (localQuery !== searchQuery) setSearchQuery(localQuery);
+    }, 200);
+    return () => window.clearTimeout(t);
+  }, [localQuery]);
+
+  useEffect(() => {
+    setLocalQuery(searchQuery);
+  }, [searchQuery]);
 
   const handleSortChange = (newSort: 'default' | 'type-asc' | 'price-asc' | 'price-desc') => {
     setSortBy(newSort);
@@ -87,13 +100,13 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
           <input
             type="text"
             placeholder="Поиск..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={localQuery}
+            onChange={(e) => setLocalQuery(e.target.value)}
             className="w-full pl-4 pr-10 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-theme-card text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 placeholder:text-xs transition-colors duration-200"
           />
-          {searchQuery && (
+          {localQuery && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => setLocalQuery('')}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
               aria-label="Очистить поиск"
             >
@@ -247,3 +260,4 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
     </div>
   );
 }; 
+export const SearchAndSort = React.memo(SearchAndSortComponent);
