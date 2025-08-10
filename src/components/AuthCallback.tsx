@@ -118,18 +118,23 @@ export const AuthCallback: React.FC = () => {
         // Ждем немного для обновления состояния
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Для iOS PWA используем специальную логику перенаправления
-        if (isIOSPWA()) {
-          // Для PWA пытаемся использовать history API
-          try {
-            const home = getSiteUrl();
-            window.history.replaceState({}, '', home);
+        // Используем history API вместо full page redirect для корректной работы с SPA
+        try {
+          const home = getSiteUrl();
+          const homePath = new URL(home, window.location.origin).pathname;
+          
+          // Навигация через history API для SPA (избегаем 404 на GitHub Pages)
+          window.history.replaceState({}, '', homePath);
+          
+          // Перезагрузка только для iOS PWA, иначе просто меняем URL
+          if (isIOSPWA()) {
             window.location.reload();
-          } catch (e) {
-            window.location.href = getSiteUrl();
+          } else {
+            // Для SPA диспатчим события чтобы App.tsx перерендерился
+            window.dispatchEvent(new PopStateEvent('popstate'));
           }
-        } else {
-          // Стандартное перенаправление
+        } catch (e) {
+          console.warn('⚠️ History API failed, using fallback redirect');
           window.location.href = getSiteUrl();
         }
         

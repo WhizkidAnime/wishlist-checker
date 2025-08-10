@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import './App.css'
 
 // Ленивые импорты страниц/модалок для снижения стартового бандла
@@ -15,10 +15,21 @@ import { useSystemTheme, getSystemThemeClasses } from './utils/systemTheme';
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authSuccessDelay, setAuthSuccessDelay] = useState(false);
+  const [routeKey, setRouteKey] = useState(Date.now()); // Для принудительного ререндера
 
   // Аутентификация и синхронизация
   const { user, isAuthenticated, loading } = useAuth();
   const { triggerSync } = useSupabaseSync(user?.id || null);
+  
+  // Обработка изменений URL через history API (для SPA навигации)
+  useEffect(() => {
+    const handlePopState = () => {
+      setRouteKey(Date.now()); // Триггерим ререндер
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   
   // Системная тема для экрана загрузки
   const systemTheme = useSystemTheme();
@@ -65,19 +76,25 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  // Проверяем, является ли это auth callback
-  const isAuthCallback = window.location.search.includes('code=') || 
-                        window.location.pathname.includes('/auth/callback') ||
-                        window.location.hash.includes('access_token=') ||
-                        window.location.search.includes('error=');
+  // Проверяем, является ли это auth callback (пересчитывается при изменении routeKey)
+  const isAuthCallback = useMemo(() => {
+    return window.location.search.includes('code=') || 
+           window.location.pathname.includes('/auth/callback') ||
+           window.location.hash.includes('access_token=') ||
+           window.location.search.includes('error=');
+  }, [routeKey]);
   
   // Проверяем путь для обработки 404
-  const pathname = window.location.pathname;
-  const validPaths = ['/', '/wishlist-checker/', '/wishlist-checker/auth/callback'];
-  const isValidPath = validPaths.some(path => pathname === path || pathname.startsWith(path));
-  
-  // Если это общая шаринг-страница (поддержка длинной и короткой ссылок)
-  const isSharedView = window.location.search.includes('share=') || window.location.search.includes('s=');
+  const { pathname, isValidPath, isSharedView } = useMemo(() => {
+    const pathname = window.location.pathname;
+    const validPaths = ['/', '/wishlist-checker/', '/wishlist-checker/auth/callback'];
+    const isValidPath = validPaths.some(path => pathname === path || pathname.startsWith(path));
+    
+    // Если это общая шаринг-страница (поддержка длинной и короткой ссылок)
+    const isSharedView = window.location.search.includes('share=') || window.location.search.includes('s=');
+    
+    return { pathname, isValidPath, isSharedView };
+  }, [routeKey]);
 
   // Если это auth callback, показываем компонент обработки
   if (isAuthCallback) {
