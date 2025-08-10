@@ -226,21 +226,14 @@ export const useAuth = () => {
         return;
       }
 
-      // Стандартный OAuth flow
-      const { error } = await supabase!.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: getRedirectUrl(),
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account'
-          }
-        }
-      });
-
-      if (error) {
-        throw error;
+      // Унифицированный OAuth-флоу: формируем URL явно и перенаправляем браузер
+      // Такое поведение гарантирует корректный redirect_to на GitHub Pages
+      const base = SUPABASE_URL;
+      if (!base) {
+        throw new Error('Supabase URL не настроен');
       }
+      const authUrl = `${base.replace(/\/$/, '')}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(getRedirectUrl())}&prompt=select_account&access_type=offline`;
+      window.location.href = authUrl;
     } catch (error) {
       // Специальная обработка ошибок для iOS
       const errorMessage = getIOSOAuthErrorMessage(error);
