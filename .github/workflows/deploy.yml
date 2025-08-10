@@ -30,8 +30,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SUPABASE_URL: https://umvghchvnsuqnxrvzhct.supabase.co
+      VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtdmdoY2h2bnN1cW54cnZ6aGN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzEwNTgsImV4cCI6MjA2NDA0NzA1OH0.ERrygSnyyzUBdl4d_DuLw1bNL8qI2n-zUi3Yn6qRvxE
     steps:
       - name: Checkout
         uses: actions/checkout@v4
