@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Portal } from './Portal';
 import { ManageShareLinksModal } from './ManageShareLinksModal';
+import { UserSettingsModal } from './UserSettingsModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 // import { clearAllUserData, checkUserDataState } from '../utils/dataCleanup';
 
@@ -18,6 +19,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
   // const [isClearing, setIsClearing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [isManageLinksOpen, setIsManageLinksOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -172,7 +174,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
     return (
       <button
         onClick={onSignInClick}
-        className="flex items-center gap-2 px-3 py-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl transition-all duration-200 hover:bg-gray-800 dark:hover:bg-gray-200 border border-gray-900 dark:border-gray-100 h-10"
+        className="flex items-center gap-2 px-3 py-2 bg-theme-button text-theme-button rounded-xl transition-all duration-200 hover:bg-theme-button border border-gray-900 dark:border-gray-600 h-10"
         title="Войти в аккаунт"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -252,6 +254,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
                     </div>
                   </div>
                   <button
+                    onClick={(e) => { e.stopPropagation(); setIsSettingsOpen(true); setIsDropdownOpen(false); }}
+                    className="w-full my-1 px-3 py-2 text-left text-sm text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Настройки
+                  </button>
+                  <button
                     onClick={(e) => { e.stopPropagation(); setIsManageLinksOpen(true); setIsDropdownOpen(false); }}
                     className="w-full my-1 px-3 py-2 text-left text-sm text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
                   >
@@ -296,10 +305,17 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
                   </div>
                 </div>
                   <button
+                    onClick={() => { setIsSettingsOpen(true); setIsDropdownOpen(false); }}
+                    className="w-full my-1 px-3 py-2 text-left text-sm text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Настройки
+                  </button>
+                  <button
                     onClick={() => { setIsManageLinksOpen(true); setIsDropdownOpen(false); }}
                     className="w-full my-1 px-3 py-2 text-left text-sm text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
                   >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13.5 6.5h3a3 3 0 010 6h-3"/><path d="M10.5 17.5h-3a 3 3 0 010-6h3"/><path d="M8 12h8"/></svg>
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13.5 6.5h3a 3 3 0 010 6h-3"/><path d="M10.5 17.5h-3a 3 3 0 010-6h3"/><path d="M8 12h8"/></svg>
                     Мои публичные ссылки
                   </button>
                 
@@ -393,6 +409,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       )}
       */}
       <ManageShareLinksModal isOpen={isManageLinksOpen} onClose={() => setIsManageLinksOpen(false)} />
+      <UserSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </>
   );
 }; 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
 interface AuthFormProps {
@@ -57,17 +57,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
     {
       id: 'special',
       text: 'Специальные символы',
-      validator: (pwd) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)
+      validator: (pwd) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(pwd)
     }
   ];
-
-  // Проверка требований к паролю в реальном времени
-  const passwordValidation = useMemo(() => {
-    return passwordRequirements.map(req => ({
-      ...req,
-      isValid: req.validator(password)
-    }));
-  }, [password]);
 
   const clearForm = () => {
     setEmail('');
@@ -248,41 +240,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
     }
   };
 
-  // Внутренние подкомпоненты для снижения когнитивной сложности
-  const PasswordRequirements: React.FC = () => (
-    <div className="mt-3 p-3 bg-theme-background-secondary rounded-xl border border-theme-border">
-      <div className="text-xs font-medium text-theme-text mb-2">Требования к паролю:</div>
-      <div className="space-y-1.5">
-        {passwordValidation.map((req) => (
-          <div
-            key={req.id}
-            className={`flex items-center gap-2 text-xs transition-colors duration-300 ${
-              req.isValid ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
-            }`}
-          >
-            <div
-              className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                req.isValid ? 'bg-green-500' : 'bg-red-400'
-              }`}
-            />
-            <span className="transition-colors duration-300">{req.text}</span>
-            <div
-              className={`ml-auto transition-all duration-300 ${
-                req.isValid ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-              }`}
-            >
-              <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+  // Компактная подсказка к паролю (вместо подробного списка требований)
+  const PasswordHint: React.FC = () => (
+    <p className="mt-2 text-xs text-theme-text-secondary">
+      Минимум 8 символов. Используйте латиницу и цифры.
+    </p>
   );
 
   const ConfirmPasswordIndicator: React.FC = () => (
@@ -317,77 +279,54 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
 
   return (
     <div className="w-full max-h-[90vh] flex flex-col">
-      {/* Заголовок с крестиком */}
+      {/* Шапка */}
       <div className="relative px-6 pt-6 pb-4 border-b border-theme-border/10 flex-shrink-0 bg-theme-card">
-        {/* Крестик для закрытия */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 p-2 text-theme-text-secondary hover:text-theme-text hover:bg-theme-background-secondary rounded-xl transition-all duration-200 group"
+          className="absolute top-4 right-4 p-2 text-theme-text-secondary hover:text-theme-text hover:bg-theme-background-secondary rounded-xl transition-all"
           aria-label="Закрыть"
         >
-          <svg 
-            className="w-5 h-5 transform group-hover:scale-110 transition-transform duration-200" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
-        
-        {/* Заголовок */}
-        <h2 className="text-2xl font-semibold text-theme-text pr-12">
-          {getTitle()}
-        </h2>
-        <p className="text-sm text-theme-text-secondary mt-1 leading-relaxed">
-          {mode === 'signin' && 'Войдите для синхронизации ваших списков между устройствами'}
-          {mode === 'signup' && 'Создайте аккаунт для сохранения и синхронизации списков'}
+        <h2 className="text-xl font-semibold text-theme-text">{getTitle()}</h2>
+        <p className="text-sm text-theme-text-secondary mt-1">
+          {mode === 'signin' && 'Войдите, чтобы синхронизировать ваши списки'}
+          {mode === 'signup' && 'Создайте аккаунт для синхронизации списков'}
           {mode === 'reset' && 'Введите email для получения ссылки сброса пароля'}
         </p>
       </div>
 
       {/* Основной контент */}
-      <div className="px-6 pb-6 flex-1 overflow-y-auto scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
-        {/* Переключатель режимов */}
+      <div className="px-6 pb-6 flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+        {/* Табы вход/регистрация */}
         {mode !== 'reset' && (
-          <div className="mt-6 mb-6">
-            <div className="relative p-1 bg-theme-background-secondary rounded-xl border border-theme-border">
-              <div className="flex relative">
-                {/* Активный индикатор */}
-                <div 
-                  className={`absolute top-0 bottom-0 w-1/2 bg-theme-primary rounded-lg shadow-sm transition-transform duration-200 ease-out ${
-                    mode === 'signup' ? 'translate-x-full' : 'translate-x-0'
-                  }`}
-                />
-                
-                {/* Кнопки */}
-                <button
-                  onClick={() => handleModeChange('signin')}
-                  className={`relative flex-1 py-2.5 px-4 text-sm font-medium transition-colors duration-200 rounded-lg z-10 ${
-                    mode === 'signin' 
-                      ? 'text-white' 
-                      : 'text-theme-text-secondary hover:text-theme-text'
-                  }`}
-                >
-                  Вход
-                </button>
-                <button
-                  onClick={() => handleModeChange('signup')}
-                  className={`relative flex-1 py-2.5 px-4 text-sm font-medium transition-colors duration-200 rounded-lg z-10 ${
-                    mode === 'signup' 
-                      ? 'text-white' 
-                      : 'text-theme-text-secondary hover:text-theme-text'
-                  }`}
-                >
-                  Регистрация
-                </button>
-              </div>
+          <div className="mt-5 mb-5">
+            <div className="grid grid-cols-2 p-1 rounded-xl border border-theme-border bg-theme-background-secondary">
+              <button
+                type="button"
+                onClick={() => handleModeChange('signin')}
+                className={`py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  mode === 'signin' ? 'bg-theme-button text-theme-button' : 'text-theme-text-secondary hover:text-theme-text'
+                }`}
+              >
+                Вход
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('signup')}
+                className={`py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  mode === 'signup' ? 'bg-theme-button text-theme-button' : 'text-theme-text-secondary hover:text-theme-text'
+                }`}
+              >
+                Регистрация
+              </button>
             </div>
           </div>
         )}
 
-        {/* Форма */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Форма с плавной анимацией высоты */}
+        <div className="transition-all duration-300 ease-in-out">
+          <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-theme-text">
@@ -400,8 +339,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               className="w-full px-4 py-3 text-sm border border-theme-border rounded-xl 
-                       bg-theme-background text-theme-text placeholder-theme-text-secondary/70 placeholder:text-xs
-                       focus:outline-none focus:ring-2 focus:ring-theme-primary/20 focus:border-theme-primary 
+                       bg-theme-background text-theme-text placeholder-theme-text-secondary/70 placeholder:text-sm
+                       focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-gray-500/30 focus:border-gray-900 dark:focus:border-gray-500
                        transition-all duration-200"
               required
               disabled={loading}
@@ -410,35 +349,38 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
 
           {/* Пароль */}
           {mode !== 'reset' && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium text-theme-text">
-                  Пароль
-                </label>
+                <label htmlFor="password" className="text-sm font-medium text-theme-text">Пароль</label>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange('reset')}
+                    className="text-xs text-theme-primary hover:text-theme-primary/80"
+                    disabled={loading}
+                  >
+                    Забыли пароль?
+                  </button>
+                )}
               </div>
-              
               <input
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={mode === 'signin' ? 'Введите пароль' : 'Минимум 8 символов'}
-                className="w-full px-4 py-3 text-sm border border-theme-border rounded-xl 
-                         bg-theme-background text-theme-text placeholder-theme-text-secondary/70 placeholder:text-xs
-                         focus:outline-none focus:ring-2 focus:ring-theme-primary/20 focus:border-theme-primary 
-                         transition-all duration-200"
+                className="w-full h-11 px-3 text-sm border border-theme-border rounded-xl bg-theme-background text-theme-text placeholder-theme-text-secondary/70 placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-gray-500/30 focus:border-gray-900 dark:focus:border-gray-500 transition-all"
                 required
                 disabled={loading}
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
               />
-
-              {/* Живые требования к паролю для регистрации */}
-              {mode === 'signup' && (<PasswordRequirements />)}
+              {mode === 'signup' && (<PasswordHint />)}
             </div>
           )}
 
           {/* Подтверждение пароля */}
           {mode === 'signup' && (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-theme-text">
                 Подтвердите пароль
               </label>
@@ -448,12 +390,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Повторите пароль"
-                className="w-full px-4 py-3 text-sm border border-theme-border rounded-xl 
-                         bg-theme-background text-theme-text placeholder-theme-text-secondary/70 placeholder:text-xs
-                         focus:outline-none focus:ring-2 focus:ring-theme-primary/20 focus:border-theme-primary 
-                         transition-all duration-200"
+                className="w-full h-11 px-3 text-sm border border-theme-border rounded-xl bg-theme-background text-theme-text placeholder-theme-text-secondary/70 placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-gray-500/30 focus:border-gray-900 dark:focus:border-gray-500 transition-all"
                 required
                 disabled={loading}
+                autoComplete="new-password"
               />
               
               {/* Индикатор совпадения паролей */}
@@ -478,76 +418,64 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-theme-primary text-white rounded-xl 
-                     hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed
+            className="w-full py-3 px-4 bg-theme-button text-theme-button rounded-xl 
+                     hover:bg-theme-button disabled:opacity-50 disabled:cursor-not-allowed
                      transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
           >
             {getSubmitText()}
           </button>
-        </form>
+          </form>
 
-        {/* Дополнительные действия */}
-        {mode === 'signin' && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => handleModeChange('reset')}
-              className="text-sm text-theme-primary hover:text-theme-primary/80 transition-colors duration-200"
-              disabled={loading}
-            >
-              Забыли пароль?
-            </button>
-          </div>
-        )}
-
-        {mode === 'reset' && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => handleModeChange('signin')}
-              className="text-sm text-theme-primary hover:text-theme-primary/80 transition-colors duration-200"
-              disabled={loading}
-            >
-              Вернуться к входу
-            </button>
-          </div>
-        )}
-
-        {/* Кнопка повторной отправки подтверждения */}
-        {mode === 'signup' && message && (
-          <div className="mt-5 space-y-3">
-            <div className="text-center">
+          {mode === 'reset' && (
+            <div className="mt-4 text-center">
               <button
-                onClick={handleResendConfirmation}
+                onClick={() => handleModeChange('signin')}
                 className="text-sm text-theme-primary hover:text-theme-primary/80 transition-colors duration-200"
                 disabled={loading}
               >
-                Отправить письмо повторно
+                Вернуться к входу
               </button>
             </div>
-            
-            {/* Информация о возможных проблемах */}
-            <div className="text-xs text-theme-text-secondary bg-theme-background-secondary p-3 rounded-xl border border-theme-border/20">
-              <div className="font-medium text-theme-text mb-2">Если письмо не приходит:</div>
-              <ul className="space-y-1">
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
-                  Проверьте папку "Спам" или "Промоакции"
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
-                  Убедитесь, что email введен правильно
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
-                  Письмо может идти до 10 минут
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
-                  Попробуйте войти через Google
-                </li>
-              </ul>
+          )}
+
+          {/* Кнопка повторной отправки подтверждения */}
+          {mode === 'signup' && message && (
+            <div className="mt-5 space-y-3">
+              <div className="text-center">
+                <button
+                  onClick={handleResendConfirmation}
+                  className="text-sm text-theme-primary hover:text-theme-primary/80 transition-colors duration-200"
+                  disabled={loading}
+                >
+                  Отправить письмо повторно
+                </button>
+              </div>
+              
+              {/* Информация о возможных проблемах */}
+              <div className="text-xs text-theme-text-secondary bg-theme-background-secondary p-3 rounded-xl border border-theme-border/20">
+                <div className="font-medium text-theme-text mb-2">Если письмо не приходит:</div>
+                <ul className="space-y-1">
+                  <li className="flex items-start gap-2">
+                    <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
+                    Проверьте папку "Спам" или "Промоакции"
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
+                    Убедитесь, что email введен правильно
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
+                    Письмо может идти до 10 минут
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1 h-1 rounded-full bg-theme-text-secondary mt-1.5 flex-shrink-0" />
+                    Попробуйте войти через Google
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Разделитель */}
         <div className="flex items-center my-6">
@@ -556,23 +484,21 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
           <div className="flex-1 border-t border-theme-border/30"></div>
         </div>
 
-        {/* Кнопка Google */}
+        {/* Кнопка Google (монохром) */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full py-3 px-4 border border-theme-border text-theme-text rounded-xl 
+          className="w-full py-3 px-4 border-2 border-theme-border text-theme-text rounded-xl 
                    hover:bg-theme-background-secondary disabled:opacity-50 disabled:cursor-not-allowed
-                   transition-all duration-200 font-medium text-sm flex items-center justify-center gap-3 group"
+                   transition-all duration-200 font-medium text-sm flex items-center justify-center gap-3"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" className="flex-shrink-0">
             <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
             <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-2.7.75 4.8 4.8 0 0 1-4.52-3.29H1.83v2.07A8 8 0 0 0 8.98 17z"/>
-            <path fill="#FBBC05" d="M4.46 10.48A4.8 4.8 0 0 1 4.21 9a4.8 4.8 0 0 1 .25-1.48V5.45H1.83A8 8 0 0 0 .98 9a8 8 0 0 0 .85 3.55l2.63-2.07z"/>
-            <path fill="#EA4335" d="M8.98 4.75c1.23 0 2.33.42 3.2 1.25l2.4-2.4A8 8 0 0 0 8.98 1a8 8 0 0 0-7.15 4.45l2.63 2.07A4.8 4.8 0 0 1 8.98 4.75z"/>
+            <path fill="#FBBC05" d="M4.46 10.48A4.8 4.8 0 0 1 4.21 9a4.8 4.8 0 0 1 .25-1.48V5.45H1.83A8 8 0 0 0 .98 9a8 8 0 0 0 .85 3.55л2.63-2.07z"/>
+            <path fill="#EA4335" d="M8.98 4.75c1.23 0 2.33.42 3.2 1.25л2.4-2.4A8 8 0 0 0 8.98 1a8 8 0 0 0-7.15 4.45л2.63 2.07A4.8 4.8 0 0 1 8.98 4.75z"/>
           </svg>
-          <span className="group-hover:text-theme-text transition-colors duration-200">
-            Войти через Google
-          </span>
+          Войти через Google
         </button>
 
         {/* Информация о безопасности */}

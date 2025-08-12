@@ -21,7 +21,7 @@ export const BulkDeleteModal: React.FC<BulkDeleteModalProps> = ({
   const totalValue = selectedItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div 
         className="rounded-2xl p-6 max-w-md w-full shadow-xl"
         style={{ backgroundColor: 'var(--color-card-background)' }}

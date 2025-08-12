@@ -30,29 +30,32 @@ import { useAuth } from '../hooks/useAuth';
 
 // Внутренние подкомпоненты для уменьшения когнитивной сложности разметки
 interface HeaderProps {
-  onOpenHelp: () => void;
   adaptiveControlPanel: React.ReactNode;
 }
 
-function Header({ onOpenHelp, adaptiveControlPanel }: HeaderProps) {
+function Header({ adaptiveControlPanel }: HeaderProps) {
   return (
     <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-30">
       {/* Мобильная версия - простая панель управления сверху */}
       <div className="sm:hidden">
-        <div className="flex justify-between items-center mb-4">
-          {/* Кнопка справки слева */}
-          <button
-            onClick={onOpenHelp}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-shrink-0"
-            aria-label="Справка по приложению"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
+        <div className="relative flex items-center mb-4">
+          {/* Кнопка справки слева (скрыта по просьбе, не удаляем код) */}
+          {/**
+           * <button
+           *   onClick={onOpenHelp}
+           *   className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-shrink-0"
+           *   aria-label="Справка по приложению"
+           * >
+           *   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+           *     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+           *   </svg>
+           * </button>
+           */}
+          {/* Плейсхолдер слева для симметрии (размер как у скрытой кнопки) */}
+          <div aria-hidden className="w-10 h-10 flex-shrink-0" />
 
           {/* Заголовок по центру в две строки */}
-          <div className="flex-1 text-center mx-3">
+          <div className="absolute inset-x-0 text-center pointer-events-none">
             <h1 className="text-2xl font-bold text-theme-text leading-tight">
               <div>Wishlist</div>
               <div>checker</div>
@@ -60,7 +63,7 @@ function Header({ onOpenHelp, adaptiveControlPanel }: HeaderProps) {
           </div>
 
           {/* Адаптивная панель управления справа */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 ml-auto">
             {adaptiveControlPanel}
           </div>
         </div>
@@ -635,10 +638,7 @@ export const MainApp: React.FC<MainAppProps> = ({
               {adaptiveControlPanel}
             </div>
             {/* Заголовок */}
-            <Header
-              onOpenHelp={() => setIsHelpModalOpen(true)}
-              adaptiveControlPanel={adaptiveControlPanel}
-            />
+            <Header adaptiveControlPanel={adaptiveControlPanel} />
             {/* Основной контент-карта */}
             <ListCard
               themeCardClass={themeConfig.cardBackground}
@@ -754,10 +754,7 @@ export const MainApp: React.FC<MainAppProps> = ({
           <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
             {adaptiveControlPanel}
           </div>
-          <Header
-            onOpenHelp={() => setIsHelpModalOpen(true)}
-            adaptiveControlPanel={adaptiveControlPanel}
-          />
+          <Header adaptiveControlPanel={adaptiveControlPanel} />
           <ListCard
             themeCardClass={themeConfig.cardBackground}
             categories={categories}

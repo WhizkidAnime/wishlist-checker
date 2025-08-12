@@ -91,7 +91,7 @@ export const ManageShareLinksModal: React.FC<ManageShareLinksModalProps> = ({ is
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
       onMouseDown={handleBackdropMouseDown}
       onMouseUp={handleBackdropMouseUp}
       aria-modal

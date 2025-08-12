@@ -20,7 +20,7 @@ export const CategoryDeleteModal: React.FC<CategoryDeleteModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div 
         className="rounded-xl shadow-xl w-full max-w-md p-6 mx-auto"
         style={{ backgroundColor: 'var(--color-card-background)' }}

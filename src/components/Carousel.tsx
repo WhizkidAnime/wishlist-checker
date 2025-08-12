@@ -5,21 +5,21 @@ export interface CarouselItem {
   title: string;
   description: string;
   id: number;
-  icon: React.ReactElement;
+  icon: React.ReactNode;
 }
 
 export interface CarouselProps {
-  items: CarouselItem[];
+  items?: CarouselItem[];
   baseWidth?: number;
   autoplay?: boolean;
   autoplayDelay?: number;
   pauseOnHover?: boolean;
   loop?: boolean;
   round?: boolean;
-  themeConfig: {
-    background: string;
-    text: string;
-    border: string;
+  themeConfig?: {
+    background: string; // tailwind bg classes for card
+    text: string;       // tailwind text classes
+    border: string;     // tailwind border classes
   };
 }
 
@@ -29,7 +29,7 @@ const GAP = 16;
 const SPRING_OPTIONS = { type: "spring", stiffness: 300, damping: 30 };
 
 export default function Carousel({
-  items,
+  items = [],
   baseWidth = 300,
   autoplay = false,
   autoplayDelay = 3000,
@@ -42,14 +42,23 @@ export default function Carousel({
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
 
-  const carouselItems = loop ? [...items, items[0]] : items;
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  // Для бесшовной прокрутки дублируем первый и последний элементы
+  const carouselItems = loop && items.length > 0
+    ? [items[items.length - 1], ...items, items[0]]
+    : items;
+  // Стартуем с 1-го индекса, чтобы показывать фактически первый элемент
+  const [currentIndex, setCurrentIndex] = useState<number>(loop && items.length > 0 ? 1 : 0);
   const x = useMotionValue(0);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isResetting, setIsResetting] = useState<boolean>(false);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const isAnimatingRef = useRef(false);
+
+  useEffect(() => {
+    isAnimatingRef.current = isAnimating;
+  }, [isAnimating]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  
   useEffect(() => {
     if (pauseOnHover && containerRef.current) {
       const container = containerRef.current;
@@ -65,39 +74,38 @@ export default function Carousel({
   }, [pauseOnHover]);
 
   useEffect(() => {
-    if (autoplay && (!pauseOnHover || !isHovered)) {
+    if (autoplay && (!pauseOnHover || !isHovered) && items.length > 0) {
       const timer = setInterval(() => {
-        setCurrentIndex((prev) => {
-          if (prev === items.length - 1 && loop) {
-            return prev + 1; // Animate to clone.
-          }
-          if (prev === carouselItems.length - 1) {
-            return loop ? 0 : prev;
-          }
-          return prev + 1;
-        });
+        if (isAnimatingRef.current) return;
+        setIsAnimating(true);
+        setCurrentIndex((prev) => (!loop ? Math.min(prev + 1, carouselItems.length - 1) : prev + 1));
       }, autoplayDelay);
       return () => clearInterval(timer);
     }
-  }, [
-    autoplay,
-    autoplayDelay,
-    isHovered,
-    loop,
-    items.length,
-    carouselItems.length,
-    pauseOnHover,
-  ]);
+  }, [autoplay, autoplayDelay, isHovered, loop, items.length, carouselItems.length, pauseOnHover]);
 
-  const effectiveTransition = isResetting ? { duration: 0 } : SPRING_OPTIONS;
+  // Блокируем новые анимации, пока текущая не завершится (анти-спам свайпов)
+  const effectiveTransition = isResetting || isAnimating ? { ...SPRING_OPTIONS } : SPRING_OPTIONS;
 
   const handleAnimationComplete = () => {
-    if (loop && currentIndex === carouselItems.length - 1) {
+    if (!loop || items.length === 0) return;
+    // если ушли на правый клон (после последнего реального)
+    if (currentIndex === carouselItems.length - 1) {
       setIsResetting(true);
-      x.set(0);
-      setCurrentIndex(0);
-      setTimeout(() => setIsResetting(false), 50);
+      x.set(-trackItemOffset * 1);
+      setCurrentIndex(1);
+      setTimeout(() => { setIsResetting(false); setIsAnimating(false); }, 20);
+      return;
     }
+    // если ушли на левый клон (перед первым реальным)
+    if (currentIndex === 0) {
+      setIsResetting(true);
+      x.set(-trackItemOffset * items.length);
+      setCurrentIndex(items.length);
+      setTimeout(() => { setIsResetting(false); setIsAnimating(false); }, 20);
+      return;
+    }
+    setIsAnimating(false);
   };
 
   const handleDragEnd = (
@@ -106,18 +114,14 @@ export default function Carousel({
   ): void => {
     const offset = info.offset.x;
     const velocity = info.velocity.x;
+    setIsAnimating(true);
     if (offset < -DRAG_BUFFER || velocity < -VELOCITY_THRESHOLD) {
-      if (loop && currentIndex === items.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        setCurrentIndex((prev) => Math.min(prev + 1, carouselItems.length - 1));
-      }
+      setCurrentIndex((prev) => Math.min(prev + 1, carouselItems.length - 1));
     } else if (offset > DRAG_BUFFER || velocity > VELOCITY_THRESHOLD) {
-      if (loop && currentIndex === 0) {
-        setCurrentIndex(items.length - 1);
-      } else {
-        setCurrentIndex((prev) => Math.max(prev - 1, 0));
-      }
+      setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    } else {
+      // вернуться к текущему (снэп)
+      setCurrentIndex((prev) => prev);
     }
   };
 
@@ -130,16 +134,20 @@ export default function Carousel({
         },
       };
 
-  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tc = {
+    background: themeConfig?.background ?? "bg-white dark:bg-gray-800",
+    text: themeConfig?.text ?? "text-gray-900 dark:text-gray-100",
+    border: themeConfig?.border ?? "border-gray-200 dark:border-gray-700",
+  };
 
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden p-4 transition-colors duration-200 ${
+      className={`relative overflow-hidden p-4 ${
         round
-          ? "rounded-full border"
-          : "rounded-2xl border"
-      } ${themeConfig.border}`}
+          ? `rounded-full border ${tc.border}`
+          : `rounded-[24px] border ${tc.border}`
+      }`}
       style={{
         width: `${baseWidth}px`,
         ...(round && { height: `${baseWidth}px` }),
@@ -147,10 +155,9 @@ export default function Carousel({
     >
       <motion.div
         className="flex"
-        drag={prefersReduced ? false : "x"}
+        drag="x"
         {...dragProps}
         style={{
-          width: itemWidth,
           gap: `${GAP}px`,
           perspective: 1000,
           perspectiveOrigin: `${currentIndex * trackItemOffset + itemWidth / 2}px 50%`,
@@ -158,7 +165,7 @@ export default function Carousel({
         }}
         onDragEnd={handleDragEnd}
         animate={{ x: -(currentIndex * trackItemOffset) }}
-        transition={prefersReduced ? { duration: 0 } : effectiveTransition}
+        transition={effectiveTransition}
         onAnimationComplete={handleAnimationComplete}
       >
         {carouselItems.map((item, index) => {
@@ -168,58 +175,68 @@ export default function Carousel({
             -(index - 1) * trackItemOffset,
           ];
           const outputRange = [90, 0, -90];
-          const rotateY = prefersReduced ? undefined : useTransform(x, range, outputRange, { clamp: false });
-          
+          const rotateY = useTransform(x, range, outputRange, { clamp: false });
+          // Нормируем размер вложенной SVG-иконки для единообразия
+          const iconNode = React.isValidElement(item.icon)
+            ? React.cloneElement(item.icon as React.ReactElement<any>, {
+                className: `${(item.icon as any).props?.className ?? ""} w-6 h-6`.trim(),
+              })
+            : item.icon;
+
           return (
             <motion.div
               key={index}
-              className={`relative shrink-0 flex flex-col transition-colors duration-200 ${
+              className={`relative shrink-0 flex flex-col ${
                 round
-                  ? "items-center justify-center text-center border-0"
-                  : "items-start justify-between rounded-xl border hover:shadow-lg"
-              } ${themeConfig.background} ${themeConfig.border} overflow-hidden cursor-grab active:cursor-grabbing`}
+                  ? `items-center justify-center text-center border-0 ${tc.background}`
+                  : `items-start justify-between rounded-[12px] ${tc.background} ${tc.border}`
+              } overflow-hidden cursor-grab active:cursor-grabbing`}
               style={{
                 width: itemWidth,
                 height: round ? itemWidth : "auto",
-                minHeight: round ? itemWidth : "200px",
-                ...(rotateY ? { rotateY } : {}),
+                minHeight: round ? itemWidth : 200,
+                rotateY: rotateY,
                 ...(round && { borderRadius: "50%" }),
               }}
               transition={effectiveTransition}
             >
-              <div className={`${round ? "p-0 m-0" : "p-6"} flex flex-col h-full`}>
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 text-white mb-4 ${round ? "mx-auto" : ""}`}>
-                  {item.icon}
+              <div className={`${round ? "p-0 m-0" : "pt-6 px-6"}`}>
+                <span className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gray-900/90 dark:bg-gray-700/80 text-white shadow-sm`}>
+                  {iconNode}
+                </span>
+              </div>
+              <div className="px-6 pb-6 pt-4">
+                <div className={`mb-1 text-xl font-semibold tracking-tight ${tc.text}`}>
+                  {item.title}
                 </div>
-                <div className="flex-1">
-                  <h3 className={`text-lg font-semibold ${themeConfig.text} mb-3 transition-colors duration-200 ${round ? "text-center" : ""}`}>
-                    {item.title}
-                  </h3>
-                  <p className={`text-sm ${themeConfig.text} opacity-70 transition-colors duration-200 leading-relaxed ${round ? "text-center" : ""}`}>
-                    {item.description}
-                  </p>
-                </div>
+                <p className={`text-sm ${tc.text} opacity-70 leading-snug`}>{item.description}</p>
               </div>
             </motion.div>
           );
         })}
       </motion.div>
-      
-      {/* Индикаторы */}
-      <div className={`flex w-full justify-center ${round ? "absolute z-20 bottom-12 left-1/2 -translate-x-1/2" : ""}`}>
-        <div className="mt-4 flex justify-center gap-2">
+      <div
+        className={`flex w-full justify-center ${
+          round ? "absolute z-20 bottom-12 left-1/2 -translate-x-1/2" : ""
+        }`}
+      >
+        <div className="mt-4 flex w-[150px] justify-between px-8">
           {items.map((_, index) => (
             <motion.div
               key={index}
-              className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-200 ${
-                currentIndex % items.length === index
-                  ? "bg-gray-800 dark:bg-gray-200"
-                  : "bg-gray-300 dark:bg-gray-600"
+              className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
+                (items.length > 0 && ((loop ? (currentIndex - 1 + items.length) % items.length : currentIndex) === index))
+                  ? round
+                    ? "bg-gray-900 dark:bg-gray-100"
+                    : "bg-gray-800 dark:bg-gray-100"
+                  : round
+                    ? "bg-gray-400 dark:bg-gray-500"
+                    : "bg-gray-300 dark:bg-gray-600"
               }`}
               animate={{
-                scale: currentIndex % items.length === index ? 1.2 : 1,
+                scale: items.length > 0 && ((loop ? (currentIndex - 1 + items.length) % items.length : currentIndex) === index) ? 1.2 : 1,
               }}
-              onClick={() => setCurrentIndex(index)}
+              onClick={() => setCurrentIndex(loop ? index + 1 : index)}
               transition={{ duration: 0.15 }}
             />
           ))}
@@ -227,4 +244,4 @@ export default function Carousel({
       </div>
     </div>
   );
-} 
+}

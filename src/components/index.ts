@@ -27,3 +27,4 @@ export { ErrorPage } from './ErrorPage';
 export { NotFoundPage } from './NotFoundPage'; 
 export { ShareWishlistModal } from './ShareWishlistModal';
 export { ManageShareLinksModal } from './ManageShareLinksModal';
+export { UserSettingsModal } from './UserSettingsModal';
