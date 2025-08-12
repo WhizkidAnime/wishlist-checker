@@ -146,7 +146,7 @@ export const WishlistItem = ({
     transform,
     transition,
     isDragging
-  } = useSortable({ id: item.id, disabled: isMobile });
+  } = useSortable({ id: item.id, disabled: false });
 
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
   const desktopButtonRef = useRef<HTMLButtonElement>(null);
@@ -200,7 +200,7 @@ export const WishlistItem = ({
                 )}
               </button>
             </div>
-            <div className="flex-grow min-w-0">
+            <div className="flex-grow min-w-0" {...listeners}>
               <div className="font-medium text-gray-800 dark:text-gray-200 break-words">
                 {(() => {
                   const safe = safeFormatUrl(item.link);

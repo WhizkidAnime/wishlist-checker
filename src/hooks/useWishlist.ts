@@ -453,6 +453,15 @@ export const useWishlist = (
       const prevWishlist = state.wishlist;
       const oldIndex = prevWishlist.findIndex((item) => item.id === active.id);
       const newIndex = prevWishlist.findIndex((item) => item.id === over.id);
+
+      // Ограничиваем перестановку в пределах одной категории
+      const oldItem = prevWishlist[oldIndex];
+      const overItem = prevWishlist[newIndex];
+      if (oldItem && overItem && (oldItem.category || null) !== (overItem.category || null)) {
+        dispatch({ type: 'SET_MOVING', payload: false });
+        unblock();
+        return;
+      }
       
       // Обновляем локальное состояние немедленно
       const newWishlist = arrayMove(prevWishlist, oldIndex, newIndex);
