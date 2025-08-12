@@ -1,24 +1,32 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { isIOS } from '../utils/iosSupport';
 
-interface LongPressOptions {
+interface LongPressDragOptions {
   delay?: number;
   onLongPressStart?: () => void;
   onLongPressEnd?: () => void;
   onLongPressCancel?: () => void;
+  onDragStart?: (element: HTMLElement, startY: number) => void;
+  onDragMove?: (element: HTMLElement, currentY: number, deltaY: number) => void;
+  onDragEnd?: (element: HTMLElement, finalY: number) => void;
 }
 
-export const useLongPress = (callback: () => void, options: LongPressOptions = {}) => {
+export const useLongPress = (callback: () => void, options: LongPressDragOptions = {}) => {
   const {
-    delay = 300,
+    delay = 250,
     onLongPressStart,
     onLongPressEnd,
-    onLongPressCancel
+    onLongPressCancel,
+    onDragStart,
+    onDragMove,
+    onDragEnd
   } = options;
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressing = useRef(false);
+  const isDragging = useRef(false);
   const startCoords = useRef<{ x: number; y: number } | null>(null);
+  const elementRef = useRef<HTMLElement | null>(null);
 
   const clear = useCallback(() => {
     if (timeoutRef.current) {
@@ -29,7 +37,13 @@ export const useLongPress = (callback: () => void, options: LongPressOptions = {
       isLongPressing.current = false;
       onLongPressEnd?.();
     }
-  }, [onLongPressEnd]);
+    if (isDragging.current) {
+      isDragging.current = false;
+      if (elementRef.current && startCoords.current) {
+        onDragEnd?.(elementRef.current, startCoords.current.y);
+      }
+    }
+  }, [onLongPressEnd, onDragEnd]);
 
   const start = useCallback((event: React.TouchEvent | React.MouseEvent) => {
     // Записываем начальные координаты
@@ -45,17 +59,24 @@ export const useLongPress = (callback: () => void, options: LongPressOptions = {
       };
     }
 
+    elementRef.current = event.currentTarget as HTMLElement;
     clear();
     
     timeoutRef.current = setTimeout(() => {
       isLongPressing.current = true;
       onLongPressStart?.();
       callback();
+      
+      // После long-press активируем режим перетаскивания
+      if (elementRef.current && startCoords.current) {
+        isDragging.current = true;
+        onDragStart?.(elementRef.current, startCoords.current.y);
+      }
     }, delay);
-  }, [callback, delay, clear, onLongPressStart]);
+  }, [callback, delay, clear, onLongPressStart, onDragStart]);
 
   const move = useCallback((event: React.TouchEvent | React.MouseEvent) => {
-    if (!startCoords.current) return;
+    if (!startCoords.current || !elementRef.current) return;
 
     let currentX: number, currentY: number;
     
@@ -67,20 +88,30 @@ export const useLongPress = (callback: () => void, options: LongPressOptions = {
       currentY = event.clientY;
     }
 
-    // Если палец сдвинулся больше чем на 10px - отменяем long press
     const deltaX = Math.abs(currentX - startCoords.current.x);
     const deltaY = Math.abs(currentY - startCoords.current.y);
     
-    if (deltaX > 10 || deltaY > 10) {
+    if (isDragging.current) {
+      // В режиме перетаскивания - передаем координаты
+      event.preventDefault();
+      onDragMove?.(elementRef.current, currentY, currentY - startCoords.current.y);
+    } else if (deltaX > 10 || deltaY > 10) {
+      // Если long-press еще не сработал, но палец сдвинулся - отменяем
       clear();
       onLongPressCancel?.();
     }
-  }, [clear, onLongPressCancel]);
+  }, [clear, onLongPressCancel, onDragMove]);
 
   const end = useCallback(() => {
+    if (isDragging.current && elementRef.current && startCoords.current) {
+      onDragEnd?.(elementRef.current, startCoords.current.y);
+    }
+    
     startCoords.current = null;
+    elementRef.current = null;
+    isDragging.current = false;
     clear();
-  }, [clear]);
+  }, [clear, onDragEnd]);
 
   // Очистка при размонтировании
   useEffect(() => {

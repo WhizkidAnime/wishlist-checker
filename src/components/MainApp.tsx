@@ -237,7 +237,7 @@ function ListCard(props: ListCardProps) {
             </div>
           </div>
         ) : (
-          <div className="space-y-0 border-t border-gray-200 dark:border-gray-600">
+          <div className="space-y-0 border-t border-gray-200 dark:border-gray-600" data-wishlist-container>
             {displayedWishlist.map((item, index) => (
               <WishlistItem
                 key={item.id}

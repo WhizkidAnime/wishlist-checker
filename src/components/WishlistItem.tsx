@@ -142,7 +142,8 @@ export const WishlistItem = ({
 }: WishlistItemProps) => {
 
   const [isLongPressing, setIsLongPressing] = useState(false);
-  const [shouldStartDrag, setShouldStartDrag] = useState(false);
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [dragStyles, setDragStyles] = useState<React.CSSProperties>({});
 
   const { 
     attributes,
@@ -153,38 +154,97 @@ export const WishlistItem = ({
     isDragging
   } = useSortable({ 
     id: item.id, 
-    disabled: isMobile ? !shouldStartDrag : false 
+    disabled: isMobile // Отключаем dnd-kit на мобильном
   });
 
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
   const desktopButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Обработчики для long-press на iOS
+  // Обработчики для кастомного перетаскивания на iOS
   const handleLongPressStart = useCallback(() => {
     setIsLongPressing(true);
-    setShouldStartDrag(true);
   }, []);
 
   const handleLongPressEnd = useCallback(() => {
     setIsLongPressing(false);
-    // Не сбрасываем shouldStartDrag сразу, дадим завершиться DnD
-    setTimeout(() => setShouldStartDrag(false), 100);
+    setIsDragMode(false);
+    setDragStyles({});
   }, []);
 
   const handleLongPressCancel = useCallback(() => {
     setIsLongPressing(false);
-    setShouldStartDrag(false);
+    setIsDragMode(false);
+    setDragStyles({});
   }, []);
+
+  const handleDragStart = useCallback((_element: HTMLElement, _startY: number) => {
+    setIsDragMode(true);
+    setDragStyles({
+      position: 'relative',
+      zIndex: 1000,
+      transform: 'scale(1.05)',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+    });
+  }, []);
+
+  const handleDragMove = useCallback((_element: HTMLElement, _currentY: number, deltaY: number) => {
+    setDragStyles(prev => ({
+      ...prev,
+      transform: `scale(1.05) translateY(${deltaY}px)`,
+    }));
+  }, []);
+
+  const handleDragEnd = useCallback((element: HTMLElement, finalY: number) => {
+    // Здесь нужно определить, на какой элемент "упал" перетаскиваемый товар
+    // и вызвать onMoveItem соответствующим образом
+    
+    // Находим все элементы списка товаров
+    const listContainer = element.closest('[data-wishlist-container]');
+    if (!listContainer) return;
+    
+    const allItems = Array.from(listContainer.querySelectorAll('[data-item-id]'));
+    const currentIndex = allItems.findIndex(item => 
+      item.getAttribute('data-item-id') === String(item.id)
+    );
+    
+    // Определяем новую позицию на основе finalY
+    const rect = element.getBoundingClientRect();
+    const elementCenter = rect.top + rect.height / 2;
+    
+    let targetIndex = currentIndex;
+    for (let i = 0; i < allItems.length; i++) {
+      const targetRect = allItems[i].getBoundingClientRect();
+      const targetCenter = targetRect.top + targetRect.height / 2;
+      
+      if (Math.abs(finalY - targetCenter) < Math.abs(finalY - elementCenter)) {
+        targetIndex = i;
+        break;
+      }
+    }
+    
+    // Перемещаем элемент
+    if (targetIndex !== currentIndex) {
+      const direction = targetIndex > currentIndex ? 'down' : 'up';
+      const steps = Math.abs(targetIndex - currentIndex);
+      
+      for (let i = 0; i < steps; i++) {
+        onMoveItem(item.id, direction);
+      }
+    }
+  }, [item.id, onMoveItem]);
 
   const longPressHandlers = useLongPress(
     () => {
-      // Callback при успешном long-press - уже обработано в handleLongPressStart
+      // Callback при успешном long-press
     },
     {
       delay: 250,
       onLongPressStart: handleLongPressStart,
       onLongPressEnd: handleLongPressEnd,
-      onLongPressCancel: handleLongPressCancel
+      onLongPressCancel: handleLongPressCancel,
+      onDragStart: handleDragStart,
+      onDragMove: handleDragMove,
+      onDragEnd: handleDragEnd,
     }
   );
 
@@ -193,7 +253,7 @@ export const WishlistItem = ({
   const itemOpacity = isDragging ? 0.5 : (item.isBought ? 0.6 : 1);
 
   // Визуальные эффекты для long-press
-  const longPressStyles = isLongPressing ? {
+  const longPressStyles = isLongPressing && !isDragMode ? {
     transform: 'scale(1.02)',
     boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
     zIndex: 100,
@@ -206,9 +266,9 @@ export const WishlistItem = ({
     zIndex: isDragging ? 10 : 'auto',
   } : { 
     opacity: itemOpacity,
-    transition: 'transform 0.2s ease-out, box-shadow 0.2s ease-out',
+    transition: isDragMode ? 'none' : 'transform 0.2s ease-out, box-shadow 0.2s ease-out',
     touchAction: isIOS() ? 'none' as const : undefined,
-    ...longPressStyles
+    ...(isDragMode ? dragStyles : longPressStyles)
   };
 
   if (isEditing) {
@@ -216,19 +276,14 @@ export const WishlistItem = ({
   }
   
   if (isMobile) {
-    // Объединяем handlers для long-press и DnD
-    const combinedHandlers = {
-      ...longPressHandlers,
-      ...(shouldStartDrag ? listeners : {}),
-    };
-
     return (
       <div 
         ref={setNodeRef}
         style={style}
+        data-item-id={item.id}
         {...attributes}
-        {...combinedHandlers}
-        className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isLongPressing ? 'bg-gray-100 dark:bg-gray-600' : ''}`}
+        {...longPressHandlers}
+        className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isLongPressing ? 'bg-gray-100 dark:bg-gray-600' : ''} ${isDragMode ? 'bg-blue-100 dark:bg-blue-800' : ''}`}
       >
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
