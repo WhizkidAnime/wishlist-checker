@@ -8,6 +8,7 @@ export { useCalculatorPosition } from './useCalculatorPosition';
 export { useDeleteModal } from './useDeleteModal';
 export { useResponsive } from './useResponsive';
 export { useDndSensors } from './useDndSensors';
+export { useLongPress } from './useLongPress';
 export { useBulkActions } from './useBulkActions';
 export { useIsMobile } from './useIsMobile';
 

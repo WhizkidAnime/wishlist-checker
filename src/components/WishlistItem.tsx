@@ -1,4 +1,4 @@
-import { useRef, memo } from 'react';
+import { useRef, memo, useState, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -7,6 +7,7 @@ import { safeFormatUrl } from '../utils/url';
 import { EditItemForm } from './EditItemForm';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
 import { isIOS } from '../utils/iosSupport';
+import { useLongPress } from '../hooks/useLongPress';
 
 // Используем безопасную нормализацию ссылок
 
@@ -140,6 +141,9 @@ export const WishlistItem = ({
   existingCategories
 }: WishlistItemProps) => {
 
+  const [isLongPressing, setIsLongPressing] = useState(false);
+  const [shouldStartDrag, setShouldStartDrag] = useState(false);
+
   const { 
     attributes,
     listeners,
@@ -147,23 +151,64 @@ export const WishlistItem = ({
     transform,
     transition,
     isDragging
-  } = useSortable({ id: item.id, disabled: false });
+  } = useSortable({ 
+    id: item.id, 
+    disabled: isMobile ? !shouldStartDrag : false 
+  });
 
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
   const desktopButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Обработчики для long-press на iOS
+  const handleLongPressStart = useCallback(() => {
+    setIsLongPressing(true);
+    setShouldStartDrag(true);
+  }, []);
+
+  const handleLongPressEnd = useCallback(() => {
+    setIsLongPressing(false);
+    // Не сбрасываем shouldStartDrag сразу, дадим завершиться DnD
+    setTimeout(() => setShouldStartDrag(false), 100);
+  }, []);
+
+  const handleLongPressCancel = useCallback(() => {
+    setIsLongPressing(false);
+    setShouldStartDrag(false);
+  }, []);
+
+  const longPressHandlers = useLongPress(
+    () => {
+      // Callback при успешном long-press - уже обработано в handleLongPressStart
+    },
+    {
+      delay: 250,
+      onLongPressStart: handleLongPressStart,
+      onLongPressEnd: handleLongPressEnd,
+      onLongPressCancel: handleLongPressCancel
+    }
+  );
 
   // Определяем прозрачность: 0.5 если перетаскивается, 
   // иначе 0.6 если куплено, иначе 1
   const itemOpacity = isDragging ? 0.5 : (item.isBought ? 0.6 : 1);
 
+  // Визуальные эффекты для long-press
+  const longPressStyles = isLongPressing ? {
+    transform: 'scale(1.02)',
+    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+    zIndex: 100,
+  } : {};
+
   const style = !isMobile ? {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: itemOpacity, // Используем вычисленную прозрачность
-    zIndex: isDragging ? 10 : 'auto',
-  } : { // Для мобильной версии тоже применим прозрачность через style
     opacity: itemOpacity,
-    // transition: 'opacity 0.2s ease-in-out' // Можно добавить transition
+    zIndex: isDragging ? 10 : 'auto',
+  } : { 
+    opacity: itemOpacity,
+    transition: 'transform 0.2s ease-out, box-shadow 0.2s ease-out',
+    touchAction: isIOS() ? 'none' as const : undefined,
+    ...longPressStyles
   };
 
   if (isEditing) {
@@ -171,13 +216,19 @@ export const WishlistItem = ({
   }
   
   if (isMobile) {
+    // Объединяем handlers для long-press и DnD
+    const combinedHandlers = {
+      ...longPressHandlers,
+      ...(shouldStartDrag ? listeners : {}),
+    };
+
     return (
       <div 
         ref={setNodeRef}
-        style={{ ...style, touchAction: isIOS() ? 'none' as const : undefined }}
+        style={style}
         {...attributes}
-        {...listeners}
-        className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+        {...combinedHandlers}
+        className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isLongPressing ? 'bg-gray-100 dark:bg-gray-600' : ''}`}
       >
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
