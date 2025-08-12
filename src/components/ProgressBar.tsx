@@ -47,14 +47,14 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         </div>
         
         {/* Подписи снизу */}
-        <div className="relative flex justify-between items-center mt-2 sm:mt-3">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center mt-2 sm:mt-3">
           <div className={`${isMobile ? 'text-sm' : 'text-base'} font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap`}>
             {totalBought.toLocaleString(undefined, { maximumFractionDigits: 0 })} {currency} / {totalUnbought.toLocaleString(undefined, { maximumFractionDigits: 0 })} {currency}
           </div>
-          <div className={`${isMobile ? 'text-sm' : 'text-base'} font-medium text-gray-600 dark:text-gray-400 absolute left-1/2 transform -translate-x-1/2 z-10 whitespace-nowrap bg-white dark:bg-gray-800 px-1 rounded` }>
+          <div className={`${isMobile ? 'text-sm' : 'text-base'} font-medium text-gray-600 dark:text-gray-400 text-center whitespace-nowrap`}>
             {Math.round(progressPercentage)}%
           </div>
-          <div className={`${isMobile ? 'text-sm' : 'text-base'} font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap`}>
+          <div className={`${isMobile ? 'text-sm' : 'text-base'} font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap text-right`}>
             {totalSum.toLocaleString(undefined, { maximumFractionDigits: 0 })} {currency}
           </div>
         </div>
