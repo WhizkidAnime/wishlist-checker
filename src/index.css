@@ -224,6 +224,9 @@ body {
   user-select: none;
 }
 
+/* Исправление обрезания inline SVG и базового выравнивания */
+svg { vertical-align: middle; overflow: visible; }
+
 /* Включаем выделение текста для текстового контента */
 p, span, h1, h2, h3, h4, h5, h6, a, label, textarea, input {
   -webkit-user-select: text;
@@ -299,6 +302,15 @@ button:focus-visible {
 
 /* Утилитарные классы для использования CSS переменных */
 @layer utilities {
+  /* Safe area утилиты для iOS PWA */
+  .pt-safe { padding-top: max(env(safe-area-inset-top), 0px); }
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+  .pl-safe { padding-left: max(env(safe-area-inset-left), 0px); }
+  .pr-safe { padding-right: max(env(safe-area-inset-right), 0px); }
+  .px-safe { padding-left: max(env(safe-area-inset-left), 0px); padding-right: max(env(safe-area-inset-right), 0px); }
+  .py-safe { padding-top: max(env(safe-area-inset-top), 0px); padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+  .inset-safe-bottom { bottom: max(env(safe-area-inset-bottom), 0px); }
+
   .bg-theme-background {
     background-color: var(--color-background);
   }

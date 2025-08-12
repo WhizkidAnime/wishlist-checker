@@ -164,7 +164,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
 
 
   return (
-    <div className={`h-[100svh] flex flex-col items-center justify-center px-2 sm:px-4 py-4 ${themeConfig.background} transition-colors duration-200 overflow-hidden`}>
+    <div className={`min-h-[100dvh] flex flex-col items-center justify-center px-2 sm:px-4 py-4 pt-safe pb-safe ${themeConfig.background} transition-colors duration-200`}>
       
       {/* Адаптивная панель управления */}
       <div className={`${

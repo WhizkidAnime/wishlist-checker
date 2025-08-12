@@ -490,13 +490,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onClose, onSuccess }) => {
           disabled={loading}
           className="w-full py-3 px-4 border-2 border-theme-border text-theme-text rounded-xl 
                    hover:bg-theme-background-secondary disabled:opacity-50 disabled:cursor-not-allowed
-                   transition-all duration-200 font-medium text-sm flex items-center justify-center gap-3"
+                   transition-all duration-200 font-medium text-sm flex items-center justify-center gap-3 leading-none"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" className="flex-shrink-0">
-            <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-            <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-2.7.75 4.8 4.8 0 0 1-4.52-3.29H1.83v2.07A8 8 0 0 0 8.98 17z"/>
-            <path fill="#FBBC05" d="M4.46 10.48A4.8 4.8 0 0 1 4.21 9a4.8 4.8 0 0 1 .25-1.48V5.45H1.83A8 8 0 0 0 .98 9a8 8 0 0 0 .85 3.55л2.63-2.07z"/>
-            <path fill="#EA4335" d="M8.98 4.75c1.23 0 2.33.42 3.2 1.25л2.4-2.4A8 8 0 0 0 8.98 1a8 8 0 0 0-7.15 4.45л2.63 2.07A4.8 4.8 0 0 1 8.98 4.75z"/>
+          <svg width="18" height="18" viewBox="0 0 18 18" className="flex-shrink-0 block align-middle">
+            <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z" />
+            <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-2.7.75 4.8 4.8 0 0 1-4.52-3.29H1.83v2.07A8 8 0 0 0 8.98 17z" />
+            <path fill="#FBBC05" d="M4.46 10.48A4.8 4.8 0 0 1 4.21 9a4.8 4.8 0 0 1 .25-1.48V5.45H1.83A8 8 0 0 0 .98 9a8 8 0 0 0 .85 3.55l2.63-2.07z" />
+            <path fill="#EA4335" d="M8.98 4.75c1.23 0 2.33.42 3.2 1.25l2.4-2.4A8 8 0 0 0 8.98 1a8 8 0 0 0-7.15 4.45l2.63 2.07A4.8 4.8 0 0 1 8.98 4.75z" />
           </svg>
           Войти через Google
         </button>
