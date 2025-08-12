@@ -3,8 +3,8 @@ import { isIOS } from '../utils/iosSupport';
 
 export const useDndSensors = () => {
   const activationConstraint = isIOS()
-    ? { delay: 300, tolerance: 5 } // iOS: long-press для начала перетаскивания
-    : { distance: 5 }; // Desktop/Android: начать после небольшого движения
+    ? { delay: 250, tolerance: 5 } // iOS: long-press перед началом DnD
+    : { distance: 5 };
 
   return useSensors(
     useSensor(PointerSensor, {

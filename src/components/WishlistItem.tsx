@@ -6,6 +6,7 @@ import { WishlistItem as WishlistItemType } from '../types/wishlistItem';
 import { safeFormatUrl } from '../utils/url';
 import { EditItemForm } from './EditItemForm';
 import { DesktopOnlyTooltip } from './ui/DesktopOnlyTooltip';
+import { isIOS } from '../utils/iosSupport';
 
 // Используем безопасную нормализацию ссылок
 
@@ -173,8 +174,9 @@ export const WishlistItem = ({
     return (
       <div 
         ref={setNodeRef}
-        style={style}
+        style={{ ...style, touchAction: isIOS() ? 'none' as const : undefined }}
         {...attributes}
+        {...listeners}
         className={`transition-colors border-b border-gray-200 dark:border-gray-600 last:border-b-0 px-3 py-2 ${isSelected ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
       >
         <div className="flex flex-col gap-1">
@@ -200,7 +202,7 @@ export const WishlistItem = ({
                 )}
               </button>
             </div>
-            <div className="flex-grow min-w-0" {...listeners}>
+            <div className="flex-grow min-w-0">
               <div className="font-medium text-gray-800 dark:text-gray-200 break-words">
                 {(() => {
                   const safe = safeFormatUrl(item.link);
