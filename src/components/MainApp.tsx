@@ -27,32 +27,23 @@ import { useCategories } from '../hooks/useCategories';
 import { useTheme } from '../hooks/useTheme';
 import { useBulkActions } from '../hooks/useBulkActions';
 import { useAuth } from '../hooks/useAuth';
+import React from 'react';
 
 // Внутренние подкомпоненты для уменьшения когнитивной сложности разметки
 interface HeaderProps {
   adaptiveControlPanel: React.ReactNode;
+  mobileLeftControl: React.ReactNode;
+  mobileRightControl: React.ReactNode;
 }
 
-function Header({ adaptiveControlPanel }: HeaderProps) {
+function Header({ mobileLeftControl, mobileRightControl }: HeaderProps) {
   return (
     <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-30">
       {/* Мобильная версия - простая панель управления сверху */}
       <div className="sm:hidden">
         <div className="relative flex items-center mb-4">
-          {/* Кнопка справки слева (скрыта по просьбе, не удаляем код) */}
-          {/**
-           * <button
-           *   onClick={onOpenHelp}
-           *   className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-shrink-0"
-           *   aria-label="Справка по приложению"
-           * >
-           *   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-           *     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-           *   </svg>
-           * </button>
-           */}
-          {/* Плейсхолдер слева для симметрии (размер как у скрытой кнопки) */}
-          <div aria-hidden className="w-10 h-10 flex-shrink-0" />
+          {/* Слева — только переключатель темы */}
+          <div className="flex-shrink-0 -ml-1">{mobileLeftControl}</div>
 
           {/* Заголовок по центру в две строки */}
           <div className="absolute inset-x-0 text-center pointer-events-none">
@@ -62,10 +53,8 @@ function Header({ adaptiveControlPanel }: HeaderProps) {
             </h1>
           </div>
 
-          {/* Адаптивная панель управления справа */}
-          <div className="flex-shrink-0 ml-auto">
-            {adaptiveControlPanel}
-          </div>
+          {/* Справа — только профиль/бургер */}
+          <div className="flex-shrink-0 ml-auto">{mobileRightControl}</div>
         </div>
       </div>
 
@@ -362,7 +351,7 @@ function ConfirmDeleteModal({ open, itemName, isDeleting, onCancel, onConfirm }:
               <>
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938л3-2.647z"></path>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Удаление...
               </>
@@ -604,6 +593,29 @@ export const MainApp: React.FC<MainAppProps> = ({
       .reduce((sum, item) => sum + item.price, 0);
   }, [displayedWishlist]);
 
+  // Статистика по деньгам для настроек (по всем категориям без фильтрации)
+  const moneyStats = useMemo(() => {
+    const currency = displayCurrency;
+    const byCategoryMap = new Map<string, { total: number; bought: number; count: number; boughtCount: number }>();
+    let totalAll = 0;
+    let totalBought = 0;
+    for (const it of wishlist) {
+      totalAll += it.price;
+      if (it.isBought) totalBought += it.price;
+      const key = it.category && it.category.trim() ? it.category : 'Без категории';
+      const prev = byCategoryMap.get(key) || { total: 0, bought: 0, count: 0, boughtCount: 0 };
+      prev.total += it.price;
+      prev.count += 1;
+      if (it.isBought) {
+        prev.bought += it.price;
+        prev.boughtCount += 1;
+      }
+      byCategoryMap.set(key, prev);
+    }
+    const totalsByCategory = Array.from(byCategoryMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([category, v]) => ({ category, ...v }));
+    return { currency, totalAll, totalBought, totalsByCategory };
+  }, [wishlist, displayCurrency]);
+
   // Используем useMemo для адаптивной панели управления
   const adaptiveControlPanel = useMemo(() => (
     <AdaptiveControlPanel
@@ -614,8 +626,38 @@ export const MainApp: React.FC<MainAppProps> = ({
       onAuthModalOpen={onAuthModalOpen}
       isMobile={isMobile}
       isDesktopWide={isDesktopWide}
+      moneyStats={moneyStats}
     />
-  ), [themeMode, systemTheme, setTheme, supportsAutoTheme, onAuthModalOpen, isMobile, isDesktopWide]);
+  ), [themeMode, systemTheme, setTheme, supportsAutoTheme, onAuthModalOpen, isMobile, isDesktopWide, moneyStats]);
+
+  // Контролы для мобильного заголовка: слева тема, справа профиль
+  const mobileLeftControl = useMemo(() => (
+    <AdaptiveControlPanel
+      themeMode={themeMode}
+      systemTheme={systemTheme}
+      onSetTheme={setTheme}
+      supportsAutoTheme={supportsAutoTheme}
+      onAuthModalOpen={onAuthModalOpen}
+      isMobile={true}
+      isDesktopWide={isDesktopWide}
+      moneyStats={moneyStats}
+      mobileMode="theme-only"
+    />
+  ), [themeMode, systemTheme, setTheme, supportsAutoTheme, onAuthModalOpen, isDesktopWide, moneyStats]);
+
+  const mobileRightControl = useMemo(() => (
+    <AdaptiveControlPanel
+      themeMode={themeMode}
+      systemTheme={systemTheme}
+      onSetTheme={setTheme}
+      supportsAutoTheme={supportsAutoTheme}
+      onAuthModalOpen={onAuthModalOpen}
+      isMobile={true}
+      isDesktopWide={isDesktopWide}
+      moneyStats={moneyStats}
+      mobileMode="profile-only"
+    />
+  ), [themeMode, systemTheme, setTheme, supportsAutoTheme, onAuthModalOpen, isDesktopWide, moneyStats]);
 
   // Стабилизуем обработчики, чтобы не триггерить children
   const handleShareOpen = useCallback(() => setIsShareModalOpen(true), []);
@@ -638,7 +680,7 @@ export const MainApp: React.FC<MainAppProps> = ({
               {adaptiveControlPanel}
             </div>
             {/* Заголовок */}
-            <Header adaptiveControlPanel={adaptiveControlPanel} />
+            <Header adaptiveControlPanel={adaptiveControlPanel} mobileLeftControl={mobileLeftControl} mobileRightControl={mobileRightControl} />
             {/* Основной контент-карта */}
             <ListCard
               themeCardClass={themeConfig.cardBackground}
@@ -754,7 +796,7 @@ export const MainApp: React.FC<MainAppProps> = ({
           <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
             {adaptiveControlPanel}
           </div>
-          <Header adaptiveControlPanel={adaptiveControlPanel} />
+          <Header adaptiveControlPanel={adaptiveControlPanel} mobileLeftControl={mobileLeftControl} mobileRightControl={mobileRightControl} />
           <ListCard
             themeCardClass={themeConfig.cardBackground}
             categories={categories}

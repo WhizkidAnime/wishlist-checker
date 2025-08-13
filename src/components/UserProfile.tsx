@@ -3,14 +3,16 @@ import { useAuth } from '../hooks/useAuth';
 import { Portal } from './Portal';
 import { ManageShareLinksModal } from './ManageShareLinksModal';
 import { UserSettingsModal } from './UserSettingsModal';
+import type { MoneyStats } from './UserSettingsModal';
 import { useIsMobile } from '../hooks/useIsMobile';
 // import { clearAllUserData, checkUserDataState } from '../utils/dataCleanup';
 
 interface UserProfileProps {
   onSignInClick: () => void;
+  moneyStats?: MoneyStats;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
+export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick, moneyStats }) => {
   const { user, isAuthenticated, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // Состояния для управления данными - закомментированы
@@ -409,7 +411,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onSignInClick }) => {
       )}
       */}
       <ManageShareLinksModal isOpen={isManageLinksOpen} onClose={() => setIsManageLinksOpen(false)} />
-      <UserSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <UserSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} moneyStats={moneyStats} />
     </>
   );
 }; 

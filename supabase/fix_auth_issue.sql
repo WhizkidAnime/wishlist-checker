@@ -9,7 +9,11 @@ DROP FUNCTION IF EXISTS init_user_preferences();
 
 -- 3. Пересоздаем функцию с улучшенной обработкой ошибок
 CREATE OR REPLACE FUNCTION init_user_preferences()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
     -- Используем более безопасный подход
     BEGIN
@@ -23,7 +27,7 @@ BEGIN
     
     RETURN NEW;
 END;
-$$ language 'plpgsql' SECURITY DEFINER;
+$$;
 
 -- 4. Пересоздаем триггер
 CREATE TRIGGER on_auth_user_created

@@ -83,7 +83,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     }
   };
 
-  // Мобильная версия - выпадающий список
+  // Мобильная версия - выпадающий список (компактный)
   if (isMobile) {
     return (
       <div className="relative">
@@ -91,13 +91,13 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         <button
           ref={triggerRef}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-2 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200 focus:outline-none"
+          className="flex items-center gap-1.5 p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200 focus:outline-none rounded-lg"
           aria-label="Выбор темы"
         >
-          {getThemeIcon(themeMode)}
+          {getThemeIcon(themeMode, 'h-4 w-4')}
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className={`h-3 w-3 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+            className={`h-2.5 w-2.5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
@@ -118,7 +118,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             
             {/* Выпадающий список с абсолютным позиционированием */}
             <div 
-              className="absolute w-48 border border-gray-200 dark:border-gray-700 shadow-xl z-[9999] overflow-hidden rounded-xl"
+              className="absolute w-36 border border-gray-200 dark:border-gray-700 shadow-lg z-[9999] overflow-hidden rounded-lg"
               style={{
                 top: dropdownPosition.top,
                 ...(dropdownPosition.right && dropdownPosition.right < 200 
@@ -135,14 +135,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                     onSetTheme('auto');
                     setIsDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
                     themeMode === 'auto' ? 'bg-gray-100 dark:bg-gray-700 text-purple-500' : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
-                  {getThemeIcon('auto')}
-                  <span className="text-sm font-medium">Авто</span>
+                  {getThemeIcon('auto', 'h-3.5 w-3.5')}
+                  <span className="text-xs font-medium">Авто</span>
                   {themeMode === 'auto' && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 ml-auto">
                       ({systemTheme === 'dark' ? 'тёмная' : 'светлая'})
                     </span>
                   )}
@@ -155,12 +155,12 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                   onSetTheme('light');
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
                   themeMode === 'light' ? 'bg-gray-100 dark:bg-gray-700 text-yellow-500' : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
-                {getThemeIcon('light')}
-                <span className="text-sm font-medium">Светлая</span>
+                {getThemeIcon('light', 'h-3.5 w-3.5')}
+                <span className="text-xs font-medium">Светлая</span>
               </button>
               
               {/* Тёмная */}
@@ -169,12 +169,12 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                   onSetTheme('dark');
                   setIsDropdownOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
                   themeMode === 'dark' ? 'bg-gray-100 dark:bg-gray-700 text-blue-400' : 'text-gray-700 dark:text-gray-300'
                 }`}
               >
-                {getThemeIcon('dark')}
-                <span className="text-sm font-medium">Тёмная</span>
+                {getThemeIcon('dark', 'h-3.5 w-3.5')}
+                <span className="text-xs font-medium">Тёмная</span>
               </button>
             </div>
           </Portal>

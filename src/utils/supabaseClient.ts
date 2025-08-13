@@ -132,18 +132,21 @@ export interface Database {
         Row: {
           user_id: string;
           theme: string;
+          display_name_pref?: 'full_name' | 'nickname';
           last_sync: string;
           updated_at: string;
         };
         Insert: {
           user_id: string;
           theme?: string;
+          display_name_pref?: 'full_name' | 'nickname';
           last_sync?: string;
           updated_at?: string;
         };
         Update: {
           user_id?: string;
           theme?: string;
+          display_name_pref?: 'full_name' | 'nickname';
           last_sync?: string;
           updated_at?: string;
         };

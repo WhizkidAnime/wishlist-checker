@@ -260,13 +260,12 @@ export const loadSharedPayloadFromQuery = async (): Promise<SharePayloadV1 | nul
   const shortId = params.get('s');
   if (shortId && isSupabaseAvailable() && supabase) {
     try {
+      // Безопасное чтение публичного payload через RPC под SECURITY DEFINER
       const { data, error } = await (supabase as any)
-        .from('share_links')
-        .select('payload')
-        .eq('id', shortId)
-        .single();
-      if (!error && data?.payload) {
-        return data.payload as SharePayloadV1;
+        .rpc('get_share_payload', { p_id: shortId });
+      if (!error && data) {
+        const validated = validateAndSanitizeSharePayload(data);
+        if (validated) return validated;
       }
     } catch (_) {
       // ignore

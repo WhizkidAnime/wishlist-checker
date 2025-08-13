@@ -178,7 +178,7 @@ export const ShareWishlistModal: React.FC<ShareWishlistModalProps> = ({ isOpen, 
                 <div key={group.category} className="p-0">
                   <button onClick={() => toggleGroup(group.category)} className="w-full flex items-center justify-between px-3 py-2">
                     <span className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{group.category}</span>
-                    <svg className={`h-4 w-4 text-gray-500 transition-transform ${collapsed[group.category] ? '-rotate-90' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06л-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd"/></svg>
+                    <svg className={`h-4 w-4 text-gray-500 transition-transform ${collapsed[group.category] ? '-rotate-90' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd"/></svg>
                   </button>
                   {!collapsed[group.category] && (
                     <ul className="divide-y divide-gray-100 dark:divide-gray-700">

@@ -6,6 +6,7 @@ import { useDropdownPosition } from '../hooks/useDropdownPosition';
 import { useAuth } from '../hooks/useAuth';
 // import { clearAllUserData, checkUserDataState } from '../utils/dataCleanup';
 import { ThemeMode, ActualTheme } from '../hooks/useTheme';
+import type { MoneyStats } from './UserSettingsModal';
 
 interface AdaptiveControlPanelProps {
   // Пропсы для темы
@@ -13,6 +14,10 @@ interface AdaptiveControlPanelProps {
   systemTheme: ActualTheme;
   onSetTheme: (mode: ThemeMode) => void;
   supportsAutoTheme: boolean;
+  // Управление отображением элементов на мобильных экранах
+  hideThemeOnMobile?: boolean;
+  // Режим для мобильной версии: рендерить обе части, только тему или только профиль
+  mobileMode?: 'both' | 'theme-only' | 'profile-only';
   
   // Пропсы для профиля
   onAuthModalOpen: () => void;
@@ -20,6 +25,7 @@ interface AdaptiveControlPanelProps {
   // Состояние адаптивности
   isMobile: boolean;
   isDesktopWide: boolean;
+  moneyStats?: MoneyStats;
 }
 
 export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
@@ -29,7 +35,10 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
   supportsAutoTheme,
   onAuthModalOpen,
   isMobile,
-  isDesktopWide
+  isDesktopWide,
+  moneyStats,
+  hideThemeOnMobile,
+  mobileMode = 'both'
 }) => {
   const [isBurgerOpen, setIsBurgerOpen] = useState(false);
   // Состояния для управления данными - закомментированы
@@ -123,16 +132,38 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
 
   // Мобильная версия - переключатель темы и аватарка в одном контейнере
   if (isMobile) {
+    if (mobileMode === 'theme-only') {
+      return (
+        <div className="flex items-center">
+          <ThemeToggle 
+            themeMode={themeMode}
+            systemTheme={systemTheme}
+            onSetTheme={onSetTheme}
+            isMobile={true}
+            supportsAutoTheme={supportsAutoTheme}
+          />
+        </div>
+      );
+    }
+    if (mobileMode === 'profile-only') {
+      return (
+        <div className="flex items-center">
+          <UserProfile onSignInClick={onAuthModalOpen} moneyStats={moneyStats} />
+        </div>
+      );
+    }
     return (
       <div className="flex items-center gap-3">
-        <ThemeToggle 
-          themeMode={themeMode}
-          systemTheme={systemTheme}
-          onSetTheme={onSetTheme}
-          isMobile={true}
-          supportsAutoTheme={supportsAutoTheme}
-        />
-        <UserProfile onSignInClick={onAuthModalOpen} />
+        {!hideThemeOnMobile && (
+          <ThemeToggle 
+            themeMode={themeMode}
+            systemTheme={systemTheme}
+            onSetTheme={onSetTheme}
+            isMobile={true}
+            supportsAutoTheme={supportsAutoTheme}
+          />
+        )}
+        <UserProfile onSignInClick={onAuthModalOpen} moneyStats={moneyStats} />
       </div>
     );
   }
@@ -352,7 +383,7 @@ export const AdaptiveControlPanel: React.FC<AdaptiveControlPanelProps> = ({
         isMobile={false}
         supportsAutoTheme={supportsAutoTheme}
       />
-      <UserProfile onSignInClick={onAuthModalOpen} />
+      <UserProfile onSignInClick={onAuthModalOpen} moneyStats={moneyStats} />
     </div>
   );
 }; 

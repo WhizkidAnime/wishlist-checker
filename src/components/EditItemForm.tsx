@@ -154,7 +154,6 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
       category: formData.category.trim() || undefined,
     };
     
-    setIsUserEditing(false); // Сбрасываем флаг перед сохранением
     onUpdateItem(updatedItem);
   };
 

@@ -79,6 +79,7 @@
     CREATE TABLE public.user_preferences (
         user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
         theme TEXT DEFAULT 'light' CHECK (theme IN ('light', 'dark')),
+        display_name_pref TEXT DEFAULT 'full_name' CHECK (display_name_pref IN ('full_name', 'nickname')),
         last_sync TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
@@ -113,14 +114,17 @@
     -- 5. Функции для автоматического обновления timestamps
     -- =====================================================
 
-    -- Функция для обновления updated_at
+    -- Функция для обновления updated_at (фиксированный search_path)
     CREATE OR REPLACE FUNCTION update_updated_at_column()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    SET search_path = public
+    AS $$
     BEGIN
         NEW.updated_at = NOW();
         RETURN NEW;
     END;
-    $$ language 'plpgsql';
+    $$;
 
     -- Триггеры для автоматического обновления updated_at
     CREATE TRIGGER update_wishlist_items_updated_at 
@@ -135,16 +139,19 @@
     -- 6. Функция инициализации пользователя
     -- =====================================================
 
-    -- Функция для создания настроек пользователя при регистрации
+    -- Функция для создания настроек пользователя при регистрации (фиксированный search_path)
     CREATE OR REPLACE FUNCTION init_user_preferences()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    SET search_path = public
+    AS $$
     BEGIN
         INSERT INTO public.user_preferences (user_id, theme)
         VALUES (NEW.id, 'light')
         ON CONFLICT (user_id) DO NOTHING;
         RETURN NEW;
     END;
-    $$ language 'plpgsql';
+    $$;
 
     -- Триггер для автоматического создания настроек
     CREATE TRIGGER on_auth_user_created
@@ -159,12 +166,16 @@
     -- 7. RPC функция для атомарного обновления порядка товаров
     -- =====================================================
 
-    -- Функция для атомарного обновления порядка товаров
+    -- Функция для атомарного обновления порядка товаров (фиксированный search_path)
     CREATE OR REPLACE FUNCTION update_items_order(
         p_user_id UUID,
         p_item_orders JSONB
     )
-    RETURNS BOOLEAN AS $$
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    SET search_path = public
+    AS $$
     DECLARE
         item_data JSONB;
     BEGIN
@@ -186,4 +197,4 @@
     EXCEPTION WHEN OTHERS THEN
         RAISE EXCEPTION 'Error updating items order: %', SQLERRM;
     END;
-    $$ LANGUAGE plpgsql SECURITY DEFINER; 
+    $$; 

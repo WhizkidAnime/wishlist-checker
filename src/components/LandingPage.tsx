@@ -164,30 +164,66 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
 
 
   return (
-    <div className={`min-h-[100dvh] flex flex-col items-center justify-center px-2 sm:px-4 py-4 pt-safe pb-safe ${themeConfig.background} transition-colors duration-200`}>
+    <div className={`min-h-[100dvh] flex flex-col px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
       
       {/* Адаптивная панель управления */}
       <div className={`${
         isMobile 
-          ? 'static w-full flex justify-center mb-3 mt-0' 
+          ? 'flex-shrink-0 w-full flex items-center py-3 px-2'
           : 'fixed top-4 sm:top-12 right-4 sm:right-6 z-50'
       }`}>
-        <AdaptiveControlPanel
-          themeMode={themeMode}
-          systemTheme={systemTheme}
-          onSetTheme={setTheme}
-          supportsAutoTheme={supportsAutoTheme}
-          onAuthModalOpen={onAuthModalOpen}
-          isMobile={isMobile}
-          isDesktopWide={isDesktopWide}
-        />
+        {isMobile ? (
+          <>
+            {/* Слева — только переключатель темы */}
+            <div className="flex-shrink-0 ml-1">
+              <AdaptiveControlPanel
+                themeMode={themeMode}
+                systemTheme={systemTheme}
+                onSetTheme={setTheme}
+                supportsAutoTheme={supportsAutoTheme}
+                onAuthModalOpen={onAuthModalOpen}
+                isMobile={true}
+                isDesktopWide={isDesktopWide}
+                moneyStats={undefined}
+                mobileMode="theme-only"
+              />
+            </div>
+            {/* Заглушка для центра при необходимости */}
+            <div className="flex-1" />
+            {/* Справа — профиль */}
+            <div className="flex-shrink-0 ml-auto mr-1">
+              <AdaptiveControlPanel
+                themeMode={themeMode}
+                systemTheme={systemTheme}
+                onSetTheme={setTheme}
+                supportsAutoTheme={supportsAutoTheme}
+                onAuthModalOpen={onAuthModalOpen}
+                isMobile={true}
+                isDesktopWide={isDesktopWide}
+                moneyStats={undefined}
+                mobileMode="profile-only"
+              />
+            </div>
+          </>
+        ) : (
+          <AdaptiveControlPanel
+            themeMode={themeMode}
+            systemTheme={systemTheme}
+            onSetTheme={setTheme}
+            supportsAutoTheme={supportsAutoTheme}
+            onAuthModalOpen={onAuthModalOpen}
+            isMobile={false}
+            isDesktopWide={isDesktopWide}
+          />
+        )}
       </div>
 
-      {/* Основной контент */}
-      <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-6 relative z-10 transition-colors duration-200`}>
-        
-        {/* Заголовок и описание */}
-        <div className="text-center mb-6 sm:mb-8">
+      {/* Центральный контейнер с фиксированными отступами */}
+      <div className={`flex-1 flex items-center justify-center ${isMobile ? 'py-4' : 'py-6 sm:py-12'}`}>
+        <div className={`w-full max-w-4xl ${themeConfig.cardBackground} rounded-3xl shadow-lg p-4 sm:p-6 relative z-10 transition-colors duration-200 ${isMobile ? 'mx-2' : ''}`}>
+          
+          {/* Заголовок и описание */}
+          <div className={`text-center ${isMobile ? 'mb-4' : 'mb-6 sm:mb-8'}`}>
           {/* Иконка приложения */}
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-gray-700 to-black rounded-3xl flex items-center justify-center shadow-lg">
@@ -223,50 +259,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
           </p>
         </div>
 
-        {/* Функциональные возможности */}
-        {isMobile ? (
-          /* Мобильная карусель с framer-motion */
-          <div className="mb-5 flex justify-center">
-            {(() => {
-              const width = typeof window !== 'undefined' ? Math.min(280, window.innerWidth - 40) : 280;
-              return (
-                <Carousel
-                  items={features}
-                  baseWidth={width}
-                  autoplay={true}
-                  autoplayDelay={4000}
-                  pauseOnHover={true}
-                  loop={true}
-                  round={false}
-                />
-              );
-            })()}
-          </div>
-        ) : (
-          /* Десктопная карусель */
-          <div className="mb-6 sm:mb-8 flex justify-center">
-            {(() => {
-              const width = typeof window !== 'undefined' ? Math.min(420, window.innerWidth - 100) : 420;
-              return (
-                <Carousel
-                  items={features}
-                  baseWidth={width}
-                  autoplay={true}
-                  autoplayDelay={5000}
-                  pauseOnHover={true}
-                  loop={true}
-                  round={false}
-                />
-              );
-            })()}
-          </div>
-        )}
+          {/* Функциональные возможности */}
+          {isMobile ? (
+            /* Мобильная карусель с framer-motion */
+            <div className="mb-4 flex justify-center">
+              {(() => {
+                const width = typeof window !== 'undefined' ? Math.min(280, window.innerWidth - 40) : 280;
+                return (
+                  <Carousel
+                    items={features}
+                    baseWidth={width}
+                    autoplay={true}
+                    autoplayDelay={4000}
+                    pauseOnHover={true}
+                    loop={true}
+                    round={false}
+                  />
+                );
+              })()}
+            </div>
+          ) : (
+            /* Десктопная карусель */
+            <div className="mb-6 sm:mb-8 flex justify-center">
+              {(() => {
+                const width = typeof window !== 'undefined' ? Math.min(420, window.innerWidth - 100) : 420;
+                return (
+                  <Carousel
+                    items={features}
+                    baseWidth={width}
+                    autoplay={true}
+                    autoplayDelay={5000}
+                    pauseOnHover={true}
+                    loop={true}
+                    round={false}
+                  />
+                );
+              })()}
+            </div>
+          )}
 
-        {/* Кнопки авторизации */}
-        <div className="flex flex-col items-center space-y-3 max-w-sm mx-auto">
-          <h3 className={`text-lg font-semibold ${themeConfig.text} mb-1 transition-colors duration-200`}>
-            Начните сейчас
-          </h3>
+          {/* Кнопки авторизации */}
+          <div className={`flex flex-col items-center ${isMobile ? 'space-y-2.5' : 'space-y-3'} max-w-sm mx-auto`}>
+            <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${themeConfig.text} mb-1 transition-colors duration-200`}>
+              Начните сейчас
+            </h3>
           
           {error && (
             <div className="w-full text-red-500 text-sm bg-red-50 dark:bg-red-900/20 p-2.5 rounded-lg text-center">
@@ -352,12 +388,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthModalOpen }) => 
             return null;
           })()}
 
-          <p className={`text-[11px] ${themeConfig.text} opacity-50 text-center mt-2 leading-tight`}>
-            Создайте аккаунт с паролем или войдите через Google.<br/>
-            Ваши данные защищены и синхронизируются между устройствами.
-          </p>
+            <p className={`${isMobile ? 'text-[10px] mt-1' : 'text-[11px] mt-2'} ${themeConfig.text} opacity-50 text-center leading-tight`}>
+              Создайте аккаунт с паролем или войдите через Google.<br/>
+              Ваши данные защищены и синхронизируются между устройствами.
+            </p>
+          </div>
         </div>
       </div>
+      
+      {/* Нижний отступ для мобильных */}
+      {isMobile && (
+        <div className="flex-shrink-0 pb-safe" style={{ height: 'max(1rem, env(safe-area-inset-bottom))' }} />
+      )}
     </div>
   );
 }; 
