@@ -79,7 +79,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
     const el = panelRef.current;
     if (!el) return;
     const handleFocusIn = () => setPanelHasFocus(true);
-    const handleFocusOut = (e: FocusEvent) => {
+    const handleFocusOut = () => {
       // Отложенно проверяем, действительно ли фокус ушёл
       setTimeout(() => {
         if (el && !el.contains(document.activeElement)) setPanelHasFocus(false);
@@ -102,6 +102,13 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         setPanelHasFocus(false);
       }
     }
+  }, [isOpen]);
+
+  // Помечаем состояние панели на body для сдвига кнопки наверх
+  useEffect(() => {
+    if (isOpen) document.body.dataset.sidebarOpen = 'true';
+    else delete document.body.dataset.sidebarOpen;
+    return () => { delete document.body.dataset.sidebarOpen; };
   }, [isOpen]);
 
   // Включаем вертикальный скролл только если есть переполнение
@@ -226,12 +233,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
           </button>
         </div>
 
-        {/* Помечаем состояние панели на body для сдвига кнопки наверх */}
-        {useEffect(() => {
-          if (isOpen) document.body.dataset.sidebarOpen = 'true';
-          else delete document.body.dataset.sidebarOpen;
-          return () => { delete document.body.dataset.sidebarOpen; };
-        }, [isOpen])}
+        
 
         {/* Содержимое панели */}
         <div className="flex flex-col h-full">

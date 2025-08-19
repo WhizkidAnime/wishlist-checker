@@ -117,9 +117,9 @@ function ListCard(props: ListCardProps) {
     themeCardClass,
     categories,
     activeCategory,
-    activeFilter,
+    // activeFilter, // не используется внутри ListCard
     setActiveCategory,
-    setActiveFilter,
+    // setActiveFilter, // не используется внутри ListCard
     onAddCategory,
     onDeleteCategory,
     onRenameCategory,
@@ -741,6 +741,7 @@ export const MainApp: React.FC<MainAppProps> = ({
               themeCardClass={themeConfig.cardBackground}
               categories={categories}
               activeCategory={activeCategory}
+              activeFilter={activeFilter}
               setActiveCategory={setActiveCategory}
               setActiveFilter={setActiveFilter}
               onAddCategory={handleAddCategory}
@@ -861,6 +862,7 @@ export const MainApp: React.FC<MainAppProps> = ({
             themeCardClass={themeConfig.cardBackground}
             categories={categories}
             activeCategory={activeCategory}
+            activeFilter={activeFilter}
             setActiveCategory={setActiveCategory}
             setActiveFilter={setActiveFilter}
             onAddCategory={handleAddCategory}

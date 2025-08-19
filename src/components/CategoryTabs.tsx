@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { WishlistItem } from '../types/wishlistItem';
 import { CategorySidebar } from './CategorySidebar';
 
@@ -26,38 +26,12 @@ const CategoryTabsComponent = ({
   setIsSidebarOpen
 }: CategoryTabsProps) => {
 
-  // Подсчитываем количество товаров в каждой категории (мемоизировано)
-  const counts = useMemo(() => {
-    const map = new Map<string, number>();
-    let nocat = 0;
-    for (const it of items) {
-      const cat = (it.category || '').trim();
-      if (!cat) nocat += 1; else map.set(cat, (map.get(cat) || 0) + 1);
-    }
-    return { map, nocat };
-  }, [items]);
-  const getCategoryCount = (category: string) => {
-    if (category === 'all') return counts.nocat;
-    return counts.map.get(category) || 0;
-  };
+  // Подсчеты категорий не используются в заголовке — упрощаем компонент
 
 
 
-  // Получаем информацию о текущей активной категории для отображения
-  const getCurrentCategoryInfo = () => {
-    if (activeCategory === 'all') {
-      return {
-        name: 'Без категории',
-        count: getCategoryCount('all')
-      };
-    }
-    return {
-      name: activeCategory,
-      count: getCategoryCount(activeCategory)
-    };
-  };
-
-  const currentCategory = getCurrentCategoryInfo();
+  // Получение сводки по текущей категории больше не используется в UI,
+  // оставим функцию удалённой, чтобы избежать предупреждений TypeScript.
 
   return (
     <>
