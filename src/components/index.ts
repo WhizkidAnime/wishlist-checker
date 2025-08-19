@@ -3,6 +3,7 @@ export { AddItemForm } from './AddItemForm';
 export { EditItemForm } from './EditItemForm';
 export { WishlistItem } from './WishlistItem';
 export { CategoryTabs } from './CategoryTabs';
+export { CategorySidebar } from './CategorySidebar';
 export { ThemeToggle } from './ThemeToggle';
 export { SearchAndSort } from './SearchAndSort';
 export { CalculatorPopup } from './CalculatorPopup';

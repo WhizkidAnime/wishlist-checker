@@ -11,6 +11,7 @@ interface BulkActionBarProps {
   onMoveToCategory: (categoryName: string | null) => void;
   onClearSelection: () => void;
   isMobile: boolean;
+  onCreateCategory?: (name: string) => Promise<void> | void;
 }
 
 export const BulkActionBar: React.FC<BulkActionBarProps> = ({
@@ -21,9 +22,12 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
   onDelete,
   onMoveToCategory,
   onClearSelection,
-  isMobile
+  isMobile,
+  onCreateCategory
 }) => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const selectedCount = selectedItems.length;
 
   if (selectedCount === 0) return null;
@@ -31,6 +35,24 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
   const handleMoveToCategory = (categoryName: string | null) => {
     onMoveToCategory(categoryName);
     setShowCategoryDropdown(false);
+  };
+
+  const confirmCreateAndMove = async () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    try {
+      if (!categories.includes(trimmed) && onCreateCategory) {
+        await onCreateCategory(trimmed);
+      }
+    } catch {}
+    setIsCreatingCategory(false);
+    setNewCategoryName('');
+    handleMoveToCategory(trimmed);
+  };
+
+  const cancelCreate = () => {
+    setIsCreatingCategory(false);
+    setNewCategoryName('');
   };
 
   return (
@@ -124,7 +146,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                 {/* Dropdown меню категорий */}
                 {showCategoryDropdown && (
                   <div 
-                    className={`absolute rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 min-w-48 w-auto animate-in fade-in-0 zoom-in-95 ${
+                    className={`absolute rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 w-64 max-w-[85vw] animate-in fade-in-0 zoom-in-95 ${
                       isMobile ? 'left-0 right-0 bottom-full mb-2' : 'bottom-full mb-2 left-0'
                     }`}
                     style={{ backgroundColor: 'var(--color-card-background)' }}
@@ -153,6 +175,54 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
                             </button>
                           ))}
                         </>
+                      )}
+
+                      {/* Создать новую категорию */}
+                      <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
+                      {isCreatingCategory ? (
+                        <div className="px-3 py-2 grid grid-cols-[1fr_auto_auto] items-center gap-2">
+                          <input
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                confirmCreateAndMove();
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                cancelCreate();
+                              }
+                            }}
+                            placeholder="Название категории"
+                            className="min-w-0 w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-[#222222] text-gray-900 dark:text-gray-100"
+                            autoFocus
+                          />
+                          <button
+                            onClick={confirmCreateAndMove}
+                            className="shrink-0 p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+                            aria-label="Сохранить категорию"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={cancelCreate}
+                            className="shrink-0 p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                            aria-label="Отменить создание категории"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setIsCreatingCategory(true)}
+                          className="w-full px-4 py-2 text-left text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors whitespace-nowrap block"
+                        >
+                          + Новая категория
+                        </button>
                       )}
                     </div>
                   </div>

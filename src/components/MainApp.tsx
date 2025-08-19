@@ -34,14 +34,20 @@ interface HeaderProps {
   adaptiveControlPanel: React.ReactNode;
   mobileLeftControl: React.ReactNode;
   mobileRightControl: React.ReactNode;
+  isSidebarOpen?: boolean;
 }
 
-function Header({ mobileLeftControl, mobileRightControl }: HeaderProps) {
+function Header({ mobileLeftControl, mobileRightControl, isSidebarOpen }: HeaderProps) {
   return (
-    <div className="relative w-full max-w-4xl mb-6 sm:mb-8 z-30">
+    <div
+      className={`relative w-full max-w-4xl mb-6 sm:mb-8 z-30 ${isSidebarOpen ? 'pointer-events-none' : ''}`}
+      aria-hidden={isSidebarOpen ? true : undefined}
+    >
       {/* Мобильная версия - простая панель управления сверху */}
       <div className="sm:hidden">
-        <div className="relative flex items-center mb-4">
+        <div className={`relative flex items-center mb-4 transition-opacity duration-200 ${
+          isSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}>
           {/* Слева — только переключатель темы */}
           <div className="flex-shrink-0 -ml-1">{mobileLeftControl}</div>
 
@@ -70,9 +76,14 @@ interface ListCardProps {
   themeCardClass: string;
   categories: string[];
   activeCategory: string;
+  activeFilter: 'all' | 'bought' | 'pending';
   setActiveCategory: (c: string) => void;
+  setActiveFilter: (f: 'all' | 'bought' | 'pending') => void;
   onAddCategory: (name: string) => Promise<void> | void;
   onDeleteCategory: (name: string) => void;
+  onRenameCategory: (oldName: string, newName: string) => Promise<{ success: boolean; message: string } | void> | void;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
   onAddItem: Parameters<typeof AddItemForm>[0]['onAddItem'];
   wishlist: ReturnType<typeof useWishlist>['wishlist'];
   displayedWishlist: ReturnType<typeof useWishlist>['wishlist'];
@@ -106,9 +117,14 @@ function ListCard(props: ListCardProps) {
     themeCardClass,
     categories,
     activeCategory,
+    activeFilter,
     setActiveCategory,
+    setActiveFilter,
     onAddCategory,
     onDeleteCategory,
+    onRenameCategory,
+    isSidebarOpen,
+    setIsSidebarOpen,
     onAddItem,
     wishlist,
     displayedWishlist,
@@ -138,6 +154,7 @@ function ListCard(props: ListCardProps) {
   } = props;
 
   const parentRef = useRef<HTMLDivElement>(null);
+  const listHeaderRef = useRef<HTMLHeadingElement>(null);
   const enableVirtual = !isMobile && displayedWishlist.length > 40;
   const rowVirtualizer = enableVirtual
     ? useVirtualizer({
@@ -148,12 +165,33 @@ function ListCard(props: ListCardProps) {
       })
     : null;
 
+  const scrollToListHeader = () => {
+    const el = listHeaderRef.current;
+    if (!el) return;
+    const offset = 16; // небольшой отступ сверху
+    try {
+      // Ждём перерисовку после изменения категории, затем скроллим точно к верху
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const rect = el.getBoundingClientRect();
+          const top = rect.top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
+      });
+    } catch {}
+  };
+
+  const handleCategoryChangeAndScroll = (category: string) => {
+    setActiveCategory(category);
+    scrollToListHeader();
+  };
+
   return (
     <div className={`w-full max-w-4xl ${themeCardClass} rounded-3xl shadow-lg p-4 sm:p-8 relative z-10 transition-colors duration-200`}>
       <AddItemForm onAddItem={onAddItem} existingCategories={categories} disabled={false} />
 
       <div className="flex items-center justify-between flex-wrap mt-6 mb-4 gap-3 border-b pb-4 border-gray-200 dark:border-gray-600">
-        <h2 className="text-xl font-semibold text-black dark:text-theme-secondary">Список желаний</h2>
+        <h2 ref={listHeaderRef} className="text-xl font-semibold text-black dark:text-theme-secondary">Список желаний</h2>
         <div className="flex gap-2 ml-auto shrink-0">
           <button
             onClick={onShareOpen}
@@ -168,9 +206,12 @@ function ListCard(props: ListCardProps) {
         items={wishlist}
         categories={categories}
         activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
+        onCategoryChange={handleCategoryChangeAndScroll}
         onAddCategory={onAddCategory}
         onDeleteCategory={onDeleteCategory}
+        onRenameCategory={onRenameCategory}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
       />
 
       <SearchAndSort
@@ -282,7 +323,10 @@ function ScrollToTopButton({ isMobile, show, onClick }: ScrollToTopButtonProps) 
       aria-label="Вернуться к началу"
       className={`fixed z-40 p-3 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-all duration-300 ease-in-out ${
         isMobile ? 'bottom-6 right-5' : 'bottom-8 left-5'
-      } ${show ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+      } ${show ? 'opacity-50 hover:opacity-100' : 'opacity-0 pointer-events-none'} ${
+        // Сместим кнопку вправо, когда открыта боковая панель (используем data-атрибут на body)
+        document?.body?.dataset?.sidebarOpen === 'true' ? 'translate-x-80' : ''
+      }`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
@@ -385,6 +429,8 @@ export const MainApp: React.FC<MainAppProps> = ({
   const [categoryToDelete, setCategoryToDelete] = useState<string>('');
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'bought' | 'pending'>('all');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Получаем userId из контекста аутентификации  
   const { user } = useAuth();
@@ -429,19 +475,28 @@ export const MainApp: React.FC<MainAppProps> = ({
     filterByCategory,
     handleAddCategory,
     handleDeleteCategory,
+    handleRenameCategory,
     resetCategoryIfNeeded,
     hasInitialCategoriesLoaded
   } = useCategories(wishlist, triggerSync, isAuthenticated, userId);
 
-  // Применяем фильтры: если есть поиск - ищем по всем товарам, иначе фильтруем по категории
+  // Применяем фильтры: сначала фильтруем по статусу покупок, затем по категории и поиску
   const displayedWishlist = useMemo(() => {
+    // Фильтрация по статусу покупок
+    let filteredByStatus = wishlist;
+    if (activeFilter === 'bought') {
+      filteredByStatus = wishlist.filter(item => item.isBought);
+    } else if (activeFilter === 'pending') {
+      filteredByStatus = wishlist.filter(item => !item.isBought);
+    }
+
     if (searchQuery.trim()) {
-      return getFilteredAndSortedItems(wishlist);
+      return getFilteredAndSortedItems(filteredByStatus);
     } else {
-      const categoryFiltered = filterByCategory(wishlist);
+      const categoryFiltered = filterByCategory(filteredByStatus);
       return getFilteredAndSortedItems(categoryFiltered);
     }
-  }, [wishlist, activeCategory, searchQuery, sortBy, filterByCategory, getFilteredAndSortedItems]);
+  }, [wishlist, activeCategory, activeFilter, searchQuery, sortBy, filterByCategory, getFilteredAndSortedItems]);
 
   // Сбрасываем категорию если она больше не существует
   useEffect(() => {
@@ -676,19 +731,23 @@ export const MainApp: React.FC<MainAppProps> = ({
         >
           <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
             {/* Адаптивная панель управления */}
-            <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
+            <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-40 ${isMobile ? 'hidden' : 'block'}`}>
               {adaptiveControlPanel}
             </div>
             {/* Заголовок */}
-            <Header adaptiveControlPanel={adaptiveControlPanel} mobileLeftControl={mobileLeftControl} mobileRightControl={mobileRightControl} />
+            <Header adaptiveControlPanel={adaptiveControlPanel} mobileLeftControl={mobileLeftControl} mobileRightControl={mobileRightControl} isSidebarOpen={isSidebarOpen} />
             {/* Основной контент-карта */}
             <ListCard
               themeCardClass={themeConfig.cardBackground}
               categories={categories}
               activeCategory={activeCategory}
               setActiveCategory={setActiveCategory}
+              setActiveFilter={setActiveFilter}
               onAddCategory={handleAddCategory}
               onDeleteCategory={handleCategoryDeleteClick}
+              onRenameCategory={handleRenameCategory}
+              isSidebarOpen={isSidebarOpen}
+              setIsSidebarOpen={setIsSidebarOpen}
               onAddItem={handleAddItem}
               wishlist={wishlist}
               displayedWishlist={displayedWishlist}
@@ -779,6 +838,7 @@ export const MainApp: React.FC<MainAppProps> = ({
             onMoveToCategory={handleBulkMoveToCategory}
             onClearSelection={clearBulkSelection}
             isMobile={isMobile}
+            onCreateCategory={handleAddCategory}
           />
           {/* Модальное окно справки */}
           <HelpModal
@@ -793,17 +853,21 @@ export const MainApp: React.FC<MainAppProps> = ({
   return (
       <>
         <div className={`min-h-screen flex flex-col items-center justify-start py-6 sm:py-12 px-2 sm:px-4 ${themeConfig.background} transition-colors duration-200`}>
-          <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-50 ${isMobile ? 'hidden' : 'block'}`}>
+          <div className={`fixed top-4 sm:top-12 right-4 sm:right-6 z-40 ${isMobile ? 'hidden' : 'block'}`}>
             {adaptiveControlPanel}
           </div>
-          <Header adaptiveControlPanel={adaptiveControlPanel} mobileLeftControl={mobileLeftControl} mobileRightControl={mobileRightControl} />
+          <Header adaptiveControlPanel={adaptiveControlPanel} mobileLeftControl={mobileLeftControl} mobileRightControl={mobileRightControl} isSidebarOpen={isSidebarOpen} />
           <ListCard
             themeCardClass={themeConfig.cardBackground}
             categories={categories}
             activeCategory={activeCategory}
             setActiveCategory={setActiveCategory}
+            setActiveFilter={setActiveFilter}
             onAddCategory={handleAddCategory}
             onDeleteCategory={handleCategoryDeleteClick}
+            onRenameCategory={handleRenameCategory}
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
             onAddItem={handleAddItem}
             wishlist={wishlist}
             displayedWishlist={displayedWishlist}
@@ -886,6 +950,7 @@ export const MainApp: React.FC<MainAppProps> = ({
           onMoveToCategory={handleBulkMoveToCategory}
           onClearSelection={clearBulkSelection}
           isMobile={isMobile}
+          onCreateCategory={handleAddCategory}
         />
         <HelpModal
           isOpen={isHelpModalOpen}

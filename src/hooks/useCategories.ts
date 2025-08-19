@@ -198,6 +198,56 @@ export const useCategories = (
     }
   };
 
+  // Обработчик переименования категории
+  const handleRenameCategory = async (oldName: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName || !isAuthenticated || !userId) {
+      return { success: false, message: 'Некорректное имя категории' };
+    }
+    if (categories.includes(trimmed)) {
+      return { success: false, message: 'Такая категория уже существует' };
+    }
+    if (!isSupabaseAvailable() || !supabase) {
+      return { success: false, message: 'Supabase недоступен' };
+    }
+    try {
+      // Обновляем имя категории в таблице категорий
+      const { error: renameCatError } = await supabase
+        .from('user_categories')
+        .update({ name: trimmed })
+        .eq('user_id', userId)
+        .eq('name', oldName);
+      if (renameCatError) {
+        console.error('Ошибка переименования категории в Supabase:', renameCatError);
+        return { success: false, message: 'Не удалось переименовать категорию' };
+      }
+
+      // Обновляем связанные товары
+      const { error: updateItemsError } = await supabase
+        .from('wishlist_items')
+        .update({ category: trimmed })
+        .eq('user_id', userId)
+        .eq('category', oldName);
+      if (updateItemsError) {
+        console.error('Ошибка обновления товаров при переименовании:', updateItemsError);
+        return { success: false, message: 'Категория переименована, но товары не обновлены' };
+      }
+
+      // Локально заменяем имя
+      setSupabaseCategories(prev => prev.map(c => (c === oldName ? trimmed : c)));
+      if (activeCategory === oldName) {
+        setActiveCategory(trimmed);
+      }
+      if (triggerSync) {
+        await triggerSync();
+      }
+      return { success: true, message: 'Категория переименована' };
+    } catch (error) {
+      console.error('Критическая ошибка при переименовании категории:', error);
+      return { success: false, message: 'Произошла ошибка при переименовании' };
+    }
+  };
+
   // Сброс на "Без категории" если активная категория больше не существует
   const resetCategoryIfNeeded = () => {
     if (activeCategory !== 'all' && !categories.includes(activeCategory)) {
@@ -212,6 +262,7 @@ export const useCategories = (
     filterByCategory,
     handleAddCategory,
     handleDeleteCategory,
+    handleRenameCategory,
     resetCategoryIfNeeded,
     refreshCategoriesFromStorage: loadCategoriesFromSupabase,
     hasInitialCategoriesLoaded
