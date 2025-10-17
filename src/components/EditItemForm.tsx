@@ -146,7 +146,7 @@ export const EditItemForm = ({ item, onUpdateItem, onCancel, existingCategories 
     
     const updatedItem: WishlistItem = {
       ...item,
-      itemType: formData.itemType.trim(),
+      itemType: formData.itemType.trim() || undefined,
       name: formData.name.trim(),
       link: formData.link.trim(),
       price: calculatedPrice, // Используем вычисленную цену

@@ -54,7 +54,6 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
     const newErrors: FormErrors = {};
     let calculatedPrice: number | null = null;
 
-    if (!itemType.trim()) newErrors.itemType = 'Тип товара обязателен';
     if (!name.trim()) newErrors.name = 'Название обязательно';
     if (!price.trim()) {
       newErrors.price = 'Цена обязательна';
@@ -86,7 +85,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
     }
     
     const newItem: Omit<WishlistItem, 'id' | 'isBought'> = {
-      itemType: itemType.trim(),
+      itemType: itemType.trim() || undefined,
       name: name.trim(),
       link: link.trim(),
       price: calculatedPrice, // Используем вычисленную цену
@@ -135,7 +134,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
           {/* Тип товара */}
           <div>
             <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Тип товара *
+              Тип товара (опционально)
             </label>
             <input
               type="text"
@@ -143,7 +142,6 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
               value={itemType}
               onChange={(e) => handleInputChange('itemType', e.target.value)}
               className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:border-transparent transition-all duration-200 input-theme ${errors.itemType ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500'}`}
-              required
               autoComplete="off"
               maxLength={200}
             />
@@ -321,7 +319,7 @@ export const AddItemForm = ({ onAddItem, existingCategories = [], disabled = fal
           <button
             type="submit"
             className="w-auto px-6 py-2 bg-theme-button text-theme-button rounded-full font-semibold hover:bg-theme-button focus:outline-none transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!!errors.itemType || !!errors.name || !!errors.price || !price.trim()}
+            disabled={!!errors.name || !!errors.price || !price.trim()}
           >
             Добавить
           </button>

@@ -110,7 +110,7 @@ export const useWishlist = (
 
       const convertedItems: WishlistItem[] = (data || []).map(item => ({
         id: item.id,
-        itemType: item.item_type || '',
+        itemType: item.item_type || undefined,
         name: item.name,
         link: item.link || '',
         price: Number(item.price),
@@ -251,7 +251,7 @@ export const useWishlist = (
     if (!isAuthenticated || !supabase) {
       const convertedItem: WishlistItem = {
         id: generateLocalId(),
-        itemType: newItem.itemType || '',
+        itemType: newItem.itemType,
         name: newItem.name,
         link: newItem.link || '',
         price: Number(newItem.price),
@@ -295,7 +295,7 @@ export const useWishlist = (
       // Немедленно добавляем в локальное состояние для быстрого UI
       const convertedItem: WishlistItem = {
         id: data.id,
-        itemType: data.item_type || '',
+        itemType: data.item_type || undefined,
         name: data.name,
         link: data.link || '',
         price: Number(data.price),

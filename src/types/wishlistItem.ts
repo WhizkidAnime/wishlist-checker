@@ -4,8 +4,8 @@
 export interface WishlistItem {
   /** Уникальный идентификатор элемента */
   id: string | number;
-  /** Тип товара */
-  itemType: string;
+  /** Тип товара (опционально) */
+  itemType?: string;
   /** Название товара */
   name: string;
   /** URL-ссылка на товар (может быть пустой) */

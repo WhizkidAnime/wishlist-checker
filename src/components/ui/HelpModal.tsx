@@ -62,7 +62,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               ➕ Добавление товаров
             </h3>
             <div className="space-y-2 text-sm">
-              <p><strong className="text-theme-primary">Тип товара:</strong> выберите «товар» или «услуга»</p>
+              <p><strong className="text-theme-primary">Тип товара (опционально):</strong> можете указать тип товара, например «Электроника» или «Книги»</p>
               <p><strong className="text-theme-primary">Название:</strong> обязательное поле для описания желания</p>
               <p><strong className="text-theme-primary">Цена:</strong> введите стоимость с автоматическим форматированием (сложение, умножение, деление, вычитание)</p>
               <p><strong className="text-theme-primary">Ссылка:</strong> добавьте URL на товар (необязательно)</p>
