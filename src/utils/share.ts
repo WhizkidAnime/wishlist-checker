@@ -355,4 +355,129 @@ export const deleteShareLink = async (id: string): Promise<{ success: boolean; m
   }
 };
 
+// ===== Система бронирования товаров =====
+
+export interface Reservation {
+  item_index: number;
+  reserved_by: string | null;
+  is_anonymous: boolean;
+  created_at: string;
+}
+
+export interface ShareDataWithReservations {
+  payload: SharePayloadV1;
+  is_owner: boolean;
+  reservations: Reservation[];
+}
+
+// Получить данные публичной ссылки с информацией о бронированиях (для владельца)
+export const loadShareDataWithReservations = async (
+  shortId: string
+): Promise<ShareDataWithReservations | null> => {
+  if (!isSupabaseAvailable() || !supabase) return null;
+
+  try {
+    const { data, error } = await (supabase as any)
+      .rpc('get_owner_share_data', { p_share_link_id: shortId });
+
+    if (error || !data) return null;
+
+    const payload = validateAndSanitizeSharePayload(data.payload);
+    if (!payload) return null;
+
+    return {
+      payload,
+      is_owner: data.is_owner ?? false,
+      reservations: Array.isArray(data.reservations) ? data.reservations : [],
+    };
+  } catch (_) {
+    return null;
+  }
+};
+
+// Получить список бронирований для публичной ссылки
+export const getShareReservations = async (
+  shareId: string
+): Promise<Reservation[]> => {
+  if (!isSupabaseAvailable() || !supabase) return [];
+
+  try {
+    const { data, error } = await (supabase as any)
+      .rpc('get_share_reservations', { p_share_link_id: shareId });
+
+    if (error || !data) return [];
+    return data as Reservation[];
+  } catch (_) {
+    return [];
+  }
+};
+
+// Создать бронирование товара
+export const createReservation = async (
+  shareId: string,
+  itemIndex: number,
+  reservedBy?: string,
+  isAnonymous: boolean = true
+): Promise<{ success: boolean; error?: string }> => {
+  if (!isSupabaseAvailable() || !supabase) {
+    return { success: false, error: 'Supabase недоступен' };
+  }
+
+  try {
+    const { data, error } = await (supabase as any)
+      .rpc('create_reservation', {
+        p_share_link_id: shareId,
+        p_item_index: itemIndex,
+        p_reserved_by: isAnonymous ? null : (reservedBy || null),
+        p_is_anonymous: isAnonymous,
+      });
+
+    if (error) return { success: false, error: error.message };
+    if (data && typeof data === 'object') {
+      return {
+        success: data.success === true,
+        error: data.error || undefined,
+      };
+    }
+    return { success: false, error: 'Неизвестная ошибка' };
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Ошибка при бронировании' };
+  }
+};
+
+// Отменить бронирование (только для владельца)
+export const cancelReservation = async (
+  shareId: string,
+  itemIndex: number
+): Promise<{ success: boolean; error?: string }> => {
+  if (!isSupabaseAvailable() || !supabase) {
+    return { success: false, error: 'Supabase недоступен' };
+  }
+
+  try {
+    const { data, error } = await (supabase as any)
+      .rpc('cancel_reservation', {
+        p_share_link_id: shareId,
+        p_item_index: itemIndex,
+      });
+
+    if (error) return { success: false, error: error.message };
+    if (data && typeof data === 'object') {
+      return {
+        success: data.success === true,
+        error: data.error || undefined,
+      };
+    }
+    return { success: false, error: 'Неизвестная ошибка' };
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Ошибка при отмене бронирования' };
+  }
+};
+
+// Получить shortId из URL если есть
+export const getShareIdFromUrl = (): string | null => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('s');
+};
+
 
